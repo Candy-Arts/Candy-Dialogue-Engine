@@ -1,0 +1,210 @@
+[gd_scene load_steps=20 format=3 uid="uid://ln434b1rlf4e"]
+
+[ext_resource type="Script" uid="uid://cjxpu0h7crjcb" path="res://Candy_DE/Scripts/Candy_Engine.gd" id="1_nyct5"]
+[ext_resource type="PackedScene" uid="uid://y4cv2axu1mug" path="res://Candy_DE/Scenes/Background Scenes/Default.tscn" id="2_nv7xx"]
+[ext_resource type="PackedScene" uid="uid://cac6bst1ivxkm" path="res://Candy_DE/Scenes/VN Scenes/Default.tscn" id="3_lpy83"]
+[ext_resource type="PackedScene" uid="uid://be74tnfqnv6a1" path="res://Candy_DE/Scenes/Dialogue Boxes/Default.tscn" id="4_lpy83"]
+[ext_resource type="Script" uid="uid://kki74dc1hxjq" path="res://Candy_DE/Scripts/Media Players/Voice_Player.gd" id="5_4vydg"]
+[ext_resource type="PackedScene" uid="uid://nxjnc8m88e4k" path="res://Candy_DE/Scenes/Portrait Areas/Default.tscn" id="5_nv7xx"]
+[ext_resource type="PackedScene" uid="uid://dcvdt1vbsawug" path="res://Candy_DE/Scenes/Subtitles/Default.tscn" id="5_of6un"]
+[ext_resource type="PackedScene" uid="uid://bge21iajaxt8j" path="res://Candy_DE/Scenes/Chat Boxes/Default.tscn" id="6_4vydg"]
+[ext_resource type="PackedScene" uid="uid://ca8l3h21vfiv7" path="res://Candy_DE/Scenes/Image Players/Default.tscn" id="9_f35cq"]
+[ext_resource type="PackedScene" uid="uid://dthy5dsv6idqd" path="res://Candy_DE/Scenes/History Menus/Default.tscn.tscn" id="9_of6un"]
+[ext_resource type="Script" uid="uid://qswjjcovbup" path="res://Candy_DE/Scripts/Media Players/Image_Player.gd" id="11_q7yhw"]
+[ext_resource type="Script" uid="uid://f3sgk5asnsf5" path="res://Candy_DE/Scripts/Media Players/Video_Player.gd" id="12_03ioi"]
+[ext_resource type="Script" uid="uid://bk20n66lhutjf" path="res://Candy_DE/Scripts/Media Players/Effect_Player.gd" id="13_sk8ks"]
+[ext_resource type="Script" uid="uid://bl4g4efyh00e2" path="res://Candy_DE/Scripts/Media Players/Audio_Player.gd" id="14_81bjg"]
+
+[sub_resource type="Animation" id="Animation_p21q5"]
+resource_name = "Fade Black 1"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("MediaPlayers/ScreenEffects:color")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat64Array(0, 1),
+"transitions": PackedFloat64Array(1, 1),
+"update": 0,
+"values": [Color(0, 0, 0, 0), Color(0, 0, 0, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_5mcti"]
+resource_name = "Instant Black"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("MediaPlayers/ScreenEffects:color")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat64Array(0, 1),
+"transitions": PackedFloat64Array(1, 1),
+"update": 0,
+"values": [Color(0, 0, 0, 1), Color(0, 0, 0, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_dgfud"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("MediaPlayers/ScreenEffects:color")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat64Array(0),
+"transitions": PackedFloat64Array(1),
+"update": 0,
+"values": [Color(0, 0, 0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_pjl42"]
+resource_name = "Unfade Black 1"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("MediaPlayers/ScreenEffects:color")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat64Array(0, 1),
+"transitions": PackedFloat64Array(1, 1),
+"update": 0,
+"values": [Color(0, 0, 0, 1), Color(0, 0, 0, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_p21q5"]
+_data = {
+&"Fade Black 1": SubResource("Animation_p21q5"),
+&"Instant Black": SubResource("Animation_5mcti"),
+&"RESET": SubResource("Animation_dgfud"),
+&"Unfade Black 1": SubResource("Animation_pjl42")
+}
+
+[node name="Candy_UI" type="CanvasLayer"]
+script = ExtResource("1_nyct5")
+
+[node name="Backgrounds" parent="." instance=ExtResource("2_nv7xx")]
+mouse_filter = 1
+metadata/_edit_lock_ = true
+
+[node name="Busts" parent="." instance=ExtResource("3_lpy83")]
+mouse_filter = 1
+metadata/_edit_lock_ = true
+
+[node name="DialogueBox" parent="." instance=ExtResource("4_lpy83")]
+visible = false
+
+[node name="Subtitles" parent="." instance=ExtResource("5_of6un")]
+offset_top = 704.0
+offset_bottom = 768.0
+
+[node name="ChatBox" parent="." instance=ExtResource("6_4vydg")]
+visible = false
+offset_right = 256.0
+
+[node name="Portrait" parent="." instance=ExtResource("5_nv7xx")]
+visible = false
+
+[node name="Input" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Choices" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="History" parent="." instance=ExtResource("9_of6un")]
+mouse_filter = 2
+
+[node name="VoicePlayer" type="AudioStreamPlayer" parent="."]
+editor_description = "Plays speech outside of dialogue lines."
+script = ExtResource("5_4vydg")
+
+[node name="MediaPlayers" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+mouse_filter = 2
+
+[node name="ImagePlayer" parent="MediaPlayers" instance=ExtResource("9_f35cq")]
+layout_mode = 1
+offset_left = 896.0
+offset_top = 476.0
+offset_right = 1024.0
+offset_bottom = 604.0
+
+[node name="SplashPlayer" type="TextureRect" parent="MediaPlayers"]
+editor_description = "Momentarily displays images screen-wide."
+visible = false
+z_index = 120
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+script = ExtResource("11_q7yhw")
+metadata/_edit_lock_ = true
+
+[node name="Timer" type="Timer" parent="MediaPlayers/SplashPlayer"]
+
+[node name="VideoPlayer" type="VideoStreamPlayer" parent="MediaPlayers"]
+editor_description = "Plays video files"
+visible = false
+z_index = 120
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("12_03ioi")
+
+[node name="ScreenEffects" type="ColorRect" parent="MediaPlayers"]
+editor_description = "Displays various visual effects - e.g. fade to black, flashes, etc."
+z_index = 80
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
+metadata/_edit_lock_ = true
+
+[node name="EffectPlayer" type="AnimationPlayer" parent="MediaPlayers"]
+editor_description = "Used in conjunction with various UI elements (e.g. Screen Effects) to play animations."
+root_node = NodePath("../..")
+libraries = {
+&"": SubResource("AnimationLibrary_p21q5")
+}
+script = ExtResource("13_sk8ks")
+
+[node name="SoundPlayer" type="AudioStreamPlayer" parent="MediaPlayers"]
+editor_description = "Plays sounds."
+script = ExtResource("14_81bjg")
+
+[node name="AmbientPlayer" type="AudioStreamPlayer" parent="MediaPlayers"]
+editor_description = "Plays ambient sounds."
+script = ExtResource("14_81bjg")
+
+[node name="MusicPlayer" type="AudioStreamPlayer" parent="MediaPlayers"]
+editor_description = "Plays music."
+script = ExtResource("14_81bjg")
+
+[node name="SpeechPlayer" type="AudioStreamPlayer" parent="MediaPlayers"]
+editor_description = "Plays speech inside dialogue lines."
+script = ExtResource("14_81bjg")
+
+[connection signal="timeout" from="MediaPlayers/SplashPlayer/Timer" to="MediaPlayers/SplashPlayer" method="_on_timer_timeout"]
+[connection signal="finished" from="MediaPlayers/VideoPlayer" to="MediaPlayers/VideoPlayer" method="_on_finished"]
+[connection signal="animation_finished" from="MediaPlayers/EffectPlayer" to="MediaPlayers/EffectPlayer" method="_on_animation_finished"]
+[connection signal="finished" from="MediaPlayers/SoundPlayer" to="MediaPlayers/SoundPlayer" method="_on_finished"]
+[connection signal="finished" from="MediaPlayers/AmbientPlayer" to="MediaPlayers/AmbientPlayer" method="_on_finished"]
+[connection signal="finished" from="MediaPlayers/MusicPlayer" to="MediaPlayers/MusicPlayer" method="_on_finished"]
+[connection signal="finished" from="MediaPlayers/SpeechPlayer" to="MediaPlayers/SpeechPlayer" method="_on_finished"]

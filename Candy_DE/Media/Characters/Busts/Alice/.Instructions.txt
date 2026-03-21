@@ -1,0 +1,5 @@
+Place bust files here.
+
+Place SpriteFrames resources in the 'Sprite Frames' folder.
+Place Animation Libraries in the 'Animation Libraries' folder.
+Place additional TextureButton textures in the 'Button Textures' folder, in their own subfolders.

@@ -1,0 +1,18 @@
+For background layers (controlled through the §BG command):
+
+Create a folder for each Background Layer in background scenes handled by dialogues.
+Different background scenes may feature layers with the same name: in this case, all layers with the same name will share the same folder.
+
+Name folders exactly like the corresponding layer node in the the background scene.
+
+Place background media files for each layer in the matching folder.
+
+
+
+For AnimationPlayers controlled through §BG commands:
+
+1. Save animations to an AnimationLibrary file (tres).
+
+2. Place these files inside the Animation Library folder, so they can be loaded by §BG commands.
+
+See the "Backgrounds" guide (in Candy_DE/Documents/Guides/3. Commands) for details.

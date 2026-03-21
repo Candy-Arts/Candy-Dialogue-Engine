@@ -1,0 +1,5 @@
+Create a folder for each actor (character).
+
+Name folders exactly like actor references in the actors dictionary (in Candy_Database.gd).
+
+Place portrait files for an actor in that actor's folder.

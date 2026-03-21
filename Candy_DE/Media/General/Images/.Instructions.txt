@@ -1,0 +1,5 @@
+Create a folder for each image player  handled by dialogues.
+
+Name folders exactly like the corresponding image player's key in the media_players_locations dictionary (in Candy_Engine.gd).
+
+Place image files for each image player in the matching folder.

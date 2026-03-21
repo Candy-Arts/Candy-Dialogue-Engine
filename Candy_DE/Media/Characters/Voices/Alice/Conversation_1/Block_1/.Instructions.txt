@@ -1,0 +1,3 @@
+Place voice files for the 'Default' variant here.
+
+Place voice files for other languages or variants in their own folders (name each folder identically to the language/variant in your dialogues).
