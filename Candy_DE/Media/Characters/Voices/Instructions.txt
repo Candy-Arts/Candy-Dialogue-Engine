@@ -1,0 +1,6 @@
+Create a folder for each actor (character).
+
+Name folders exactly like actor references in the actors dictionary (in Candy_Database.gd).
+
+Place voices files for an actor in that actor's folder, inside the Conversation and Block folders each voice file is used in.
+See the Voiced Dialogue guide for details (in Candy_DE/Documents/Guides/Spoken Lines)

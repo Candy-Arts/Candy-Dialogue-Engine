@@ -1,0 +1,4 @@
+Place portrait files here.
+
+Place SpriteFrames resources in the 'Sprite Frames' folder.
+Place additional TextureButton textures in the 'Button Textures' folder, in their own subfolders.

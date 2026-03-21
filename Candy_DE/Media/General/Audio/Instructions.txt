@@ -1,0 +1,5 @@
+Create a folder for each AudioStreamPlayer handled by dialogues.
+
+Name folders exactly like the corresponding AudioStreamPlayer's key in the media_players_locations dictionary (in Candy_Engine.gd).
+
+Place audio files for each AudioStreamPlayer in the matching folder.

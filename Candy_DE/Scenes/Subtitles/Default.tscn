@@ -1,0 +1,30 @@
+[gd_scene load_steps=3 format=3 uid="uid://dcvdt1vbsawug"]
+
+[ext_resource type="Script" uid="uid://cp0r4y04pugdm" path="res://Candy_DE/Scripts/UI Elements/Subtitles.gd" id="1_hwr8m"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wvo6s"]
+content_margin_left = 4.0
+content_margin_top = 2.0
+content_margin_right = 4.0
+content_margin_bottom = 2.0
+
+[node name="Subtitles" type="PanelContainer"]
+visible = false
+z_index = 100
+offset_left = 576.0
+offset_top = 1008.0
+offset_right = 1344.0
+offset_bottom = 1040.0
+script = ExtResource("1_hwr8m")
+
+[node name="Text" type="RichTextLabel" parent="."]
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxEmpty_wvo6s")
+bbcode_enabled = true
+text = "Subtitles"
+fit_content = true
+horizontal_alignment = 1
+vertical_alignment = 1
+meta_underlined = false
+hint_underlined = false
