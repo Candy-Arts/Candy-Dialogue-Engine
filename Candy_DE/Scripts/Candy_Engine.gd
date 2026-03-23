@@ -8353,7 +8353,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					continue
 
 				#@ Step 6 - Determine resource path:
-				var folder := candy_de.sprite_folder.path_join(target_name)
+				var folder = candy_de.sprite_folder.path_join(target_name)
 				var file_name := file_ref if file_ref != "" else "Default"
 
 				if file_name.find(".") == -1:
