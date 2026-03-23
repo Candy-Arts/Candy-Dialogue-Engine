@@ -95,9 +95,10 @@ Integrating the dialogue engine to your project is easy and can be done in a cou
 1. Download the official release.
 2. Unpack the compressed file.
 3. Copy the Candy_DE folder to your project folder.
-4. Open your project in Godot. Go to project settings. In the 'Globals' tab, add two autoloads: Candy_UI.tscn (in Candy_DE/Scenes) with the prefix 'candy_ui', and Candy_Functions.gd (in Candy_DE/Scripts) with the prefix 'candy_de'.
-5. In the project settings, go to the 'Input Map' tab. Add a new input, named "Dialogue_Advance" and assign it a key or button of your choice (e.g. spacebar or left mouse button)
-6. Done. It's now ready to use with the basic (default) setup.
+4. Open your project in Godot. Click 'Project Settings > Tools > Upgrade Project Files...' to fix UID issues. Reload the editor if prompted to do so.
+5. Go to project settings. In the 'Globals' tab, add two autoloads: Candy_UI.tscn (in Candy_DE/Scenes) with the prefix 'candy_ui', and Candy_Functions.gd (in Candy_DE/Scripts) with the prefix 'candy_de'.
+6. In the project settings, go to the 'Input Map' tab. Add a new input, named "Dialogue_Advance" and assign it a key or button of your choice (e.g. spacebar or left mouse button)
+7. Done. It's now ready to use with the basic (default) setup.
 
 To learn more about settings and configuration, features, and writing dialogues, see the various guides in the Candy_DE/Documents/Guides folder. We recommend starting with the numbered guides ('1. Basic Setup Guide.pdf' to '7. Translations,pdf') as they cover general information and features you'll probably need to know for any project.
 
