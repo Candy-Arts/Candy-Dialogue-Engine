@@ -4839,6 +4839,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var scene_instance = scene_res.instantiate()
 			scene_instance.name = "Backgrounds"
 			scene_instance.caller = self
+			scene_instance.visible = true
 			add_child(scene_instance)
 
 			return "Continue"
@@ -7059,6 +7060,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var scene_instance = scene_res.instantiate()
 			scene_instance.name = "Busts"
 			scene_instance.caller = self
+			scene_instance.visible = true
 			add_child(scene_instance)
 
 			return "Continue"

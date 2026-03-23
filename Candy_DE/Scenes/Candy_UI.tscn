@@ -88,10 +88,12 @@ script = ExtResource("1_nyct5")
 engine_mode = "UI"
 
 [node name="Backgrounds" parent="." instance=ExtResource("2_nv7xx")]
+visible = false
 mouse_filter = 1
 metadata/_edit_lock_ = true
 
 [node name="Busts" parent="." instance=ExtResource("3_lpy83")]
+visible = false
 mouse_filter = 1
 metadata/_edit_lock_ = true
 
