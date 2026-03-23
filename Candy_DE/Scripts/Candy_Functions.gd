@@ -37,6 +37,9 @@ extends "res://Candy_DE/Scripts/Candy_Database.gd"
 
 #* Change Game State value when dialogue starts:
 func change_game_state(caller, method):		#/ 'method' indicates whether the function was called when dialogue started or ended
+	var game_state		#/ Placeholder: replace with your own (e.g. global.game_state)
+	var previous_state	#/ Placeholder: replace with your own (e.g. global.previous_state)
+
 	#@ Setup:
 	#%	Does your game use a game state tracker variable?
 	var use_game_state = false		#TODO: Switch to true.
@@ -57,15 +60,15 @@ func change_game_state(caller, method):		#/ 'method' indicates whether the funct
 		#% When dialogue starts:
 		if method == "start":
 			#% Store previous game state before dialogue starts:
-			global.previous_state = global.game_state	#TODO: replace both variables with your own.
+			previous_state = game_state	#TODO: replace both variables with your own.
 
 			#% Change game_state value to indicate dialogue state:
-			global.game_state = dialogue_state_value	#TODO: replace global.game_state with your own.
+			game_state = dialogue_state_value	#TODO: replace global.game_state with your own.
 
 		#% When dialogue ends:
 		if method == "end":
 			#% Revert to previous game state value:
-			global.game_state = global.previous_state	#TODO: replace both variables with your own.
+			game_state = previous_state	#TODO: replace both variables with your own.
 
 			#? If you don't want to revert to the previous state when dialogue ends,
 			#? change global.previous_state accordingly before the end of the dialogue,

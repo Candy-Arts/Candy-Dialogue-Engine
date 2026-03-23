@@ -225,8 +225,6 @@ func store_to_variable():
 	caller.set_variable_value(decoded, value_to_store)
 
 	print("[DEBUG] store_to_variable →", save_variable, "=", value_to_store)
-	
-	print(global.player_name)
 
 #* Verify the input conforms with all conditions:
 func check_input():
