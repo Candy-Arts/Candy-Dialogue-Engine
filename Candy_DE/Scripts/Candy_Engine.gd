@@ -46,6 +46,13 @@ var running_dialogue = {}
 #? TIP: The variables in this script can be changed during gameplay through your game code or through dialogues (use the "§Set" command)
 #? TIP: You may also let the player change some of these settings through an option menu.
 
+@export_group("Identity")
+# An arbitrary value, that can be used to indicate the purpose of an engine instance when needed.[br]
+# Used only in change_game_state() (for now), can also be used in your own custom code.[br][br]
+# "UI" is assigned to Candy UI by default. For future-proofing purposes, we recommend not assigning "UI" to any other instances.[br]
+# "Bark" is assigned to NPC bark engine instances. You can assign that value to custom instances also used for NPC barks.
+@export var engine_mode: String = ""
+
 @export_group("Dialogue Display")
 #& DIALOGUE DISPLAY
 #^ Dialogue mode:

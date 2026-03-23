@@ -24,6 +24,7 @@ texture_margin_bottom = 5.0
 
 [node name="BarkEngine" type="Node2D"]
 script = ExtResource("1_h3acu")
+engine_mode = "Bark"
 dialogue_mode = 5
 input_enabled = false
 ui_elements_paths = {

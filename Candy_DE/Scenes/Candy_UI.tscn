@@ -85,6 +85,7 @@ _data = {
 
 [node name="Candy_UI" type="CanvasLayer"]
 script = ExtResource("1_nyct5")
+engine_mode = "UI"
 
 [node name="Backgrounds" parent="." instance=ExtResource("2_nv7xx")]
 mouse_filter = 1
