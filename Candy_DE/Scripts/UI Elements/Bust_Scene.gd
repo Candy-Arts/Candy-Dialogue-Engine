@@ -201,6 +201,8 @@ func end_highlight_speaker(speaker_ref, dialogue_mode):
 
 #* Assign a bust and play/pause depending on Play:
 func set_bust(actor: String, bust_ref: String, file_ref: String, anim_name: String, loop: int, wait: int, time_target: float) -> void:
+	self.visible = true		#/ Precaution, in case the scene is invisible for some reason. 
+	
 	var bust_node = busts_container.get_node_or_null(bust_ref)
 	if bust_node == null:
 		printerr("set_bust: Bust node not found: ", bust_ref)
@@ -500,6 +502,8 @@ func set_bust(actor: String, bust_ref: String, file_ref: String, anim_name: Stri
 
 #* Move a bust to another node, preserving animation and playback state:
 func move_bust(actor: String, old_bust: String, new_bust: String) -> void:
+	self.visible = true		#/ Precaution, in case the scene is invisible for some reason. 
+	
 	var bust_node_old = busts_container.get_node_or_null(old_bust)
 	var bust_node_new = busts_container.get_node_or_null(new_bust)
 	if bust_node_old == null or bust_node_new == null:

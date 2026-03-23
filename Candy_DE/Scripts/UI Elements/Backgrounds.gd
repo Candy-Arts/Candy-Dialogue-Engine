@@ -63,7 +63,7 @@ func _get_layer_folder(layer: String) -> String:
 
 #* Assign or animate a background image / animation / video:
 func assign_bg(layer: String, file_ref: String, anim_name: String, loop: int, wait: int, time_target: float) -> void:
-	print()
+	self.visible = true		#/ Precaution, in case the scene is invisible for some reason. 
 
 	#@ Step 1 - Locate the background node:
 	var bg_node = bg_container.get_node_or_null(layer)
