@@ -1,0 +1,7 @@
+Create a folder for each actor (character).
+
+Name folders exactly like actor references in the actors dictionary (in Candy_Database.gd).
+
+Place sprite files for an actor in that actor's folder.
+
+Sprite files are used by the §CS_Sprite command, to change the image assigned to a Sprite2D/3D or AnimatesSprite2D/3D.

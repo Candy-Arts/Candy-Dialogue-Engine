@@ -1,8 +1,6 @@
-[gd_scene load_steps=20 format=3 uid="uid://ln434b1rlf4e"]
+[gd_scene load_steps=18 format=3 uid="uid://ln434b1rlf4e"]
 
 [ext_resource type="Script" uid="uid://cjxpu0h7crjcb" path="res://Candy_DE/Scripts/Candy_Engine.gd" id="1_nyct5"]
-[ext_resource type="PackedScene" uid="uid://y4cv2axu1mug" path="res://Candy_DE/Scenes/Background Scenes/Default.tscn" id="2_nv7xx"]
-[ext_resource type="PackedScene" uid="uid://cac6bst1ivxkm" path="res://Candy_DE/Scenes/VN Scenes/Default.tscn" id="3_lpy83"]
 [ext_resource type="PackedScene" uid="uid://be74tnfqnv6a1" path="res://Candy_DE/Scenes/Dialogue Boxes/Default.tscn" id="4_lpy83"]
 [ext_resource type="Script" uid="uid://kki74dc1hxjq" path="res://Candy_DE/Scripts/Media Players/Voice_Player.gd" id="5_4vydg"]
 [ext_resource type="PackedScene" uid="uid://nxjnc8m88e4k" path="res://Candy_DE/Scenes/Portrait Areas/Default.tscn" id="5_nv7xx"]
@@ -86,16 +84,6 @@ _data = {
 [node name="Candy_UI" type="CanvasLayer"]
 script = ExtResource("1_nyct5")
 engine_mode = "UI"
-
-[node name="Backgrounds" parent="." instance=ExtResource("2_nv7xx")]
-visible = false
-mouse_filter = 1
-metadata/_edit_lock_ = true
-
-[node name="Busts" parent="." instance=ExtResource("3_lpy83")]
-visible = false
-mouse_filter = 1
-metadata/_edit_lock_ = true
 
 [node name="DialogueBox" parent="." instance=ExtResource("4_lpy83")]
 visible = false

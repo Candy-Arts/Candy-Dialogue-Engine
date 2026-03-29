@@ -1,0 +1,3 @@
+Place sprite files here (.png, .jpg, etc).
+
+Place SpriteFrames resources (used by AnimatedSprite2D/3D nodes) in the 'Sprite Frames' folder.
