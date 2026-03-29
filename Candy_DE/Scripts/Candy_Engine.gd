@@ -10495,7 +10495,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 					#@ 1. Skip/Slow/Skip:
 					#% 1A. Speed writing:
-					if Input.is_action_pressed(input_speed_dialogue) and input_enabled == true:
+					if Input.is_action_just_pressed(input_speed_dialogue) and input_enabled == true:
 						if continue_skip_speed < 0:
 							pass
 						elif continue_skip_speed == 0:
@@ -10505,7 +10505,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_skip_speed
 
 					#% 1B. Slow writing:
-					elif Input.is_action_pressed(input_slow_dialogue) and input_enabled == true:
+					elif Input.is_action_just_pressed(input_slow_dialogue) and input_enabled == true:
 						if continue_skip_speed < 0:
 							pass
 						elif continue_slow_speed == 0:
@@ -10515,7 +10515,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_slow_speed
 
 					#% 1C. Skip writing:
-					elif Input.is_action_pressed(input_skip_dialogue) and input_enabled == true:
+					elif Input.is_action_just_pressed(input_skip_dialogue) and input_enabled == true:
 						dialogue_text_node.visible_characters = -1
 						break
 
@@ -10749,7 +10749,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 					#@ 1. Skip/Slow/Skip:
 					#% 1A. Speed writing:
-					if Input.is_action_pressed(input_speed_dialogue) and input_enabled == true:
+					if Input.is_action_just_pressed(input_speed_dialogue) and input_enabled == true:
 						if continue_skip_speed < 0:
 							pass
 						elif continue_skip_speed == 0:
@@ -10759,7 +10759,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_skip_speed
 
 					#% 1B. Slow writing:
-					elif Input.is_action_pressed(input_slow_dialogue) and input_enabled == true:
+					elif Input.is_action_just_pressed(input_slow_dialogue) and input_enabled == true:
 						if continue_skip_speed < 0:
 							pass
 						elif continue_slow_speed == 0:
@@ -10769,7 +10769,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_slow_speed
 
 					#% 1C. Skip writing:
-					elif Input.is_action_pressed(input_skip_dialogue) and input_enabled == true:
+					elif Input.is_action_just_pressed(input_skip_dialogue) and input_enabled == true:
 						bubble_text_node.visible_characters = -1
 						break
 
@@ -10995,7 +10995,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 					#@ 1. Skip/Slow/Skip:
 					#% 1A. Speed writing:
-					if Input.is_action_pressed(input_speed_dialogue) and input_enabled == true:
+					if Input.is_action_just_pressed(input_speed_dialogue) and input_enabled == true:
 						if continue_skip_speed < 0:
 							pass
 						elif continue_skip_speed == 0:
@@ -11005,7 +11005,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_skip_speed
 
 					#% 1B. Slow writing:
-					elif Input.is_action_pressed(input_slow_dialogue) and input_enabled == true:
+					elif Input.is_action_just_pressed(input_slow_dialogue) and input_enabled == true:
 						if continue_skip_speed < 0:
 							pass
 						elif continue_slow_speed == 0:
@@ -11015,7 +11015,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_slow_speed
 
 					#% 1C. Skip writing:
-					elif Input.is_action_pressed(input_skip_dialogue) and input_enabled == true:
+					elif Input.is_action_just_pressed(input_skip_dialogue) and input_enabled == true:
 						vn_bubble_text_node.visible_characters = -1
 						break
 
@@ -11238,7 +11238,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 					#@ 1. Skip/Slow/Skip:
 					#% 1A. Speed writing:
-					if Input.is_action_pressed(input_speed_dialogue) and input_enabled == true:
+					if Input.is_action_just_pressed(input_speed_dialogue) and input_enabled == true:
 						if continue_skip_speed < 0:
 							pass
 						elif continue_skip_speed == 0:
@@ -11248,7 +11248,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_skip_speed
 
 					#% 1B. Slow writing:
-					elif Input.is_action_pressed(input_slow_dialogue) and input_enabled == true:
+					elif Input.is_action_just_pressed(input_slow_dialogue) and input_enabled == true:
 						if continue_skip_speed < 0:
 							pass
 						elif continue_slow_speed == 0:
@@ -11258,7 +11258,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_slow_speed
 
 					#% 1C. Skip writing:
-					elif Input.is_action_pressed(input_skip_dialogue) and input_enabled == true:
+					elif Input.is_action_just_pressed(input_skip_dialogue) and input_enabled == true:
 						bark_text_node.visible_characters = -1
 						break
 
@@ -11555,7 +11555,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 					#@ 1. Skip/Slow/Skip:
 					#% 1A. Speed writing:
-					if Input.is_action_pressed(input_speed_dialogue) and input_enabled == true:
+					if Input.is_action_just_pressed(input_speed_dialogue) and input_enabled == true:
 						if continue_skip_speed < 0:
 							pass
 						elif continue_skip_speed == 0:
@@ -11565,7 +11565,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_skip_speed
 
 					#% 1B. Slow writing:
-					elif Input.is_action_pressed(input_slow_dialogue) and input_enabled == true:
+					elif Input.is_action_just_pressed(input_slow_dialogue) and input_enabled == true:
 						if continue_skip_speed < 0:
 							pass
 						elif continue_slow_speed == 0:
@@ -11575,7 +11575,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_slow_speed
 
 					#% 1C. Skip writing:
-					elif Input.is_action_pressed(input_skip_dialogue) and input_enabled == true:
+					elif Input.is_action_just_pressed(input_skip_dialogue) and input_enabled == true:
 						subtitle_text_node.visible_characters = -1
 						break
 
@@ -11861,7 +11861,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 					#@ 1. Skip/Slow/Speed:
 					#% 1A. Speed writing:
-					if Input.is_action_pressed(input_speed_dialogue) and input_enabled == true:
+					if Input.is_action_just_pressed(input_speed_dialogue) and input_enabled == true:
 						if continue_skip_speed < 0:
 							pass
 						elif continue_skip_speed == 0:
@@ -11871,7 +11871,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_skip_speed
 
 					#% 1B. Slow writing:
-					elif Input.is_action_pressed(input_slow_dialogue) and input_enabled == true:
+					elif Input.is_action_just_pressed(input_slow_dialogue) and input_enabled == true:
 						if continue_skip_speed < 0:
 							pass
 						elif continue_slow_speed == 0:
@@ -11881,7 +11881,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_slow_speed
 
 					#% 1C. Skip writing:
-					elif Input.is_action_pressed(input_skip_dialogue) and input_enabled == true:
+					elif Input.is_action_just_pressed(input_skip_dialogue) and input_enabled == true:
 						chat_text_node.visible_characters = -1
 						break
 
@@ -12050,10 +12050,16 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 #* Wait for player input or auto-read timeout to advance dialogue:
 func wait_for_player_advance(voice_player = null) -> void:
 	print("Waiting for player advance.")
+
+	#@ Wait for advance key to be released before accepting input:
+	while Input.is_action_pressed(input_advance_dialogue):
+		await get_tree().process_frame
+
 	var timer := 0.0
 	var auto_enabled = auto_advance > -1
 	var wait_time := float(auto_advance)
 
+	#@ Advance:
 	while true:
 		await get_tree().process_frame
 
@@ -12080,6 +12086,7 @@ func wait_for_player_advance(voice_player = null) -> void:
 			if voice_done:
 				break
 
+	await get_tree().process_frame
 
 #* End the dialogue:
 func end_dialogue():
