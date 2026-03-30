@@ -9423,6 +9423,7 @@ func process_lines(current_conversation, current_block, line_index, source, main
 				#@ Step 3D - Split disposition list:
 				var cond_disps: Array = []
 				if disposition_cond != "":
+					disposition_cond = disposition_cond.trim_suffix(",").strip_edges()
 					cond_disps = disposition_cond.split(",", false)
 					if cond_disps.size() == 1:
 						cond_disps = disposition_cond.split(".", false)
