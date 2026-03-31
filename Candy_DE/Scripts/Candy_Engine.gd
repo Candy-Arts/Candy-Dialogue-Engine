@@ -994,8 +994,6 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 		#* §Set - Modify a variable:
 		"§set":
-			
-			
 			var lhs_var: String		= command_value.get("Variable", "")
 			var operator: String	= resolve_value(command_value.get("Operator", "="))
 			var expr_line: String	= command_value.get("Expression", "")
@@ -1106,10 +1104,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 		#* §Name - Change a character's display name:
 		"§name":
-			var actor_ref: String = resolve_value(command_value.get("Reference", ""))
-			var new_name: String  = resolve_value(command_value.get("Name", ""))
-			var table_raw: String = command_value.get("Table", "£candy_de.display_names")
-			var key_raw: String = resolve_value(command_value.get("Actor_Key", "Display Name"))		#/ Ensures compatibility 
+			var actor_ref: String	= resolve_value(command_value.get("Reference", ""))
+			var new_name: String	= resolve_value(command_value.get("Name", ""))
+			var table_raw: String	= command_value.get("Table", "£candy_de.display_names")
+			var key_raw: String		= resolve_value(command_value.get("Actor_Key", "Display Name"))		#/ Ensures compatibility
 
 			#@ Step 1 - Resolve super symbols at the start:
 			if table_raw.begins_with(candy_de.super_singleton_symbol):
@@ -4414,7 +4412,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 										var old_label = button_node.label
 										var old_tooltip = button_node.tooltip
 
-										#% Sync internal state directly from choice_data:									
+										#% Sync internal state directly from choice_data:
 										button_node.choice_enabled = int(choice_data.get("Enabled", "1"))
 										button_node.choice_active = int(choice_data.get("Active", "1"))
 										button_node.choice_invisible = int(choice_data.get("Invisible", "0"))
@@ -4598,7 +4596,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 													break
 
 											button_list.move_child(button_instance, correct_index)
-											
+
 											button_instance.setup()		#TODO: Add 'await' if setup() should finish before the next choice is handled.
 
 											print("[DEBUG] §Choice_Status: Spawned choice '%s' under category '%s' (depth %s)"
@@ -10476,7 +10474,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 						var voice_length = voice_player.stream.get_length()	#/ Duration in seconds
 						if voice_length > 0.1 and total_visible > 0:
 							effective_speed = float(total_visible) / voice_length
-				
+
 				#. Hook Call:
 				if dialogue_box.has_method("x_write_begun"):
 					await dialogue_box.x_write_begun()
@@ -10736,7 +10734,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 				#§ Hook call:
 				if bubble_node.has_method("x_write_begun"):
 					await bubble_node.x_write_begun()
-				
+
 				#% Write text:
 				while i < total_visible:
 					#@ 0. Suspension check:
@@ -12314,7 +12312,7 @@ func pause_media_players() -> void:
 	for key in media_players_locations.keys():
 		if key in media_suspend_immune:
 			continue
-		
+
 		var path = media_players_locations[key]
 		if not has_node(path):
 			continue
@@ -12809,7 +12807,7 @@ func decode_variable_name(ref: String) -> Dictionary:
 	var base_name := raw if dot_index == -1 else raw.substr(0, dot_index)
 	var remainder := "" if dot_index == -1 else raw.substr(dot_index + 1)
 
-	#% Determine base
+	#@ Determine base:
 	if ref.begins_with(candy_de.node_symbol):
 		result["base"] = get_node_or_null("/root/" + base_name)
 	elif ref.begins_with(candy_de.singleton_symbol):
@@ -12826,12 +12824,17 @@ func decode_variable_name(ref: String) -> Dictionary:
 	if result["base"] == null:
 		return result
 
-	#% Parse path (supports dot and bracket notation)
+	#@ Parse path:
 	if not remainder.is_empty():
 		var regex := RegEx.new()
 		regex.compile(r"([^. \[\]]+)|\[['\"]?([^'\"]+)['\"]?\]")
 		for match in regex.search_all(remainder):
 			var key_str := match.get_string(1) if match.get_string(1) != "" else match.get_string(2)
+			#% Resolve if the key is a variable reference:
+			if key_str.begins_with(candy_de.singleton_symbol) \
+			or key_str.begins_with(candy_de.node_symbol) \
+			or key_str.begins_with(candy_de.vardict_symbol):
+				key_str = str(resolve_value(key_str))
 			result["path"].append(key_str)
 
 	return result
