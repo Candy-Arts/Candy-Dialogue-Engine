@@ -12829,12 +12829,17 @@ func decode_variable_name(ref: String) -> Dictionary:
 		var regex := RegEx.new()
 		regex.compile(r"([^. \[\]]+)|\[['\"]?([^'\"]+)['\"]?\]")
 		for match in regex.search_all(remainder):
-			var key_str := match.get_string(1) if match.get_string(1) != "" else match.get_string(2)
+			var key_str = match.get_string(1) if match.get_string(1) != "" else match.get_string(2)
 			#% Resolve if the key is a variable reference:
 			if key_str.begins_with(candy_de.singleton_symbol) \
 			or key_str.begins_with(candy_de.node_symbol) \
 			or key_str.begins_with(candy_de.vardict_symbol):
-				key_str = str(resolve_value(key_str))
+				key_str = resolve_value(key_str)
+				if typeof(key_str) == TYPE_STRING and str(key_str).is_valid_int():
+					key_str = int(key_str)
+			else:
+				if key_str.is_valid_int():
+					key_str = int(key_str)
 			result["path"].append(key_str)
 
 	return result
