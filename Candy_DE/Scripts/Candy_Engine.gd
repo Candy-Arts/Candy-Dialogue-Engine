@@ -2410,7 +2410,6 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var loop_var = parts[0].strip_edges()
 			var iterable_expr = parts[1].strip_edges()
 
-
 			#@ Step 2 - Evaluate iterable using Expression:
 			var iterable: Array = []
 
