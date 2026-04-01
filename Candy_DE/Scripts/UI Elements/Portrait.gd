@@ -50,7 +50,10 @@ func receive_portrait(character_ref: String, portrait_raw: String, play_portrait
 	var resolved := portrait_raw
 
 	#@ Step 3 - Handle variable-style references (£, $, €, etc.):
-	if typeof(portrait_raw) == TYPE_STRING and (portrait_raw.begins_with(candy_de.vardict_symbol) or portrait_raw.begins_with(candy_de.node_symbol) or portrait_raw.begins_with(candy_de.singleton_symbol)):
+	if typeof(portrait_raw) == TYPE_STRING and (portrait_raw.begins_with(candy_de.vardict_symbol)
+	or portrait_raw.begins_with(candy_de.node_symbol)
+	or portrait_raw.begins_with(candy_de.singleton_symbol)
+	or portrait_raw.begins_with(candy_de.role_symbol)):
 		var decoded = caller.decode_variable_name(portrait_raw)
 		var resolved_var = caller.get_variable_value(decoded)
 		if resolved_var != null:
@@ -381,14 +384,14 @@ func no_portrait():
 		portrait_node.texture_disabled = null
 		portrait_node.texture_focused = null
 		portrait_node.texture_click_mask = null
-	
+
 	elif portrait_node is Sprite2D or portrait_node is Sprite3D:
 		portrait_node.texture = null
-	
+
 	elif portrait_node is AnimatedSprite2D or portrait_node is AnimatedSprite3D:
 		portrait_node.stop()
 		portrait_node.visible = false
-	
+
 	elif portrait_node is VideoStreamPlayer:
 		portrait_node.stop()
 		portrait_node.visible = false

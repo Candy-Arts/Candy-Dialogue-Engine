@@ -1117,22 +1117,18 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			elif table_raw.begins_with(candy_de.super_vardict_symbol):
 				table_raw = resolve_value(candy_de.vardict_symbol + table_raw.substr(1))
 
-			#@ Step 2 - Resolve actor role if needed:
-			if actor_ref.begins_with(candy_de.role_symbol) and candy_de.roles.has(actor_ref):
-				actor_ref = candy_de.roles[actor_ref]
-
-			#@ Step 3 - Resolve Actor_Key if empty:
+			#@ Step 2 - Resolve Actor_Key if empty:
 			if key_raw == "":
 				key_raw = "Display Name"
 
-			#@ Step 4 - Resolve Table if empty:
+			#@ Step 3 - Resolve Table if empty:
 			if key_raw == "Display Name" and table_raw == "":
 				table_raw = "display_names"
 
-			#@ Step 5 - Translate the name (translate() handles table resolution internally):
+			#@ Step 4 - Translate the name (translate() handles table resolution internally):
 			new_name = translate(new_name, table_raw)
 
-			#@ Step 6 - Apply the change:
+			#@ Step 5 - Apply the change:
 			if candy_de.actors.has(actor_ref):
 				candy_de.actors[actor_ref][key_raw] = new_name
 
@@ -1144,11 +1140,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
 			var new_disp: String 	= resolve_value(command_value.get("Disposition", ""))
 
-			#@ Step 1 - Resolve actor role if needed:
-			if actor_ref.begins_with(candy_de.role_symbol) and candy_de.roles.has(actor_ref):
-				actor_ref = candy_de.roles[actor_ref]
-
-			#@ Step 2 - Apply change:
+			#@ Step 1 - Apply change:
 			if candy_de.actors.has(actor_ref):
 				candy_de.actors[actor_ref]["Disposition"] = new_disp
 
@@ -1161,10 +1153,8 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
 
 			#@ Step 1 - Resolve actor role if needed:
-			if actor_ref.begins_with(candy_de.role_symbol) and candy_de.roles.has(actor_ref):
-				actor_ref = candy_de.roles[actor_ref]
-				if actor_ref == "":
-					print_debug("§Role: [CAUTION] A Role Reference is provided for assignment, but has no Actor assigned. Target Role will be cleared.")
+			if actor_ref == "":
+				print_debug("§Role: [CAUTION] A Role Reference is provided for assignment, but has no Actor assigned. Target Role will be cleared.")
 
 			#@ Step 2 - Assign to candy_de.roles:
 			candy_de.roles[role_key] = actor_ref
@@ -7380,7 +7370,6 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			#@ Step 2 - Resolve values and map roles to actors:
 			for i in range(refs_array.size()):
 				var value = resolve_value(refs_array[i]).strip_edges()
-
 				if value.begins_with(candy_de.role_symbol):
 					var role_name = value
 					if candy_de.roles.has(role_name):
@@ -7661,7 +7650,6 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			#@ Step 2 - Resolve actors (variables + roles):
 			for i in range(refs_array.size()):
 				var value = resolve_value(refs_array[i]).strip_edges()
-
 				if value.begins_with(candy_de.role_symbol):
 					var role_name = value
 					if candy_de.roles.has(role_name):
@@ -9341,25 +9329,7 @@ func process_lines(current_conversation, current_block, line_index, source, main
 			var speech_data: Dictionary = value
 
 			#@ Step 2 - Resolve speaker reference:
-			var speaker_ref_raw = speech_data.get("Reference", "")
-			var speaker_ref = speaker_ref_raw
-
-			if typeof(speaker_ref_raw) == TYPE_STRING and (
-				speaker_ref_raw.begins_with(candy_de.vardict_symbol)
-				or speaker_ref_raw.begins_with(candy_de.node_symbol)
-				or speaker_ref_raw.begins_with(candy_de.singleton_symbol)
-			):
-				var decoded_ref = decode_variable_name(speaker_ref_raw)
-				var resolved_ref = get_variable_value(decoded_ref)
-				if resolved_ref != null:
-					speaker_ref = str(resolved_ref).strip_edges()
-
-			#% Handle role aliasing:
-			var role_flag := false
-			if speaker_ref_raw.begins_with(candy_de.role_symbol):
-				role_flag = true
-			if role_flag and candy_de.roles.has(speaker_ref):
-				speaker_ref = candy_de.roles[speaker_ref]
+			var speaker_ref = resolve_value(speech_data.get("Reference", ""))
 
 			#@ Step 3A - Resolve disposition condition:
 			var disposition_raw = speech_data.get("Disposition", "")
@@ -9584,34 +9554,14 @@ func process_lines(current_conversation, current_block, line_index, source, main
 					)
 					var replacement := ""
 
-					#% Handle prefixed variable decoding (€, $, £):
+					#% Handle prefixed variable decoding (€, $, £, °):
 					if var_name.begins_with(candy_de.vardict_symbol) \
 					or var_name.begins_with(candy_de.singleton_symbol) \
-					or var_name.begins_with(candy_de.node_symbol):
-						var decoded = decode_variable_name(var_name)
-						var resolved = get_variable_value(decoded)
+					or var_name.begins_with(candy_de.node_symbol) \
+					or var_name.begins_with(candy_de.role_symbol):
+						var resolved = resolve_value(var_name)
 						if resolved != null:
 							replacement = str(resolved)
-
-					#% Role reference → get display name or specific key from mapped actor:
-					elif var_name.begins_with(candy_de.role_symbol):
-						var role_ref = var_name.strip_edges()
-						var key_name = "Display Name"
-						var parts = role_ref.split(candy_de.separator_symbol, false)
-						role_ref = parts[0].strip_edges()
-
-						#% Optional explicit key after separator (e.g. °NPC_1¦Gender):
-						if parts.size() > 1:
-							key_name = parts[1].strip_edges()
-
-						if candy_de.roles.has(role_ref):
-							var actor_ref = candy_de.roles[role_ref]
-							if candy_de.actors.has(actor_ref):
-								var actor_entry = candy_de.actors[actor_ref]
-								if actor_entry.has(key_name):
-									replacement = str(actor_entry[key_name])
-								elif actor_entry.has("Display Name"):
-									replacement = str(actor_entry["Display Name"])
 
 					#% Unprefixed variable → lookup in actors (supports nested keys):
 					else:
@@ -9636,13 +9586,26 @@ func process_lines(current_conversation, current_block, line_index, source, main
 						if candy_de.actors.has(actor_name):
 							var current = candy_de.actors[actor_name]
 
-							#% Traverse nested keys if present:
-							for key in key_path:
-								if typeof(current) == TYPE_DICTIONARY and current.has(key):
-									current = current[key]
-								else:
-									current = null
-									break
+							#% If no nested keys/indexes, display "Short Name":
+							if key_path.size() == 0:
+								if typeof(current) == TYPE_DICTIONARY and current.has("Short Name"):
+									current = current["Short Name"]
+								#TODO: If the actor doesn't have the "Short Name" key, the actor reference is displayed;
+								#TODO: Re-activate the code below to display the actor's full dictionary:
+								#else:
+									#current = null
+
+							#% If nested keys/indexes, display their value:
+							else:
+								#% Traverse nested keys if present:
+								for key in key_path:
+									if typeof(current) == TYPE_DICTIONARY and current.has(key):
+										current = current[key]
+									else:
+										#TODO: If the actor doesn't have one of the keys, the actor reference is displayed;
+										#TODO: Re-activate the code below to display the actor's full dictionary:
+										#current = null
+										break
 
 							if current != null:
 								replacement = str(current)
@@ -9708,9 +9671,9 @@ func process_lines(current_conversation, current_block, line_index, source, main
 					#% Variable resolution for keyword (left side):
 					if source_word.begins_with(candy_de.vardict_symbol) \
 					or source_word.begins_with(candy_de.singleton_symbol) \
-					or source_word.begins_with(candy_de.node_symbol):
-						var decoded_word = decode_variable_name(source_word)
-						var resolved_word = get_variable_value(decoded_word)
+					or source_word.begins_with(candy_de.node_symbol) \
+					or source_word.begins_with(candy_de.role_symbol):
+						var resolved_word = resolve_value(source_word)
 						if resolved_word != null:
 							source_word = str(resolved_word).strip_edges()
 							source_word_raw = source_word
@@ -9718,15 +9681,11 @@ func process_lines(current_conversation, current_block, line_index, source, main
 					#% Variable resolution (supports £, •, or $ references):
 					if actor_ref2.begins_with(candy_de.vardict_symbol) \
 					or actor_ref2.begins_with(candy_de.singleton_symbol) \
-					or actor_ref2.begins_with(candy_de.node_symbol):
-						var decoded = decode_variable_name(actor_ref2)
-						var resolved = get_variable_value(decoded)
+					or actor_ref2.begins_with(candy_de.node_symbol) \
+					or actor_ref2.begins_with(candy_de.role_symbol):
+						var resolved = resolve_value(actor_ref2)
 						if resolved != null:
 							actor_ref2 = str(resolved).strip_edges()
-
-					#% Role resolution
-					if actor_ref2.begins_with(candy_de.role_symbol) and candy_de.roles.has(actor_ref2):
-						actor_ref2 = candy_de.roles[actor_ref2]
 
 					var category_override := ""
 					if parts.size() >= 3:
@@ -9735,9 +9694,9 @@ func process_lines(current_conversation, current_block, line_index, source, main
 						#% Variable resolution for property/category override (third argument):
 						if category_override.begins_with(candy_de.vardict_symbol) \
 						or category_override.begins_with(candy_de.singleton_symbol) \
-						or category_override.begins_with(candy_de.node_symbol):
-							var decoded_cat = decode_variable_name(category_override)
-							var resolved_cat = get_variable_value(decoded_cat)
+						or category_override.begins_with(candy_de.node_symbol) \
+						or category_override.begins_with(candy_de.role_symbol):
+							var resolved_cat = resolve_value(category_override)
 							if resolved_cat != null:
 								category_override = str(resolved_cat).strip_edges()
 
@@ -10106,10 +10065,10 @@ func process_lines(current_conversation, current_block, line_index, source, main
 func display_line(current_conversation, current_block, speech_data: Dictionary, dialogue_text: String, line_data, chosen_variant: String, text_direction: String) -> void:
 	#@ Unpack spoken data:
 	var speaker_ref: String			= resolve_value(speech_data.get("Reference", ""))
-	var portrait_raw: String		= resolve_value(speech_data.get("Portrait", ""))
+	var portrait_raw: String		= speech_data.get("Portrait", "")
 	var play_portrait: String		= resolve_value(speech_data.get("PortraitPlay", "1"))
 	var disposition: String			= resolve_value(speech_data.get("Disposition", ""))
-	var voice_raw: String			= resolve_value(speech_data.get("Voice", ""))
+	var voice_raw: String			= speech_data.get("Voice", "")
 	var speech_bubble_exempt: bool	= resolve_value(speech_data.get("BubbleExempt", false))
 	var force_portrait: String		= resolve_value(speech_data.get("ForcePortrait", "0"))
 	var tts: int					= resolve_value(speech_data.get("TTS", 0))
@@ -10132,7 +10091,8 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 	var audio = voice_raw
 	if typeof(voice_raw) == TYPE_STRING and (voice_raw.begins_with(candy_de.vardict_symbol)
 			or voice_raw.begins_with(candy_de.node_symbol)
-			or voice_raw.begins_with(candy_de.singleton_symbol)):
+			or voice_raw.begins_with(candy_de.singleton_symbol)
+			or voice_raw.begins_with(candy_de.role_symbol)):
 		var decoded_audio = decode_variable_name(voice_raw)
 		var resolved_audio = get_variable_value(decoded_audio)
 		if resolved_audio != null:
@@ -10320,6 +10280,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 			#@ Portrait handling with portrait_mode:
 			var portrait_node = get_node(ui_elements_paths["portrait_path"])
+			portrait_node.caller = self
 
 			#% Portrait if line forces portrait:
 			if force_portrait == "1":
@@ -12777,7 +12738,43 @@ func resolve_value(raw: Variant) -> Variant:
 				#return _resolve.call(resolved, depth + 1)
 			return resolved
 
-		#% 2. Resource paths (res://, user://):
+		#% 2. Role references - °role_key → looks up actor in candy_de.roles, then resolves path:
+		elif text_val.begins_with(candy_de.role_symbol):
+			if not candy_de.roles.has(text_val.split(".")[0].split("[")[0]):
+				printerr("resolve_value(): role not found → ", text_val)
+				return null
+
+			#% Find where the role key ends and the path begins:
+			#% Role key is everything up to the first '.' or '[':
+			var role_end := text_val.length()
+			var dot_pos := text_val.find(".")
+			var bracket_pos := text_val.find("[")
+			if dot_pos != -1:
+				role_end = dot_pos
+			if bracket_pos != -1 and bracket_pos < role_end:
+				role_end = bracket_pos
+
+			var role_key := text_val.substr(0, role_end)	#/ e.g. "°role"
+			var remainder := text_val.substr(role_end)		#/ e.g. "[key][index]" or ".key"
+
+			#% Look up the actor reference:
+			var actor_ref: String = candy_de.roles.get(role_key, "")
+			if actor_ref == "":
+				printerr("resolve_value(): role maps to empty actor → ", role_key)
+				return null
+
+			#% If there's no path remainder, just return the actor reference string:
+			if remainder == "":
+				return actor_ref
+
+			#% Otherwise, reconstruct as a singleton reference and resolve through existing machinery:
+			#% e.g. actor_ref = "actor", remainder = "[key][index]"
+			#% → build "£actors.actor" + remainder and resolve normally,
+			#% since actors live in candy_de.actors (accessed via singleton_symbol):
+			var rebuilt = candy_de.singleton_symbol + "candy_de.actors[\"" + actor_ref + "\"]" + remainder
+			return resolve_value(rebuilt)
+
+		#% 3. Resource paths (res://, user://):
 		elif text_val.begins_with("res://") or text_val.begins_with("user://"):
 			if ResourceLoader.exists(text_val):
 				var resource := load(text_val)
@@ -12789,7 +12786,7 @@ func resolve_value(raw: Variant) -> Variant:
 				printerr("resolve_value(): missing resource → ", text_val)
 				return text_val
 
-		#% 3. Everything else: literal string:
+		#% 4. Everything else: literal string:
 		return text_val
 
 	#@ Execute the recursive helper:
