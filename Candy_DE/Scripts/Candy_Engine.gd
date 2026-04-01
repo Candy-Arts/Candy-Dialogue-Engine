@@ -716,52 +716,41 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			elif func_name.begins_with(candy_de.super_vardict_symbol):
 				func_name = resolve_value(candy_de.vardict_symbol + func_name.substr(1))
 
-			if args_raw.begins_with(candy_de.super_singleton_symbol):
-				args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-			elif args_raw.begins_with(candy_de.super_node_symbol):
-				args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-			elif args_raw.begins_with(candy_de.super_vardict_symbol):
-				args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
+			if typeof(args_raw) == TYPE_STRING:
+				if args_raw.begins_with(candy_de.super_singleton_symbol):
+					args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
+				elif args_raw.begins_with(candy_de.super_node_symbol):
+					args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
+				elif args_raw.begins_with(candy_de.super_vardict_symbol):
+					args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
 
-			#@ Step 1 - prepare arguments":
+			#@ Step 1 - Prepare arguments:
 			var args: Array = []
+			#% Already a typed array, use directly:
 			if typeof(args_raw) == TYPE_ARRAY:
 				args = args_raw
 
-			#% Split comma-separated string while respecting quotes:
+			#% Otherwise, use Expression to interpret the argument string:
 			elif typeof(args_raw) == TYPE_STRING and args_raw != "":
-				args = candy_to_array(args_raw)
-				print(args)
+				var replaced := _replace_with_values(args_raw)
+				var expression := Expression.new()
+				if expression.parse("[" + replaced + "]") != OK:
+					push_error("§Call: failed to parse arguments → " + replaced)
+					return "Continue"
 
-			#@ Step 2 - clean up and resolve arguments":
-			for i in range(args.size()):
-				var val = args[i]
+				var result = expression.execute()
+				if expression.has_execute_failed():
+					push_error("§Call: runtime error while evaluating arguments → " + replaced)
+					return "Continue"
 
-				#% Strip wrapping quotes if present (either ' or "):
-				if typeof(val) == TYPE_STRING and val.length() >= 2:
-					var first_char = val[0]
-					var last_char = val[-1]
-					if (first_char == "'" and last_char == "'") or (first_char == '"' and last_char == '"'):
-						val = val.substr(1, val.length() - 2)
+				if typeof(result) != TYPE_ARRAY:
+					push_error("§Call: arguments did not evaluate to an Array → " + replaced)
+					return "Continue"
 
-				#% Resolve variables, numbers, and booleans:
-				if typeof(val) == TYPE_STRING:
-					if val.begins_with(candy_de.singleton_symbol) or val.begins_with(candy_de.node_symbol) or val.begins_with(candy_de.vardict_symbol):
-						var decoded = decode_variable_name(val)
-						var resolved = get_variable_value(decoded)
-						if resolved != null:
-							val = resolved
-					elif val.is_valid_int():
-						val = int(val)
-					elif val.is_valid_float():
-						val = float(val)
-					elif val.to_lower() in ["true", "false"]:
-						val = (val.to_lower() == "true")
+				args = result
 
-				args[i] = val
-
-			#@ Step 3 - execute the function:
-			var result
+			#@ Step 2 - Execute the function:
+			var result_2
 			if func_name.begins_with(candy_de.singleton_symbol):
 				print("Function begins with singleton symbol")
 				#% Autoload or engine singleton call:
@@ -783,9 +772,9 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					#% Call the method if found:
 					if target and target.has_method(method):
 						if await_call == true:
-							result = await target.callv(method, args)
+							result_2 = await target.callv(method, args)
 						else:
-							result = target.callv(method, args)
+							result_2 = target.callv(method, args)
 					else:
 						if not target:
 							print("Unable to call function: autoload not found.")
@@ -801,31 +790,31 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					var node = get_node_or_null(path)
 					if node and node.has_method(method):
 						if await_call == true:
-							result = await node.callv(method, args)
+							result_2 = await node.callv(method, args)
 						else:
-							result = node.callv(method, args)
+							result_2 = node.callv(method, args)
 
 			#% Local call (within the current script):
 			else:
 				if has_method(func_name):
 					if await_call == true:
-						result = await callv(func_name, args)
+						result_2 = await callv(func_name, args)
 					else:
-						result = callv(func_name, args)
+						result_2 = callv(func_name, args)
 
 			#% Store the returned value:
 			if store_var != "":
 				var decoded = decode_variable_name(store_var)
 				if decoded["base"] != null:
-					set_variable_value(decoded, result)
+					set_variable_value(decoded, result_2)
 
 			return "Continue"
 
 
 		#* §Emit - emit a signal on a singleton, node, or local object:
 		"§emit":
-			var signal_name: String = command_value.get("Signal", "")
-			var args_raw: Variant 	= command_value.get("Arguments", "")
+			var signal_name: String		= command_value.get("Signal", "")
+			var args_raw: Variant		= command_value.get("Arguments", "")
 
 			#% Validate:
 			if signal_name == "":
@@ -838,49 +827,37 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			elif signal_name.begins_with(candy_de.super_vardict_symbol):
 				signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
 
-			if args_raw.begins_with(candy_de.super_singleton_symbol):
-				args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-			elif args_raw.begins_with(candy_de.super_node_symbol):
-				args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-			elif args_raw.begins_with(candy_de.super_vardict_symbol):
-				args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
+			if typeof(args_raw) == TYPE_STRING:
+				if args_raw.begins_with(candy_de.super_singleton_symbol):
+					args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
+				elif args_raw.begins_with(candy_de.super_node_symbol):
+					args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
+				elif args_raw.begins_with(candy_de.super_vardict_symbol):
+					args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
 
-			#@ Step 1 - prepare arguments:
+			#@ Step 1 - Prepare arguments:
 			var args: Array = []
+			#% Already a typed array, use directly:
 			if typeof(args_raw) == TYPE_ARRAY:
 				args = args_raw
+
+			#% Otherwise, use Expression to interpret the argument string:
 			elif typeof(args_raw) == TYPE_STRING and args_raw != "":
-				#% Split comma-separated string while respecting quotes:
-				args = candy_to_array(args_raw)
+				var replaced := _replace_with_values(args_raw)
+				var expression := Expression.new()
+				if expression.parse("[" + replaced + "]") != OK:
+					push_error("§Emit: failed to parse arguments → " + replaced)
+					return "Continue"
+				var result = expression.execute()
+				if expression.has_execute_failed():
+					push_error("§Emit: runtime error while evaluating arguments → " + replaced)
+					return "Continue"
+				if typeof(result) != TYPE_ARRAY:
+					push_error("§Emit: arguments did not evaluate to an Array → " + replaced)
+					return "Continue"
+				args = result
 
-			#@ Step 2 - clean up and resolve arguments:
-			for i in range(args.size()):
-				var val = args[i]
-
-				#% Strip wrapping quotes if present (either ' or "):
-				if typeof(val) == TYPE_STRING and val.length() >= 2:
-					var first_char = val[0]
-					var last_char = val[-1]
-					if (first_char == "'" and last_char == "'") or (first_char == '"' and last_char == '"'):
-						val = val.substr(1, val.length() - 2)
-
-				#% Resolve variable references, numbers, and booleans:
-				if typeof(val) == TYPE_STRING:
-					if val.begins_with(candy_de.singleton_symbol) or val.begins_with(candy_de.node_symbol) or val.begins_with(candy_de.vardict_symbol):
-						var decoded = decode_variable_name(val)
-						var resolved = get_variable_value(decoded)
-						if resolved != null:
-							val = resolved
-					elif val.is_valid_int():
-						val = int(val)
-					elif val.is_valid_float():
-						val = float(val)
-					elif val.to_lower() in ["true", "false"]:
-						val = (val.to_lower() == "true")
-
-				args[i] = val
-
-			#@ Step 3 - emit the signal:
+			#@ Step 2 - Emit the signal:
 			#% Autoload or engine singleton signal:
 			if signal_name.begins_with(candy_de.singleton_symbol):
 				var parts = signal_name.substr(1).split(".", false)
@@ -898,6 +875,11 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					#% Emit signal if found:
 					if target and target.has_signal(sig):
 						target.callv("emit_signal", [sig] + args)
+					else:
+						if not target:
+							push_error("§Emit: autoload not found → " + autoload)
+						else:
+							push_error("§Emit: signal not found on " + autoload + " → " + sig)
 
 			#% Node path signal:
 			elif signal_name.begins_with(candy_de.node_symbol):
@@ -908,11 +890,18 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					var node = get_node_or_null(path)
 					if node and node.has_signal(sig):
 						node.callv("emit_signal", [sig] + args)
+					else:
+						if not node:
+							push_error("§Emit: node not found → " + path)
+						else:
+							push_error("§Emit: signal not found on node " + path + " → " + sig)
 
+			#% Local signal:
 			else:
-				#@ Local signal:
 				if has_signal(signal_name):
 					callv("emit_signal", [signal_name] + args)
+				else:
+					push_error("§Emit: local signal not found → " + signal_name)
 
 			return "Continue"
 
@@ -1243,7 +1232,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			#@ Export data depending on format:
 			match export_format:
 				"json", ".json":
-					var json_str = JSON.stringify(export_dict, "\t")
+					var serialized := {}
+					for k in export_dict.keys():
+						serialized[k] = var_to_str(export_dict[k])
+					var json_str = JSON.stringify(serialized, "\t")
 					var file = FileAccess.open(full_path, FileAccess.WRITE)
 					file.store_string(json_str)
 					file.close()
@@ -1253,19 +1245,11 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					var txt := ""
 					for k in export_dict.keys():
 						var v = export_dict[k]
-						var type_str := ""
-						match typeof(v):
-							TYPE_INT: type_str = "int"
-							TYPE_FLOAT: type_str = "float"
-							TYPE_BOOL: type_str = "bool"
-							TYPE_ARRAY: type_str = "array"
-							TYPE_DICTIONARY: type_str = "dict"
-							_: type_str = "string"
-						txt += "%s|%s = %s\n" % [k, type_str, str(v)]
+						txt += "%s = %s\n" % [k, var_to_str(v)]
 					var file = FileAccess.open(full_path, FileAccess.WRITE)
 					file.store_string(txt)
 					file.close()
-					print("[DEBUG] §Export: Wrote %d entries with type info to %s" % [export_dict.size(), full_path])
+					print("[DEBUG] §Export: Wrote %d entries to %s" % [export_dict.size(), full_path])
 
 				"csv", ".csv":
 					var file = FileAccess.open(full_path, FileAccess.WRITE)
@@ -1355,44 +1339,53 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				"json", ".json":
 					var parsed = JSON.parse_string(content)
 					if typeof(parsed) == TYPE_DICTIONARY:
-						imported_data = parsed
+						#% Each value was serialized with var_to_str() on export, so we use
+						#% str_to_var() to reconstruct the original Godot Variant type.
+						#% If str_to_var() returns null and the value isn't literally "null",
+						#% we keep it as a plain string — this handles files exported by other
+						#% tools that don't use var_to_str() serialization:
+						for k in parsed.keys():
+							var raw = parsed[k]
+							if typeof(raw) == TYPE_STRING:
+								var reconstructed = str_to_var(raw)
+								if reconstructed != null or raw.strip_edges().to_lower() == "null":
+									imported_data[k] = reconstructed
+								else:
+									imported_data[k] = raw
+							else:
+								imported_data[k] = raw
 					else:
 						printerr("§Import: Invalid JSON data in '%s'." % full_path)
 						return "Continue"
 
 				"txt", ".txt":
-					var lines = content.split("\n", false)
+					var joined := ""
+					var depth := 0
+					for ch in content:
+						if ch == "{" or ch == "[":
+							depth += 1
+						elif ch == "}" or ch == "]":
+							depth -= 1
+						#% Replace newlines with spaces when inside a nested structure:
+						if ch == "\n" and depth > 0:
+							joined += " "
+						else:
+							joined += ch
+
+					var lines = joined.split("\n", false)
 					for line in lines:
 						line = line.strip_edges()
 						if line == "" or not line.contains("="):
 							continue
-						var parts = line.split("=", false)
-						if parts.size() < 2:
-							continue
+						var eq_pos = line.find("=")
+						var key = line.substr(0, eq_pos).strip_edges()
+						var raw_val = line.substr(eq_pos + 1).strip_edges()
 
-						var lhs = parts[0].strip_edges()
-						var rhs = parts[1].strip_edges()
-						var key = lhs
-						var type_str := "string"
-
-						#% Handle key|type syntax:
-						if lhs.find("|") != -1:
-							var subparts = lhs.split("|", false)
-							key = subparts[0].strip_edges()
-							type_str = subparts[1].strip_edges()
-
-						var parsed_val: Variant = rhs
-						match type_str:
-							"int": parsed_val = int(rhs)
-							"float": parsed_val = float(rhs)
-							"bool": parsed_val = (rhs.to_lower() == "true")
-							"array":
-								#% naive array parsing from [a,b,c]
-								parsed_val = JSON.parse_string(rhs) if rhs.begins_with("[") else []
-							"dict":
-								parsed_val = JSON.parse_string(rhs) if rhs.begins_with("{") else {}
-							_: pass
-						imported_data[key] = parsed_val
+						var reconstructed = str_to_var(raw_val)
+						if reconstructed != null or raw_val.strip_edges().to_lower() == "null":
+							imported_data[key] = reconstructed
+						else:
+							imported_data[key] = raw_val
 
 				"csv", ".csv":
 					#% Safer CSV import using get_csv_line():
@@ -12104,7 +12097,7 @@ func clear_previous_dialogue(mode, _speaker):
 				speaker_node.internal_node_dict["Speech_Bubble"].clear()
 
 	#@ Always Clear VN_Bubbles:
-	if previous_mode == "VN_Bubbles":
+	if previous_mode == "VN_Bubbles" and ui_elements_paths.has("busts_path"):
 		var bust_scene = get_node_or_null(ui_elements_paths["busts_path"])
 		var busts_container = bust_scene.busts_container
 		for bust in busts_container.get_children():
@@ -12112,14 +12105,14 @@ func clear_previous_dialogue(mode, _speaker):
 				bust.get_node("SpeechBubble").clear()
 
 	#@ Always Clear Barks:
-	if previous_mode == "Bark":
+	if previous_mode == "Bark" and ui_elements_paths.has("barks_path"):
 		var bark_root := get_node_or_null(ui_elements_paths["barks_path"])
 		if bark_root:
 			bark_root.visible = false
 			bark_root.dialogue_node.text = ""
 
 	#@ Clear dialogue box if mode changed:
-	if previous_mode == "Box" and mode != "Box":
+	if previous_mode == "Box" and mode != "Box" and ui_elements_paths.has("dialogue_box_path"):
 		var dialogue_box_root := get_node_or_null(ui_elements_paths["dialogue_box_path"])
 		if dialogue_box_root:
 			dialogue_box_root.visible = false
@@ -12127,20 +12120,21 @@ func clear_previous_dialogue(mode, _speaker):
 			dialogue_box_root.dialogue_node.text = ""
 
 		#@ Clear Portraits:
-		var portraits_root := get_node_or_null(ui_elements_paths["portrait_path"])
-		if portraits_root:
-			portraits_root.visible = false
-			portraits_root.no_portrait()
+		if ui_elements_paths.has("portrait_path"):
+			var portraits_root := get_node_or_null(ui_elements_paths["portrait_path"])
+			if portraits_root:
+				portraits_root.visible = false
+				portraits_root.no_portrait()
 
 	#@ Clear Subtitles if mode changed:
-	if previous_mode == "Subtitles" and mode != "Subtitles":
+	if previous_mode == "Subtitles" and mode != "Subtitles" and ui_elements_paths.has("subtitles_path"):
 		var subtitles_root := get_node_or_null(ui_elements_paths["subtitles_path"])
 		if subtitles_root:
 			subtitles_root.visible = false
 			subtitles_root.dialogue_node.text = ""
 
 	#@ Only clear chat if mode changed and chatbox not persistent:
-	if previous_mode == "Chat" and mode != "Chat" and persistent_chat == false:
+	if previous_mode == "Chat" and mode != "Chat" and persistent_chat == false and ui_elements_paths.has("dialogue_box_path"):
 		var chat_root := get_node_or_null(ui_elements_paths["chat_path"])
 		if chat_root:
 			chat_root.visible = false
@@ -12151,14 +12145,15 @@ func clear_previous_dialogue(mode, _speaker):
 #% Ensures old data doesn't display on screen next time dialogues run.
 func clear_ui():
 	#@ Clear dialogue box:
-	var dialogue_box_root := get_node_or_null(ui_elements_paths["dialogue_box_path"])
-	if dialogue_box_root:
-		dialogue_box_root.visible = false
-		dialogue_box_root.speaker_node.text = ""
-		dialogue_box_root.dialogue_node.text = ""
+	if ui_elements_paths.has("dialogue_box_path"):
+		var dialogue_box_root := get_node_or_null(ui_elements_paths["dialogue_box_path"])
+		if dialogue_box_root:
+			dialogue_box_root.visible = false
+			dialogue_box_root.speaker_node.text = ""
+			dialogue_box_root.dialogue_node.text = ""
 
-		#% Reset z_index to default:
-		dialogue_box_root.z_index = dialogue_box_root.default_z
+			#% Reset z_index to default:
+			dialogue_box_root.z_index = dialogue_box_root.default_z
 
 	#@ Clear Speech Bubbles:
 	var npc_path_node = get_node_or_null(bubbles_npc_path)
@@ -12172,46 +12167,50 @@ func clear_ui():
 			actor.internal_node_dict["Speech_Bubble"].clear()
 
 	#@ Clear Barks:
-	var bark_root := get_node_or_null(ui_elements_paths["barks_path"])
-	if bark_root:
-		bark_root.visible = false
-		bark_root.dialogue_node.text = ""
+	if ui_elements_paths.has("barks_path"):
+		var bark_root := get_node_or_null(ui_elements_paths["barks_path"])
+		if bark_root:
+			bark_root.visible = false
+			bark_root.dialogue_node.text = ""
 
-		#% Reset z_index to default:
-		bark_root.z_index = bark_root.default_z
+			#% Reset z_index to default:
+			bark_root.z_index = bark_root.default_z
 
 	#@ Clear Subtitles:
-	var subtitles_root := get_node_or_null(ui_elements_paths["subtitles_path"])
-	if subtitles_root:
-		subtitles_root.visible = false
-		subtitles_root.dialogue_node.text = ""
+	if ui_elements_paths.has("subtitles_path"):
+		var subtitles_root := get_node_or_null(ui_elements_paths["subtitles_path"])
+		if subtitles_root:
+			subtitles_root.visible = false
+			subtitles_root.dialogue_node.text = ""
 
-		#% Reset z_index to default:
-		subtitles_root.z_index = subtitles_root.default_z
+			#% Reset z_index to default:
+			subtitles_root.z_index = subtitles_root.default_z
 
 	#@ Clear Chat Box:
-	var chat_root := get_node_or_null(ui_elements_paths["chat_path"])
-	if chat_root:
-		if chat_hide_on_end:
-			chat_root.visible = false
-		if chat_clear_on_end:
-			chat_root.dialogue_node.text = ""
+	if ui_elements_paths.has("chat_path"):
+		var chat_root := get_node_or_null(ui_elements_paths["chat_path"])
+		if chat_root:
+			if chat_hide_on_end:
+				chat_root.visible = false
+			if chat_clear_on_end:
+				chat_root.dialogue_node.text = ""
 
-		#% Reset z_index to default:
-		chat_root.z_index = chat_root.default_z
+			#% Reset z_index to default:
+			chat_root.z_index = chat_root.default_z
 
 	#@ Clear Portraits:
-	var portraits_root := get_node_or_null(ui_elements_paths["portrait_path"])
-	if portraits_root:
-		portraits_root.visible = false
-		portraits_root.no_portrait()
+	if ui_elements_paths.has("portrait_path"):
+		var portraits_root := get_node_or_null(ui_elements_paths["portrait_path"])
+		if portraits_root:
+			portraits_root.visible = false
+			portraits_root.no_portrait()
 
-		#% Reset z_index to default:
-		portraits_root.z_index = portraits_root.default_z
+			#% Reset z_index to default:
+			portraits_root.z_index = portraits_root.default_z
 
 	#@ Clear VN busts
 	#% Only if clear_busts_end = true
-	if persistent_busts_on_end == false:
+	if persistent_busts_on_end == false and ui_elements_paths.has("busts_path"):
 		var busts_root := get_node_or_null(ui_elements_paths["busts_path"])
 		if busts_root:
 			busts_root.visible = false
@@ -12221,7 +12220,7 @@ func clear_ui():
 		bust_positions.clear()
 
 	#@ Clear backgrounds:
-	if persistent_bg_on_end == false:
+	if persistent_bg_on_end == false and ui_elements_paths.has("backgrounds_path"):
 		var bg_root = get_node_or_null(ui_elements_paths["backgrounds_path"])
 		if bg_root:
 			bg_root.visible = false
@@ -12783,7 +12782,7 @@ func resolve_value(raw: Variant) -> Variant:
 				else:
 					return text_val
 			else:
-				printerr("resolve_value(): missing resource → ", text_val)
+				push_warning("resolve_value(): resource path is a folder or has no file specified → ", text_val)
 				return text_val
 
 		#% 4. Everything else: literal string:
