@@ -1577,6 +1577,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					"call":
 						var func_name: String 		= command_value.get("Function", "")
 						var args_raw: Variant 		= command_value.get("Arguments", "")
+						var store_var: String		= command_value.get("Variable", "").strip_edges()
 						var await_call: Variant 	= resolve_value(command_value.get("Await", true))
 
 						if func_name.begins_with(candy_de.super_singleton_symbol):
@@ -1586,18 +1587,20 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						elif func_name.begins_with(candy_de.super_vardict_symbol):
 							func_name = resolve_value(candy_de.vardict_symbol + func_name.substr(1))
 
-						if args_raw.begins_with(candy_de.super_singleton_symbol):
-							args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_node_symbol):
-							args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_vardict_symbol):
-							args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
+						if typeof(args_raw) == TYPE_STRING:
+							if args_raw.begins_with(candy_de.super_singleton_symbol):
+								args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
+							elif args_raw.begins_with(candy_de.super_node_symbol):
+								args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
+							elif args_raw.begins_with(candy_de.super_vardict_symbol):
+								args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
 
 						var fake_line := [
 							{
 								"§Call": {
 									"Function": func_name,
 									"Arguments": args_raw,
+									"Variable": store_var,
 									"Await": await_call,
 								}
 							}
@@ -1623,12 +1626,13 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						elif signal_name.begins_with(candy_de.super_vardict_symbol):
 							signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
 
-						if args_raw.begins_with(candy_de.super_singleton_symbol):
-							args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_node_symbol):
-							args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_vardict_symbol):
-							args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
+						if typeof(args_raw) == TYPE_STRING:
+							if args_raw.begins_with(candy_de.super_singleton_symbol):
+								args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
+							elif args_raw.begins_with(candy_de.super_node_symbol):
+								args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
+							elif args_raw.begins_with(candy_de.super_vardict_symbol):
+								args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
 
 						var fake_line := [
 							{
@@ -1646,9 +1650,8 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 					"await":
 						var signal_name: String = command_value.get("Signal", "")
-						var args_raw: Variant 	= command_value.get("Arguments", "")
+						var store_var: String   = command_value.get("Variable", "").strip_edges()
 
-						#% Validate:
 						if signal_name == "":
 							return "Continue"
 
@@ -1659,18 +1662,11 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						elif signal_name.begins_with(candy_de.super_vardict_symbol):
 							signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
 
-						if args_raw.begins_with(candy_de.super_singleton_symbol):
-							args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_node_symbol):
-							args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_vardict_symbol):
-							args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
-
 						var fake_line := [
 							{
 								"§Await": {
 									"Signal": signal_name,
-									"Arguments": args_raw
+									"Variable": store_var,
 								}
 							}
 						]
@@ -1708,14 +1704,18 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						return feedback
 
 					"name":
-						var actor_ref: String 	= resolve_value(command_value.get("Variable", ""))
-						var new_name: String 	= resolve_value(command_value.get("Value", ""))
+						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
+						var new_name: String 	= resolve_value(command_value.get("Name", ""))
+						var table_raw: String 	= command_value.get("Table", "£candy_de.display_names")
+						var key_raw: String 	= resolve_value(command_value.get("Actor_Key", "Display Name"))
 
 						var fake_line := [
 							{
 								"§Name": {
-									"Variable": actor_ref,
-									"Value": new_name,
+									"Reference": actor_ref,
+									"Name": new_name,
+									"Table": table_raw,
+									"Actor_Key": key_raw,
 								}
 							}
 						]
@@ -1726,14 +1726,14 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						return feedback
 
 					"disposition":
-						var actor_ref: String 	= resolve_value(command_value.get("Variable", ""))
-						var new_disp: String 	= resolve_value(command_value.get("Value", ""))
+						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
+						var new_disp: String 	= resolve_value(command_value.get("Disposition", ""))
 
 						var fake_line := [
 							{
 								"§Disposition": {
-									"Variable": actor_ref,
-									"Value": new_disp,
+									"Reference": actor_ref,
+									"Disposition": new_disp,
 								}
 							}
 						]
@@ -1744,14 +1744,14 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						return feedback
 
 					"role":
-						var role_key: String	= resolve_value(command_value.get("Variable", ""))
-						var actor_ref: String 	= resolve_value(command_value.get("Value", ""))
+						var role_key: String	= resolve_value(command_value.get("Role", ""))
+						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
 
 						var fake_line := [
 							{
 								"§Role": {
-									"Variable": role_key,
-									"Value": actor_ref,
+									"Role": role_key,
+									"Reference": actor_ref,
 								}
 							}
 						]
@@ -1889,6 +1889,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					"call":
 						var func_name: String 		= command_value.get("Function", "")
 						var args_raw: Variant 		= command_value.get("Arguments", "")
+						var store_var: String		= command_value.get("Variable", "").strip_edges()
 						var await_call: Variant 	= resolve_value(command_value.get("Await", true))
 
 						if func_name.begins_with(candy_de.super_singleton_symbol):
@@ -1898,18 +1899,20 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						elif func_name.begins_with(candy_de.super_vardict_symbol):
 							func_name = resolve_value(candy_de.vardict_symbol + func_name.substr(1))
 
-						if args_raw.begins_with(candy_de.super_singleton_symbol):
-							args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_node_symbol):
-							args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_vardict_symbol):
-							args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
+						if typeof(args_raw) == TYPE_STRING:
+							if args_raw.begins_with(candy_de.super_singleton_symbol):
+								args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
+							elif args_raw.begins_with(candy_de.super_node_symbol):
+								args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
+							elif args_raw.begins_with(candy_de.super_vardict_symbol):
+								args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
 
 						var fake_line := [
 							{
 								"§Call": {
 									"Function": func_name,
 									"Arguments": args_raw,
+									"Variable": store_var,
 									"Await": await_call,
 								}
 							}
@@ -1921,7 +1924,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						return feedback
 
 					"emit":
-						var signal_name: String = command_value.get("Signal", "")
+						var signal_name: String	= command_value.get("Signal", "")
 						var args_raw: Variant 	= command_value.get("Arguments", "")
 
 						#% Validate:
@@ -1935,12 +1938,13 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						elif signal_name.begins_with(candy_de.super_vardict_symbol):
 							signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
 
-						if args_raw.begins_with(candy_de.super_singleton_symbol):
-							args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_node_symbol):
-							args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_vardict_symbol):
-							args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
+						if typeof(args_raw) == TYPE_STRING:
+							if args_raw.begins_with(candy_de.super_singleton_symbol):
+								args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
+							elif args_raw.begins_with(candy_de.super_node_symbol):
+								args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
+							elif args_raw.begins_with(candy_de.super_vardict_symbol):
+								args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
 
 						var fake_line := [
 							{
@@ -1958,9 +1962,8 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 					"await":
 						var signal_name: String = command_value.get("Signal", "")
-						var args_raw: Variant 	= command_value.get("Arguments", "")
+						var store_var: String   = command_value.get("Variable", "").strip_edges()
 
-						#% Validate:
 						if signal_name == "":
 							return "Continue"
 
@@ -1971,18 +1974,11 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						elif signal_name.begins_with(candy_de.super_vardict_symbol):
 							signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
 
-						if args_raw.begins_with(candy_de.super_singleton_symbol):
-							args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_node_symbol):
-							args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_vardict_symbol):
-							args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
-
 						var fake_line := [
 							{
 								"§Await": {
 									"Signal": signal_name,
-									"Arguments": args_raw
+									"Variable": store_var,
 								}
 							}
 						]
@@ -2020,14 +2016,18 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						return feedback
 
 					"name":
-						var actor_ref: String 	= resolve_value(command_value.get("Variable", ""))
-						var new_name: String 	= resolve_value(command_value.get("Value", ""))
+						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
+						var new_name: String 	= resolve_value(command_value.get("Name", ""))
+						var table_raw: String 	= command_value.get("Table", "£candy_de.display_names")
+						var key_raw: String 	= resolve_value(command_value.get("Actor_Key", "Display Name"))
 
 						var fake_line := [
 							{
 								"§Name": {
-									"Variable": actor_ref,
-									"Value": new_name,
+									"Reference": actor_ref,
+									"Name": new_name,
+									"Table": table_raw,
+									"Actor_Key": key_raw,
 								}
 							}
 						]
@@ -2038,14 +2038,14 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						return feedback
 
 					"disposition":
-						var actor_ref: String 	= resolve_value(command_value.get("Variable", ""))
-						var new_disp: String 	= resolve_value(command_value.get("Value", ""))
+						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
+						var new_disp: String 	= resolve_value(command_value.get("Disposition", ""))
 
 						var fake_line := [
 							{
 								"§Disposition": {
-									"Variable": actor_ref,
-									"Value": new_disp,
+									"Reference": actor_ref,
+									"Disposition": new_disp,
 								}
 							}
 						]
@@ -2056,14 +2056,14 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						return feedback
 
 					"role":
-						var role_key: String	= resolve_value(command_value.get("Variable", ""))
-						var actor_ref: String 	= resolve_value(command_value.get("Value", ""))
+						var role_key: String	= resolve_value(command_value.get("Role", ""))
+						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
 
 						var fake_line := [
 							{
 								"§Role": {
-									"Variable": role_key,
-									"Value": actor_ref,
+									"Role": role_key,
+									"Reference": actor_ref,
 								}
 							}
 						]
@@ -2168,6 +2168,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						"call":
 							var func_name: String 		= command_value.get("Function", "")
 							var args_raw: Variant 		= command_value.get("Arguments", "")
+							var store_var: String		= command_value.get("Variable", "").strip_edges()
 							var await_call: Variant 	= resolve_value(command_value.get("Await", true))
 
 							if func_name.begins_with(candy_de.super_singleton_symbol):
@@ -2177,18 +2178,20 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							elif func_name.begins_with(candy_de.super_vardict_symbol):
 								func_name = resolve_value(candy_de.vardict_symbol + func_name.substr(1))
 
-							if args_raw.begins_with(candy_de.super_singleton_symbol):
-								args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-							elif args_raw.begins_with(candy_de.super_node_symbol):
-								args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-							elif args_raw.begins_with(candy_de.super_vardict_symbol):
-								args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
+							if typeof(args_raw) == TYPE_STRING:
+								if args_raw.begins_with(candy_de.super_singleton_symbol):
+									args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
+								elif args_raw.begins_with(candy_de.super_node_symbol):
+									args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
+								elif args_raw.begins_with(candy_de.super_vardict_symbol):
+									args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
 
 							var fake_line := [
 								{
 									"§Call": {
 										"Function": func_name,
 										"Arguments": args_raw,
+										"Variable": store_var,
 										"Await": await_call,
 									}
 								}
@@ -2200,7 +2203,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							return feedback
 
 						"emit":
-							var signal_name: String = command_value.get("Signal", "")
+							var signal_name: String	= command_value.get("Signal", "")
 							var args_raw: Variant 	= command_value.get("Arguments", "")
 
 							#% Validate:
@@ -2214,12 +2217,13 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							elif signal_name.begins_with(candy_de.super_vardict_symbol):
 								signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
 
-							if args_raw.begins_with(candy_de.super_singleton_symbol):
-								args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-							elif args_raw.begins_with(candy_de.super_node_symbol):
-								args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-							elif args_raw.begins_with(candy_de.super_vardict_symbol):
-								args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
+							if typeof(args_raw) == TYPE_STRING:
+								if args_raw.begins_with(candy_de.super_singleton_symbol):
+									args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
+								elif args_raw.begins_with(candy_de.super_node_symbol):
+									args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
+								elif args_raw.begins_with(candy_de.super_vardict_symbol):
+									args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
 
 							var fake_line := [
 								{
@@ -2237,9 +2241,8 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 						"await":
 							var signal_name: String = command_value.get("Signal", "")
-							var args_raw: Variant 	= command_value.get("Arguments", "")
+							var store_var: String   = command_value.get("Variable", "").strip_edges()
 
-							#% Validate:
 							if signal_name == "":
 								return "Continue"
 
@@ -2250,18 +2253,11 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							elif signal_name.begins_with(candy_de.super_vardict_symbol):
 								signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
 
-							if args_raw.begins_with(candy_de.super_singleton_symbol):
-								args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-							elif args_raw.begins_with(candy_de.super_node_symbol):
-								args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-							elif args_raw.begins_with(candy_de.super_vardict_symbol):
-								args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
-
 							var fake_line := [
 								{
 									"§Await": {
 										"Signal": signal_name,
-										"Arguments": args_raw
+										"Variable": store_var,
 									}
 								}
 							]
@@ -2299,14 +2295,18 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							return feedback
 
 						"name":
-							var actor_ref: String 	= resolve_value(command_value.get("Variable", ""))
-							var new_name: String 	= resolve_value(command_value.get("Value", ""))
+							var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
+							var new_name: String 	= resolve_value(command_value.get("Name", ""))
+							var table_raw: String 	= command_value.get("Table", "£candy_de.display_names")
+							var key_raw: String 	= resolve_value(command_value.get("Actor_Key", "Display Name"))
 
 							var fake_line := [
 								{
 									"§Name": {
-										"Variable": actor_ref,
-										"Value": new_name,
+										"Reference": actor_ref,
+										"Name": new_name,
+										"Table": table_raw,
+										"Actor_Key": key_raw,
 									}
 								}
 							]
@@ -2317,14 +2317,14 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							return feedback
 
 						"disposition":
-							var actor_ref: String 	= resolve_value(command_value.get("Variable", ""))
-							var new_disp: String 	= resolve_value(command_value.get("Value", ""))
+							var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
+							var new_disp: String 	= resolve_value(command_value.get("Disposition", ""))
 
 							var fake_line := [
 								{
 									"§Disposition": {
-										"Variable": actor_ref,
-										"Value": new_disp,
+										"Reference": actor_ref,
+										"Disposition": new_disp,
 									}
 								}
 							]
@@ -2335,14 +2335,14 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							return feedback
 
 						"role":
-							var role_key: String	= resolve_value(command_value.get("Variable", ""))
-							var actor_ref: String 	= resolve_value(command_value.get("Value", ""))
+							var role_key: String	= resolve_value(command_value.get("Role", ""))
+							var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
 
 							var fake_line := [
 								{
 									"§Role": {
-										"Variable": role_key,
-										"Value": actor_ref,
+										"Role": role_key,
+										"Reference": actor_ref,
 									}
 								}
 							]
@@ -2513,6 +2513,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					"call":
 						var func_name: String 		= command_value.get("Function", "")
 						var args_raw: Variant 		= command_value.get("Arguments", "")
+						var store_var: String		= command_value.get("Variable", "").strip_edges()
 						var await_call: Variant 	= resolve_value(command_value.get("Await", true))
 
 						if func_name.begins_with(candy_de.super_singleton_symbol):
@@ -2522,18 +2523,20 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						elif func_name.begins_with(candy_de.super_vardict_symbol):
 							func_name = resolve_value(candy_de.vardict_symbol + func_name.substr(1))
 
-						if args_raw.begins_with(candy_de.super_singleton_symbol):
-							args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_node_symbol):
-							args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_vardict_symbol):
-							args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
+						if typeof(args_raw) == TYPE_STRING:
+							if args_raw.begins_with(candy_de.super_singleton_symbol):
+								args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
+							elif args_raw.begins_with(candy_de.super_node_symbol):
+								args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
+							elif args_raw.begins_with(candy_de.super_vardict_symbol):
+								args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
 
 						var fake_line := [
 							{
 								"§Call": {
 									"Function": func_name,
 									"Arguments": args_raw,
+									"Variable": store_var,
 									"Await": await_call,
 								}
 							}
@@ -2545,7 +2548,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						return feedback
 
 					"emit":
-						var signal_name: String = command_value.get("Signal", "")
+						var signal_name: String	= command_value.get("Signal", "")
 						var args_raw: Variant 	= command_value.get("Arguments", "")
 
 						#% Validate:
@@ -2559,12 +2562,13 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						elif signal_name.begins_with(candy_de.super_vardict_symbol):
 							signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
 
-						if args_raw.begins_with(candy_de.super_singleton_symbol):
-							args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_node_symbol):
-							args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_vardict_symbol):
-							args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
+						if typeof(args_raw) == TYPE_STRING:
+							if args_raw.begins_with(candy_de.super_singleton_symbol):
+								args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
+							elif args_raw.begins_with(candy_de.super_node_symbol):
+								args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
+							elif args_raw.begins_with(candy_de.super_vardict_symbol):
+								args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
 
 						var fake_line := [
 							{
@@ -2582,9 +2586,8 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 					"await":
 						var signal_name: String = command_value.get("Signal", "")
-						var args_raw: Variant 	= command_value.get("Arguments", "")
+						var store_var: String   = command_value.get("Variable", "").strip_edges()
 
-						#% Validate:
 						if signal_name == "":
 							return "Continue"
 
@@ -2595,18 +2598,11 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						elif signal_name.begins_with(candy_de.super_vardict_symbol):
 							signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
 
-						if args_raw.begins_with(candy_de.super_singleton_symbol):
-							args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_node_symbol):
-							args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_vardict_symbol):
-							args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
-
 						var fake_line := [
 							{
 								"§Await": {
 									"Signal": signal_name,
-									"Arguments": args_raw
+									"Variable": store_var,
 								}
 							}
 						]
@@ -2644,14 +2640,18 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						return feedback
 
 					"name":
-						var actor_ref: String 	= resolve_value(command_value.get("Variable", ""))
-						var new_name: String 	= resolve_value(command_value.get("Value", ""))
+						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
+						var new_name: String 	= resolve_value(command_value.get("Name", ""))
+						var table_raw: String 	= command_value.get("Table", "£candy_de.display_names")
+						var key_raw: String 	= resolve_value(command_value.get("Actor_Key", "Display Name"))
 
 						var fake_line := [
 							{
 								"§Name": {
-									"Variable": actor_ref,
-									"Value": new_name,
+									"Reference": actor_ref,
+									"Name": new_name,
+									"Table": table_raw,
+									"Actor_Key": key_raw,
 								}
 							}
 						]
@@ -2662,14 +2662,14 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						return feedback
 
 					"disposition":
-						var actor_ref: String 	= resolve_value(command_value.get("Variable", ""))
-						var new_disp: String 	= resolve_value(command_value.get("Value", ""))
+						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
+						var new_disp: String 	= resolve_value(command_value.get("Disposition", ""))
 
 						var fake_line := [
 							{
 								"§Disposition": {
-									"Variable": actor_ref,
-									"Value": new_disp,
+									"Reference": actor_ref,
+									"Disposition": new_disp,
 								}
 							}
 						]
@@ -2680,14 +2680,14 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						return feedback
 
 					"role":
-						var role_key: String	= resolve_value(command_value.get("Variable", ""))
-						var actor_ref: String 	= resolve_value(command_value.get("Value", ""))
+						var role_key: String	= resolve_value(command_value.get("Role", ""))
+						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
 
 						var fake_line := [
 							{
 								"§Role": {
-									"Variable": role_key,
-									"Value": actor_ref,
+									"Role": role_key,
+									"Reference": actor_ref,
 								}
 							}
 						]
@@ -2813,6 +2813,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					"call":
 						var func_name: String 		= command_value.get("Function", "")
 						var args_raw: Variant 		= command_value.get("Arguments", "")
+						var store_var: String		= command_value.get("Variable", "").strip_edges()
 						var await_call: Variant 	= resolve_value(command_value.get("Await", true))
 
 						if func_name.begins_with(candy_de.super_singleton_symbol):
@@ -2822,18 +2823,20 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						elif func_name.begins_with(candy_de.super_vardict_symbol):
 							func_name = resolve_value(candy_de.vardict_symbol + func_name.substr(1))
 
-						if args_raw.begins_with(candy_de.super_singleton_symbol):
-							args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_node_symbol):
-							args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_vardict_symbol):
-							args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
+						if typeof(args_raw) == TYPE_STRING:
+							if args_raw.begins_with(candy_de.super_singleton_symbol):
+								args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
+							elif args_raw.begins_with(candy_de.super_node_symbol):
+								args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
+							elif args_raw.begins_with(candy_de.super_vardict_symbol):
+								args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
 
 						var fake_line := [
 							{
 								"§Call": {
 									"Function": func_name,
 									"Arguments": args_raw,
+									"Variable": store_var,
 									"Await": await_call,
 								}
 							}
@@ -2845,7 +2848,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						return feedback
 
 					"emit":
-						var signal_name: String = command_value.get("Signal", "")
+						var signal_name: String	= command_value.get("Signal", "")
 						var args_raw: Variant 	= command_value.get("Arguments", "")
 
 						#% Validate:
@@ -2859,12 +2862,13 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						elif signal_name.begins_with(candy_de.super_vardict_symbol):
 							signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
 
-						if args_raw.begins_with(candy_de.super_singleton_symbol):
-							args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_node_symbol):
-							args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_vardict_symbol):
-							args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
+						if typeof(args_raw) == TYPE_STRING:
+							if args_raw.begins_with(candy_de.super_singleton_symbol):
+								args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
+							elif args_raw.begins_with(candy_de.super_node_symbol):
+								args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
+							elif args_raw.begins_with(candy_de.super_vardict_symbol):
+								args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
 
 						var fake_line := [
 							{
@@ -2882,9 +2886,8 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 					"await":
 						var signal_name: String = command_value.get("Signal", "")
-						var args_raw: Variant 	= command_value.get("Arguments", "")
+						var store_var: String   = command_value.get("Variable", "").strip_edges()
 
-						#% Validate:
 						if signal_name == "":
 							return "Continue"
 
@@ -2895,18 +2898,11 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						elif signal_name.begins_with(candy_de.super_vardict_symbol):
 							signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
 
-						if args_raw.begins_with(candy_de.super_singleton_symbol):
-							args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_node_symbol):
-							args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-						elif args_raw.begins_with(candy_de.super_vardict_symbol):
-							args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
-
 						var fake_line := [
 							{
 								"§Await": {
 									"Signal": signal_name,
-									"Arguments": args_raw
+									"Variable": store_var,
 								}
 							}
 						]
@@ -2944,14 +2940,18 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						return feedback
 
 					"name":
-						var actor_ref: String 	= resolve_value(command_value.get("Variable", ""))
-						var new_name: String 	= resolve_value(command_value.get("Value", ""))
+						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
+						var new_name: String 	= resolve_value(command_value.get("Name", ""))
+						var table_raw: String 	= command_value.get("Table", "£candy_de.display_names")
+						var key_raw: String 	= resolve_value(command_value.get("Actor_Key", "Display Name"))
 
 						var fake_line := [
 							{
 								"§Name": {
-									"Variable": actor_ref,
-									"Value": new_name,
+									"Reference": actor_ref,
+									"Name": new_name,
+									"Table": table_raw,
+									"Actor_Key": key_raw,
 								}
 							}
 						]
@@ -2962,14 +2962,14 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						return feedback
 
 					"disposition":
-						var actor_ref: String 	= resolve_value(command_value.get("Variable", ""))
-						var new_disp: String 	= resolve_value(command_value.get("Value", ""))
+						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
+						var new_disp: String 	= resolve_value(command_value.get("Disposition", ""))
 
 						var fake_line := [
 							{
 								"§Disposition": {
-									"Variable": actor_ref,
-									"Value": new_disp,
+									"Reference": actor_ref,
+									"Disposition": new_disp,
 								}
 							}
 						]
@@ -2980,14 +2980,14 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						return feedback
 
 					"role":
-						var role_key: String	= resolve_value(command_value.get("Variable", ""))
-						var actor_ref: String 	= resolve_value(command_value.get("Value", ""))
+						var role_key: String	= resolve_value(command_value.get("Role", ""))
+						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
 
 						var fake_line := [
 							{
 								"§Role": {
-									"Variable": role_key,
-									"Value": actor_ref,
+									"Role": role_key,
+									"Reference": actor_ref,
 								}
 							}
 						]
@@ -12689,7 +12689,7 @@ func _replace_with_values(expr: String) -> String:
 			value = "null"
 
 		#% Replace in expression
-		expr = expr.replace(token, str(value))
+		expr = expr.replace(token, var_to_str(value))
 
 	return expr
 
