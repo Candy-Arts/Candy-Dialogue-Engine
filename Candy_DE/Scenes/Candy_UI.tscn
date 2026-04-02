@@ -84,6 +84,17 @@ _data = {
 [node name="Candy_UI" type="CanvasLayer"]
 script = ExtResource("1_nyct5")
 engine_mode = "UI"
+ui_elements_paths = {
+&"backgrounds_path": "Backgrounds",
+&"busts_path": "Busts",
+&"chat_path": "ChatBox",
+&"choices_path": "Choices",
+&"dialogue_box_path": "DialogueBox",
+&"history_display_path": "History",
+&"input_node_path": "Input",
+&"portrait_path": "Portrait",
+&"subtitles_path": "Subtitles"
+}
 
 [node name="DialogueBox" parent="." instance=ExtResource("4_lpy83")]
 visible = false
