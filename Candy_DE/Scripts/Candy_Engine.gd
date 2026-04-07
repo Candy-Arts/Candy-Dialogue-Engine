@@ -3333,9 +3333,13 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var this_depth = nesting_depth
 			choice_list_data[this_depth] = command_value.duplicate(true)
 
-			#@ Step 0 - Hide older menus (if any):
+			#@ Step 0:
+			#% Make choice menu parent container visible as precaution:
+			get_node(ui_elements_paths["choices_path"]).visible = true			
+
+			#% Hide older menus (if any):
 			if hide_choice_lists == true:
-				for child in get_node(ui_elements_paths["choices_path"]):
+				for child in get_node(ui_elements_paths["choices_path"]).get_children():
 					if child.never_hide == false:
 						child.deactivate()
 
