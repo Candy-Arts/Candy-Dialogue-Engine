@@ -4606,7 +4606,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var time_val_str: String	= resolve_value(command_value.get("Time", "")).strip_edges()
 			var node_mode: String		= resolve_value(command_value.get("Timer Node", "Ignore")).capitalize()
 			var loop_val_str: String	= resolve_value(command_value.get("Loop", "")).strip_edges()
-			var status_val: String		= resolve_value(command_value.get("Status", "")).capitalize()
+			var status_val: String		= resolve_value(command_value.get("Status", "")).strip_edges()
 
 			#% Split tag strings into arrays:
 			var timer_tags = timer_tags_raw.split(",", false)
@@ -4752,14 +4752,19 @@ func commands(command_key, command_value, current_conversation, current_block, _
 								"Start/Resume":
 									if timer_node:
 										if timer_data.has("Pending Restart"):
-											#% Apply pending time change immediately on explicit resume:
 											timer_node.set_paused(false)
 											timer_node.wait_time = float(timer_data["Pending Restart"])
 											timer_node.start()
 											timer_data.erase("Pending Restart")
 											print("[DEBUG] §Timer_Status: Timer '%s' started with new time (%.2fs)." % [timer_name, timer_node.wait_time])
-										else:
+										elif timer_node.is_paused():
 											timer_node.set_paused(false)
+											print("[DEBUG] §Timer_Status: Timer '%s' unpaused." % timer_name)
+										else:
+											# Timer was never started (Hold) or was stopped — start it fresh:
+											timer_node.wait_time = float(timer_data.get("Time", "0"))
+											timer_node.start()
+											print("[DEBUG] §Timer_Status: Timer '%s' started fresh (%.2fs)." % [timer_name, timer_node.wait_time])
 									timer_data["Status"] = "Run"
 									print("[DEBUG] §Timer_Status: Timer '%s' resumed." % timer_name)
 
