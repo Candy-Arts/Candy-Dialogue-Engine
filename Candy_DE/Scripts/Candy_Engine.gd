@@ -3335,7 +3335,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 			#@ Step 0:
 			#% Make choice menu parent container visible as precaution:
-			get_node(ui_elements_paths["choices_path"]).visible = true			
+			get_node(ui_elements_paths["choices_path"]).visible = true
 
 			#% Hide older menus (if any):
 			if hide_choice_lists == true:

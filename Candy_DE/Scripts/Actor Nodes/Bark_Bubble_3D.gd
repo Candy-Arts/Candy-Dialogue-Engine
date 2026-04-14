@@ -56,6 +56,9 @@ func show_text(spoken_text):
 	#% Reset max_width:
 	label.size.x = max_width
 
+	#% Reset height (avoids extra empty lines):
+	label.size.y = 0
+
 	#% Assign text to label:
 	label.text = spoken_text
 
