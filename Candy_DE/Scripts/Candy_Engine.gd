@@ -4127,7 +4127,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 										var cat_node = cat_nodes[cat_name].get("Node", null)
 										if cat_node and cat_node.button_list.has_node(choice_name):
 											var choice_button: Node = cat_node.button_list.get_node(choice_name)
-											if choice_button.has_method("_choice_selected"):
+											if choice_button.choice_enabled == 0:
+												print("[DEBUG] §Choice_List: Timer '%s' skipped disabled choice '%s/%s'."
+													% [timer_name, cat_name, choice_name])
+											elif choice_button.has_method("_choice_selected"):
 												choice_button.call_deferred("_choice_selected")
 												print("[DEBUG] §Choice_List: Timer '%s' called _choice_selected() for '%s/%s'."
 													% [timer_name, cat_name, choice_name])
