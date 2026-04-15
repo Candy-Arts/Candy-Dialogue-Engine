@@ -4722,7 +4722,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							var new_loop: int = old_loop
 
 							var loop_str = loop_val_str.to_lower()
-							if loop_str in ["inf", "!"]:
+							if loop_str in ["inf", "!", "0"]:
 								new_loop = -1
 							elif loop_str.begins_with("+"):
 								new_loop += int(loop_str.substr(1))
