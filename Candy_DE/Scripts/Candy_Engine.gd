@@ -3333,7 +3333,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var this_depth = nesting_depth
 			choice_list_data[this_depth] = command_value.duplicate(true)
 
-			#@ Step 0:
+			#@ Step 0 - Visibility:
 			#% Make choice menu parent container visible as precaution:
 			get_node(ui_elements_paths["choices_path"]).visible = true
 
@@ -3674,6 +3674,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					for choice_entry in choices_array:
 						for choice_key in choice_entry.keys():
 							var choice_data: Dictionary = choice_entry[choice_key]
+
+							#% Don't create button if choice is disabled:
+							if int(resolve_value(choice_data.get("Enabled", "1"))) == 0:
+								continue
 
 							var choice_scene_name: String = resolve_value(choice_data.get("Button Scene", "")).strip_edges()
 							var final_scene_path: String = ""
@@ -4081,6 +4085,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							continue
 
 						var loop_val: int = int(resolve_value(timer_data.get("Loop", "0")))
+						print("[DEBUG] §Choice_List: Timer '%s' loop_val at timeout = %s, full timer_data = %s" % [timer_name, str(loop_val), str(timer_data)])
 						t_node = menu_node.timer_list.get_node_or_null(timer_name)
 						#% Infinite loops:
 						if loop_val == -1:
@@ -4194,23 +4199,25 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 			print("§Choice_Status started...")
 			if menu_mode == "Last":
-				if choice_lists.size() > 0:
-					var max_depth = choice_lists.keys().max()
+				if choice_list_data.size() > 0:
+					var max_depth = choice_list_data.keys().max()
 					target_depths = [max_depth]
 			elif menu_mode == "Tags":
-				for depth in choice_lists.keys():
-					var tags = choice_lists[depth].get("Tags", "")
+				for depth in choice_list_data.keys():
+					var tags = choice_lists.get(depth, {}).get("Tags", choice_list_data.get(depth, {}).get("Tags", ""))
 					for tag in menu_tags:
 						if tag.strip_edges() != "" and tags.find(tag.strip_edges()) != -1:
 							target_depths.append(depth)
 							break
 			elif menu_mode == "All":
-				target_depths = choice_lists.keys()
+				target_depths = choice_list_data.keys()
 
 			#@ Loop through selected menus/lists:
 			for depth in target_depths:
 				var cat_nodes: Dictionary = choice_lists.get(depth, {}).get("Category Nodes", {})
-				if cat_nodes.is_empty():
+				
+				var categories_array: Array = choice_list_data.get(depth, {}).get("Categories", [])
+				if categories_array.is_empty():
 					continue
 
 				print("[DEBUG] choice_list_data keys: %s" % str(choice_list_data.keys()))
@@ -4219,378 +4226,358 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				if choice_list_data.has(depth):
 					print("[DEBUG] Categories for depth: %s" % str(choice_list_data[depth].get("Categories", "MISSING")))
 
-				for cat_key in cat_nodes.keys():
-					var cat_entry = cat_nodes[cat_key]
-					var cat_node = cat_entry.get("Node", null)
-					var cat_tags: String = cat_entry.get("Tags", "")
+				for category_entry in categories_array:
+					for cat_key in category_entry.keys():
+						var cat_data: Dictionary = category_entry[cat_key]
+						var cat_tags: String = resolve_value(cat_data.get("Tags", "")).strip_edges()
+						var cat_node = cat_nodes.get(cat_key, {}).get("Node", null)
 
-					#% Check if category matches filter:
-					var include_category := true
-					match category_mode:
-						"Last":
-							if not choice_lists.has(depth) or not choice_lists[depth].has("Last Choice"):
+						#% Check if category matches filter:
+						var include_category := true
+						match category_mode:
+							"Last":
+								if not choice_lists.has(depth) or not choice_lists[depth].has("Last Choice"):
+									include_category = false
+								else:
+									var last_cat = choice_lists[depth]["Last Choice"]["Choice"][0]
+									include_category = (last_cat == cat_key)
+							"Tags":
 								include_category = false
-							else:
-								var last_cat = choice_lists[depth]["Last Choice"]["Choice"][0]
-								include_category = (last_cat == cat_key)
-						"Tags":
-							include_category = false
-							for tag in category_tags:
-								if tag.strip_edges() != "" and cat_tags.find(tag.strip_edges()) != -1:
-									include_category = true
-									break
-						"All":
-							if category_tags_raw != "":
 								for tag in category_tags:
 									if tag.strip_edges() != "" and cat_tags.find(tag.strip_edges()) != -1:
-										include_category = false
+										include_category = true
 										break
-					if not include_category:
-						continue
-
-					#% Get choices from live choice_list_data for this category:
-					var cat_data: Dictionary = {}
-
-					for entry in choice_list_data[depth].get("Categories", []):
-						if entry.has(cat_key):
-							cat_data = entry[cat_key]
-							break
-					if cat_data.is_empty():
-						continue
-
-					#% Choices is also an array of single-key dicts, not a flat dictionary:
-					var choices_array: Array = cat_data.get("Choices", [])
-
-					print("[DEBUG] cat_data for '%s': %s" % [cat_key, str(cat_data)])
-					print("[DEBUG] choices_array size: %d" % choices_array.size())
-
-					for choice_entry in choices_array:
-						for choice_key in choice_entry.keys():
-							var choice_data: Dictionary = choice_entry[choice_key]
-							var choice_tags_str: String = resolve_value(choice_data.get("Tags", "")).strip_edges()
-							print("[DEBUG] §Choice_Status: Checking choice '%s'" % choice_key)
-
-							#% Choice filter:
-							var include_choice := true
-							match choice_mode:
-								"Last":
-									if not choice_lists.has(depth) or not choice_lists[depth].has("Last Choice"):
-										include_choice = false
-									else:
-										var last_choice = choice_lists[depth]["Last Choice"]["Choice"][1]
-										include_choice = (last_choice == choice_key)
-								"Tags":
-									include_choice = false
-									for tag in choice_tags:
-										if tag.strip_edges() != "" and choice_tags_str.find(tag.strip_edges()) != -1:
-											include_choice = true
+							"All":
+								if category_tags_raw != "":
+									for tag in category_tags:
+										if tag.strip_edges() != "" and cat_tags.find(tag.strip_edges()) != -1:
+											include_category = false
 											break
-								"All":
-									if choice_tags_raw != "":
+						if not include_category:
+							continue
+
+						#% Get choices from live choice_list_data for this category:
+						var choices_array: Array = cat_data.get("Choices", [])
+
+						print("[DEBUG] cat_data for '%s': %s" % [cat_key, str(cat_data)])
+						print("[DEBUG] choices_array size: %d" % choices_array.size())
+
+						for choice_entry in choices_array:
+							for choice_key in choice_entry.keys():
+								var choice_data: Dictionary = choice_entry[choice_key]
+								var choice_tags_str: String = resolve_value(choice_data.get("Tags", "")).strip_edges()
+								print("[DEBUG] §Choice_Status: Checking choice '%s'" % choice_key)
+
+								#% Choice filter:
+								var include_choice := true
+								match choice_mode:
+									"Last":
+										if not choice_lists.has(depth) or not choice_lists[depth].has("Last Choice"):
+											include_choice = false
+										else:
+											var last_choice = choice_lists[depth]["Last Choice"]["Choice"][1]
+											include_choice = (last_choice == choice_key)
+									"Tags":
+										include_choice = false
 										for tag in choice_tags:
 											if tag.strip_edges() != "" and choice_tags_str.find(tag.strip_edges()) != -1:
-												include_choice = false
+												include_choice = true
 												break
-							print("[DEBUG] §Choice_Status: include_choice=%s for '%s'" % [str(include_choice), choice_key])
-							if not include_choice:
-								continue
+									"All":
+										if choice_tags_raw != "":
+											for tag in choice_tags:
+												if tag.strip_edges() != "" and choice_tags_str.find(tag.strip_edges()) != -1:
+													include_choice = false
+													break
 
-							#@ Safeguard for redundancy (switch mode to "-" if choice_data already matches):
-							var effective_enable_mode := enable_mode
-							var effective_active_mode := active_mode
-							var effective_show_mode := show_mode
+								print("[DEBUG] §Choice_Status: include_choice=%s for '%s'" % [str(include_choice), choice_key])
+								if not include_choice:
+									continue
 
-							match effective_enable_mode:
-								"Enable":
-									if choice_data["Enabled"] == "1":
-										effective_enable_mode = "-"
-								"Disable":
-									if choice_data["Enabled"] == "0":
-										effective_enable_mode = "-"
-								_:
-									pass
+								#@ Safeguard for redundancy (switch mode to "-" if choice_data already matches):
+								var effective_enable_mode := enable_mode
+								var effective_active_mode := active_mode
+								var effective_show_mode := show_mode
 
-							match effective_active_mode:
-								"Activate":
-									if choice_data["Active"] == "1":
-										effective_active_mode = "-"
-								"Deactivate":
-									if choice_data["Active"] == "0":
-										effective_active_mode = "-"
-								_:
-									pass
+								match effective_enable_mode:
+									"Enable":
+										if choice_data["Enabled"] == "1":
+											effective_enable_mode = "-"
+									"Disable":
+										if choice_data["Enabled"] == "0":
+											effective_enable_mode = "-"
+									_:
+										pass
 
-							match effective_show_mode:
-								"Show":
-									if choice_data["Invisible"] == "0":
-										effective_show_mode = "-"
-								"Hide":
-									if choice_data["Invisible"] == "1":
-										effective_show_mode = "-"
-								_:
-									pass
-							print("[DEBUG] §Choice_Status: effective_show_mode='%s' for '%s'" % [effective_show_mode, choice_key])
+								match effective_active_mode:
+									"Activate":
+										if choice_data["Active"] == "1":
+											effective_active_mode = "-"
+									"Deactivate":
+										if choice_data["Active"] == "0":
+											effective_active_mode = "-"
+									_:
+										pass
 
-							#@ Apply effects (string modes):
-							match effective_enable_mode:
-								"Enable":
-									choice_data["Enabled"] = "1"
-								"Disable":
-									choice_data["Enabled"] = "0"
-								"Toggle":
-									if choice_data["Enabled"] == "0":
+								match effective_show_mode:
+									"Show":
+										if choice_data["Invisible"] == "0":
+											effective_show_mode = "-"
+									"Hide":
+										if choice_data["Invisible"] == "1":
+											effective_show_mode = "-"
+									_:
+										pass
+
+								print("[DEBUG] §Choice_Status: effective_show_mode='%s' for '%s'" % [effective_show_mode, choice_key])
+
+								#@ Apply effects (string modes):
+								match effective_enable_mode:
+									"Enable":
 										choice_data["Enabled"] = "1"
-									elif choice_data["Enabled"] == "1":
+									"Disable":
 										choice_data["Enabled"] = "0"
-								"-":
-									pass
+									"Toggle":
+										if choice_data["Enabled"] == "0":
+											choice_data["Enabled"] = "1"
+										elif choice_data["Enabled"] == "1":
+											choice_data["Enabled"] = "0"
+									"-":
+										pass
 
-							match effective_active_mode:
-								"Activate":
-									choice_data["Active"] = "1"
-								"Deactivate":
-									choice_data["Active"] = "0"
-								"Toggle":
-									if choice_data["Active"] == "0":
+								match effective_active_mode:
+									"Activate":
 										choice_data["Active"] = "1"
-									elif choice_data["Active"] == "1":
+									"Deactivate":
 										choice_data["Active"] = "0"
-								"-":
-									pass
+									"Toggle":
+										if choice_data["Active"] == "0":
+											choice_data["Active"] = "1"
+										elif choice_data["Active"] == "1":
+											choice_data["Active"] = "0"
+									"-":
+										pass
 
-							match effective_show_mode:
-								"Show":
-									choice_data["Invisible"] = "0"
-								"Hide":
-									choice_data["Invisible"] = "1"
-								"Toggle":
-									if choice_data["Invisible"] == "0":
-										choice_data["Invisible"] = "1"
-									elif choice_data["Invisible"] == "1":
+								match effective_show_mode:
+									"Show":
 										choice_data["Invisible"] = "0"
-								"-":
-									pass
-							print("[DEBUG] §Choice_Status: choice_data after apply = %s" % str(choice_data))
+									"Hide":
+										choice_data["Invisible"] = "1"
+									"Toggle":
+										if choice_data["Invisible"] == "0":
+											choice_data["Invisible"] = "1"
+										elif choice_data["Invisible"] == "1":
+											choice_data["Invisible"] = "0"
+									"-":
+										pass
 
-							#@ Label and tooltip text updates:
-							if label_val != "":
-								choice_data["Label"] = label_val
-							if tooltip_val != "":
-								choice_data["Tooltip"] = tooltip_val
+								print("[DEBUG] §Choice_Status: choice_data after apply = %s" % str(choice_data))
 
-							#@ Update live data:
-							for entry in choice_list_data[depth].get("Categories", []):
-								if entry.has(cat_key):
-									for choice_entry_2 in entry[cat_key].get("Choices", []):
-										if choice_entry_2.has(choice_key):
-											choice_entry_2[choice_key] = choice_data
-									break
+								#@ Label and tooltip text updates:
+								if label_val != "":
+									choice_data["Label"] = label_val
+								if tooltip_val != "":
+									choice_data["Tooltip"] = tooltip_val
 
-							#@ Update button data and visuals if available:
-							print("[DEBUG] §Choice_Status: cat_node=%s, has_node=%s" % [str(cat_node), str(cat_node.has_node(choice_key) if cat_node else false)])
-							if cat_node:
-								var button_node
-								var button_list = cat_node.button_list
-								#% If a button exists:
-								if button_list and button_list.has_node(choice_key):
-									button_node = button_list.get_node_or_null(choice_key)
-									if button_node:
-										#% Save old values before updating:
-										#var old_enbled = button_node.choice_enabled
-										#var old_active = button_node.choice_active
-										#var old_invisible = button_node.choice_invisible
-										var old_label = button_node.label
-										var old_tooltip = button_node.tooltip
+								#@ Update live data:
+								for entry in choice_list_data[depth].get("Categories", []):
+									if entry.has(cat_key):
+										for choice_entry_2 in entry[cat_key].get("Choices", []):
+											if choice_entry_2.has(choice_key):
+												choice_entry_2[choice_key] = choice_data
+										break
 
-										#% Sync internal state directly from choice_data:
-										button_node.choice_enabled = int(choice_data.get("Enabled", "1"))
-										button_node.choice_active = int(choice_data.get("Active", "1"))
-										button_node.choice_invisible = int(choice_data.get("Invisible", "0"))
-										button_node.label = choice_data.get("Label", "")
-										button_node.tooltip = choice_data.get("Tooltip", "")
+								#@ Update button data and visuals if available:
+								print("[DEBUG] §Choice_Status: cat_node=%s, has_node=%s" % [str(cat_node), str(cat_node.has_node(choice_key) if cat_node else false)])
+								if cat_node:
+									var button_node
+									var button_list = cat_node.button_list
+									#% If a button exists:
+									if button_list and button_list.has_node(choice_key):
+										button_node = button_list.get_node_or_null(choice_key)
+										if button_node:
+											var old_label = button_node.label
+											var old_tooltip = button_node.tooltip
 
-										#% Delete button if enabled = 0:
-										if effective_enable_mode == "Disable":
-											await button_node._toggle_enabled()
-											button_node.queue_free()
-											await get_tree().process_frame
+											#% Sync internal state directly from choice_data:
+											button_node.choice_enabled = int(choice_data.get("Enabled", "1"))
+											button_node.choice_active = int(choice_data.get("Active", "1"))
+											button_node.choice_invisible = int(choice_data.get("Invisible", "0"))
+											button_node.label = choice_data.get("Label", "")
+											button_node.tooltip = choice_data.get("Tooltip", "")
 
-											print("[DEBUG] §Choice_Status: Deleted choice button for '%s' in category '%s' (depth %s)"
-												% [choice_key, cat_key, str(depth)])
+											#% Delete button if enabled = 0:
+											if effective_enable_mode == "Disable" or (effective_enable_mode == "Toggle" and choice_data["Enabled"] == "0"):
+												await button_node._toggle_enabled()
+												button_node.queue_free()
+												await get_tree().process_frame
+												print("[DEBUG] §Choice_Status: Deleted choice button for '%s' in category '%s' (depth %s)"
+													% [choice_key, cat_key, str(depth)])
 
-										#% If don't delete button:
-										else:
-											if effective_active_mode != "-":						#/ Don't do this if Active hasn't changed
-												await button_node._toggle_active()
-											if effective_show_mode != "-":							#/ Don't do this if Invisible hasn't changed
-												await button_node._toggle_invisible()
-
-											if label_val != "" and label_val != old_label:			#/ Don't do this if Label hasn't changed
-												await button_node._set_label()
-											if tooltip_val != "" and tooltip_val != old_tooltip:	#/ Don't do this if Tooltip hasn't changed
-												await button_node._set_tooltip()
-
-											print("[DEBUG] §Choice_Status: Updated choice '%s' in category '%s' (depth %s)"
-												% [choice_key, cat_key, str(depth)])
-
-								#% If a button doesn't exist, create one:
-								else:
-									if effective_enable_mode == "Enable":
-										#@ Step 1 - Run choice Setup transition (if any):
-										var choice_setup: Dictionary = choice_data.get("Setup", {})
-										if not choice_setup.is_empty():
-											var convo: String = resolve_value(choice_setup.get("Conversation", "")).strip_edges()
-											var block: String = resolve_value(choice_setup.get("Block", "")).strip_edges()
-											var line_ref: String = resolve_value(choice_setup.get("Line", "")).strip_edges()
-											var trans_type: String = resolve_value(choice_setup.get("Type", "Bridge")).to_lower()
-
-											if not (convo == "" and block == "" and line_ref == ""):
-												match trans_type:
-													"bridge":
-														var cmd_to_run := "§Bridge"
-														var fake_line := [
-															{
-																cmd_to_run: {
-																	"Conversation": convo,
-																	"Block": block,
-																	"Line": line_ref,
-																}
-															}
-														]
-
-														nesting_depth += 1
-														var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-														nesting_depth -= 1
-
-														if feedback in ["END", "Return"]:
-															return feedback
-
-													_:
-														print("[DEBUG] Unknown transition type in §Choice_Status.Setup: %s" % trans_type)
-
-										#@ Step 2 - Re-fetch live choice data in case Setup mutated it:
-										#? Setup might run another §Choice_Status command, which would modify the choice data again.
-
-										#% Get the freshest data:
-										choice_data = {}
-										for entry in choice_list_data[depth].get("Categories", []):
-											if entry.has(cat_key):
-												for choice_entry_3 in entry[cat_key].get("Choices", []):
-													if choice_entry_3.has(choice_key):
-														choice_data = choice_entry_3[choice_key]
-												break
-
-										#% End §Choice_Status here if choice was disabled during Setup:
-										if choice_data.get("Enabled", "0") == "0":
-											print("[DEBUG] §Choice_Status: Spawn aborted for '%s' (disabled during Setup)."
-												% choice_key)
-											continue
-
-										#@ Step 3 - Spawn button (mirrors §Choice_List Step 7):
-										if button_list and button_list.has_node(choice_key):
-											button_node = button_list.get_node_or_null(choice_key)
-											if button_node:
-												print("[DEBUG] §Choice_Status: Spawn skipped for '%s' (already exists after Setup)."
-													% choice_key)
+											#% If don't delete button:
 											else:
-												button_node = null
+												if effective_active_mode != "-":						#/ Don't do this if Active hasn't changed
+													await button_node._toggle_active()
+												if effective_show_mode != "-":							#/ Don't do this if Invisible hasn't changed
+													await button_node._toggle_invisible()
 
-										if button_node == null:
-											var category_instance = cat_node
-											if category_instance == null:
-												continue
+												if label_val != "" and label_val != old_label:			#/ Don't do this if Label hasn't changed
+													await button_node._set_label()
+												if tooltip_val != "" and tooltip_val != old_tooltip:	#/ Don't do this if Tooltip hasn't changed
+													await button_node._set_tooltip()
+												print("[DEBUG] §Choice_Status: Updated choice '%s' in category '%s' (depth %s)"
+													% [choice_key, cat_key, str(depth)])
 
-											if button_list == null:
-												continue
+									#% If a button doesn't exist, create one:
+									else:
+										if effective_enable_mode == "Enable" or (effective_enable_mode == "Toggle" and choice_data["Enabled"] == "1"):
+											#@ Step 1 - Run choice Setup transition (if any):
+											var choice_setup: Dictionary = choice_data.get("Setup", {})
+											if not choice_setup.is_empty():
+												var convo: String = resolve_value(choice_setup.get("Conversation", "")).strip_edges()
+												var block: String = resolve_value(choice_setup.get("Block", "")).strip_edges()
+												var line_ref: String = resolve_value(choice_setup.get("Line", "")).strip_edges()
+												var trans_type: String = resolve_value(choice_setup.get("Type", "Bridge")).to_lower()
 
-											#% Determine button scene path (choice > category > general):
-											var general_button_scene: String = resolve_value(choice_list_data[depth].get("Button Scene", "Default.tscn")).strip_edges()
-											if general_button_scene == "":
-												general_button_scene = "Default.tscn"
-											elif not general_button_scene.ends_with(".tscn"):
-												general_button_scene += ".tscn"
-											general_button_scene = candy_de.choice_buttons_folder.path_join(general_button_scene)
+												if not (convo == "" and block == "" and line_ref == ""):
+													match trans_type:
+														"bridge":
+															var cmd_to_run := "§Bridge"
+															var fake_line := [
+																{
+																	cmd_to_run: {
+																		"Conversation": convo,
+																		"Block": block,
+																		"Line": line_ref,
+																	}
+																}
+															]
+															nesting_depth += 1
+															var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
+															nesting_depth -= 1
+															if feedback in ["END", "Return"]:
+																return feedback
+														_:
+															print("[DEBUG] Unknown transition type in §Choice_Status.Setup: %s" % trans_type)
 
-											var category_data: Dictionary = {}
+											#@ Step 2 - Re-fetch live choice data in case Setup mutated it:
+											#? Setup might run another §Choice_Status command, which would modify the choice data again.
+
+											#% Get the freshest data:
+											choice_data = {}
 											for entry in choice_list_data[depth].get("Categories", []):
 												if entry.has(cat_key):
-													category_data = entry[cat_key]
+													for choice_entry_3 in entry[cat_key].get("Choices", []):
+														if choice_entry_3.has(choice_key):
+															choice_data = choice_entry_3[choice_key]
 													break
 
-											var category_button_scene: String = resolve_value(category_data.get("Button Scene", "")).strip_edges()
-
-											if category_button_scene == "":
-												category_button_scene = general_button_scene
-											else:
-												if not category_button_scene.ends_with(".tscn"):
-													category_button_scene += ".tscn"
-												category_button_scene = candy_de.choice_buttons_folder.path_join(category_button_scene)
-
-											var choice_scene_name: String = resolve_value(choice_data.get("Button Scene", "")).strip_edges()
-											var final_scene_path: String = ""
-
-											if choice_scene_name == "":
-												final_scene_path = category_button_scene
-											else:
-												if not choice_scene_name.ends_with(".tscn"):
-													choice_scene_name += ".tscn"
-												final_scene_path = candy_de.choice_buttons_folder.path_join(choice_scene_name)
-
-											if final_scene_path == "" or not ResourceLoader.exists(final_scene_path):
-												printerr("§Choice_Status: Invalid button scene for choice '%s' → %s"
-													% [choice_key, final_scene_path])
+											#% End §Choice_Status here if choice was disabled during Setup:
+											if choice_data.get("Enabled", "0") == "0":
+												print("[DEBUG] §Choice_Status: Spawn aborted for '%s' (disabled during Setup)."
+													% choice_key)
 												continue
 
-											var scene_res: PackedScene = load(final_scene_path)
-											if scene_res == null:
-												printerr("§Choice_Status: Failed to load button scene at → %s" % final_scene_path)
-												continue
+											#@ Step 3 - Spawn button (mirrors §Choice_List Step 7):
+											if button_list and button_list.has_node(choice_key):
+												button_node = button_list.get_node_or_null(choice_key)
+												if button_node:
+													print("[DEBUG] §Choice_Status: Spawn skipped for '%s' (already exists after Setup)."
+														% choice_key)
+												else:
+													button_node = null
 
-											var button_instance = scene_res.instantiate()
+											if button_node == null:
+												var category_instance = cat_node
+												if category_instance == null:
+													continue
+												if button_list == null:
+													continue
 
-											button_instance.name = choice_key
-											button_instance.parent_category = category_instance
-											button_instance.parent_menu = choice_lists[depth]["Menu"]
-											button_instance.caller = self
-											button_instance.choice_name = choice_key
-											button_instance.category_name = cat_key
+												#% Determine button scene path (choice > category > general):
+												var general_button_scene: String = resolve_value(choice_list_data[depth].get("Button Scene", "Default.tscn")).strip_edges()
+												if general_button_scene == "":
+													general_button_scene = "Default.tscn"
+												elif not general_button_scene.ends_with(".tscn"):
+													general_button_scene += ".tscn"
+												general_button_scene = candy_de.choice_buttons_folder.path_join(general_button_scene)
 
-											var choice_label = resolve_value(choice_data.get("Label", ""))
-											if choice_label == "":
-												choice_label = choice_key
-
-											button_instance.label = choice_label
-											button_instance.tooltip = resolve_value(choice_data.get("Tooltip", ""))
-											button_instance.general_custom = resolve_value(choice_list_data[depth].get("Custom", ""))
-											button_instance.category_custom = resolve_value(category_data.get("Custom", ""))
-											button_instance.choice_custom = resolve_value(choice_data.get("Custom", ""))
-											button_instance.tags = resolve_value(choice_data.get("Tags", "")).strip_edges()
-											button_instance.choice_enabled = 1
-											button_instance.choice_active = int(choice_data.get("Active", "1"))
-											button_instance.choice_invisible = int(choice_data.get("Invisible", "0"))
-											button_list.add_child(button_instance)
-
-											#/ Enable this if you need the button to be fully ready before calling setup():
-											#await get_tree().process_frame
-
-											var correct_index := 0
-											var found := false
-											for ce in choices_array:
-												for ck in ce.keys():
-													if ck == choice_key:
-														found = true
+												var category_data: Dictionary = {}
+												for entry in choice_list_data[depth].get("Categories", []):
+													if entry.has(cat_key):
+														category_data = entry[cat_key]
 														break
-													if button_list.has_node(ck):
-														correct_index += 1
-												if found:
-													break
 
-											button_list.move_child(button_instance, correct_index)
+												var category_button_scene: String = resolve_value(category_data.get("Button Scene", "")).strip_edges()
+												if category_button_scene == "":
+													category_button_scene = general_button_scene
+												else:
+													if not category_button_scene.ends_with(".tscn"):
+														category_button_scene += ".tscn"
+													category_button_scene = candy_de.choice_buttons_folder.path_join(category_button_scene)
 
-											button_instance.setup()		#TODO: Add 'await' if setup() should finish before the next choice is handled.
+												var choice_scene_name: String = resolve_value(choice_data.get("Button Scene", "")).strip_edges()
+												var final_scene_path: String = ""
+												if choice_scene_name == "":
+													final_scene_path = category_button_scene
+												else:
+													if not choice_scene_name.ends_with(".tscn"):
+														choice_scene_name += ".tscn"
+													final_scene_path = candy_de.choice_buttons_folder.path_join(choice_scene_name)
 
-											print("[DEBUG] §Choice_Status: Spawned choice '%s' under category '%s' (depth %s)"
-												% [choice_key, cat_key, str(depth)])
+												if final_scene_path == "" or not ResourceLoader.exists(final_scene_path):
+													printerr("§Choice_Status: Invalid button scene for choice '%s' → %s"
+														% [choice_key, final_scene_path])
+													continue
+
+												var scene_res: PackedScene = load(final_scene_path)
+												if scene_res == null:
+													printerr("§Choice_Status: Failed to load button scene at → %s" % final_scene_path)
+													continue
+
+												var button_instance = scene_res.instantiate()
+												button_instance.name = choice_key
+												button_instance.parent_category = category_instance
+												button_instance.parent_menu = choice_lists[depth]["Menu"]
+												button_instance.caller = self
+												button_instance.choice_name = choice_key
+												button_instance.category_name = cat_key
+
+												var choice_label = resolve_value(choice_data.get("Label", ""))
+												if choice_label == "":
+													choice_label = choice_key
+
+												button_instance.label = choice_label
+												button_instance.tooltip = resolve_value(choice_data.get("Tooltip", ""))
+												button_instance.general_custom = resolve_value(choice_list_data[depth].get("Custom", ""))
+												button_instance.category_custom = resolve_value(category_data.get("Custom", ""))
+												button_instance.choice_custom = resolve_value(choice_data.get("Custom", ""))
+												button_instance.tags = resolve_value(choice_data.get("Tags", "")).strip_edges()
+												button_instance.choice_enabled = 1
+												button_instance.choice_active = int(choice_data.get("Active", "1"))
+												button_instance.choice_invisible = int(choice_data.get("Invisible", "0"))
+												button_list.add_child(button_instance)
+
+												#/ Enable this if you need the button to be fully ready before calling setup():
+												#await get_tree().process_frame
+
+												var correct_index := 0
+												var found := false
+												for ce in choices_array:
+													for ck in ce.keys():
+														if ck == choice_key:
+															found = true
+															break
+														if button_list.has_node(ck):
+															correct_index += 1
+													if found:
+														break
+
+												button_list.move_child(button_instance, correct_index)
+												button_instance.setup()		#TODO: Add 'await' if setup() should finish before the next choice is handled.
+
+												print("[DEBUG] §Choice_Status: Spawned choice '%s' under category '%s' (depth %s)"
+													% [choice_key, cat_key, str(depth)])
 
 			return "Continue"
 
@@ -4616,18 +4603,18 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var target_depths: Array = []
 
 			if menu_mode == "Last":
-				if choice_lists.size() > 0:
-					var max_depth = choice_lists.keys().max()
+				if choice_list_data.size() > 0:
+					var max_depth = choice_list_data.keys().max()
 					target_depths = [max_depth]
 			elif menu_mode == "Tags":
-				for depth in choice_lists.keys():
-					var tags = choice_lists[depth].get("Tags", "")
+				for depth in choice_list_data.keys():
+					var tags = choice_lists.get(depth, {}).get("Tags", choice_list_data.get(depth, {}).get("Tags", ""))
 					for tag in menu_tags:
 						if tag.strip_edges() != "" and tags.find(tag.strip_edges()) != -1:
 							target_depths.append(depth)
 							break
 			elif menu_mode == "All":
-				target_depths = choice_lists.keys()
+				target_depths = choice_list_data.keys()
 
 			#@ Loop through selected menus/lists:
 			for depth in target_depths:
@@ -4637,8 +4624,6 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 				#% Get menu node reference for this depth:
 				var menu_node = choice_lists.get(depth, {}).get("Menu", null)
-				if menu_node == null:
-					continue
 
 				for timer_entry in timers_array:
 					for timer_name in timer_entry.keys():
@@ -4673,8 +4658,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						if not include_timer:
 							continue
 
-						#% Get the actual Timer node:
-						var timer_node: Timer = menu_node.timer_list.get_node_or_null(timer_name)
+						var timer_node: Timer = menu_node.timer_list.get_node_or_null(timer_name) if menu_node else null
 
 						#@ Time modification:
 						if time_val_str != "":
@@ -4700,23 +4684,19 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							if timer_node:
 								match node_mode:
 									"Restart":
-										#% Flag for restart on resume — always use new time:
 										timer_data["Pending Restart"] = new_time
-										print("[DEBUG] §Timer_Status: Pending Restart set on '%s': %s" % [timer_name, str(timer_data)])
 										print("[DEBUG] §Timer_Status: Timer '%s' flagged for restart (%.2fs)." % [timer_name, new_time])
 									"Update":
-										#% Only flag for restart if new time is shorter than remaining time:
 										var remaining: float = timer_node.time_left
 										if new_time < remaining:
 											timer_data["Pending Restart"] = new_time
-											print("[DEBUG] §Timer_Status: Pending Restart set on '%s': %s" % [timer_name, str(timer_data)])
 											print("[DEBUG] §Timer_Status: Timer '%s' flagged for update (%.2fs < %.2fs remaining)." % [timer_name, new_time, remaining])
 										else:
 											print("[DEBUG] §Timer_Status: Timer '%s' not updated (%.2fs >= %.2fs remaining)." % [timer_name, new_time, remaining])
 									"Ignore":
 										pass
 
-						#@ Look modification:
+						#@ Loop modification:
 						if loop_val_str != "":
 							var old_loop: int = int(timer_data.get("Loop", "0"))
 							var new_loop: int = old_loop
@@ -4729,11 +4709,11 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							elif loop_str.begins_with("-"):
 								new_loop -= int(loop_str.substr(1))
 							elif loop_str.begins_with("*"):
-								new_loop = int(float(old_loop) * float(loop_str.substr(1)))
+								new_loop = roundi(float(old_loop) * float(loop_str.substr(1)))
 							elif loop_str.begins_with("/"):
 								var divisor = int(float(loop_str.substr(1)))
 								if divisor != 0:
-									new_loop = int(float(old_loop) / divisor)
+									new_loop = roundi(float(old_loop) / divisor)
 							else:
 								new_loop = int(loop_str)
 
@@ -4757,11 +4737,12 @@ func commands(command_key, command_value, current_conversation, current_block, _
 											timer_node.start()
 											timer_data.erase("Pending Restart")
 											print("[DEBUG] §Timer_Status: Timer '%s' started with new time (%.2fs)." % [timer_name, timer_node.wait_time])
+										#% Timer paused:
 										elif timer_node.is_paused():
 											timer_node.set_paused(false)
 											print("[DEBUG] §Timer_Status: Timer '%s' unpaused." % timer_name)
+										#% Timer was never started (Hold) or was stopped — start it fresh:
 										else:
-											# Timer was never started (Hold) or was stopped — start it fresh:
 											timer_node.wait_time = float(timer_data.get("Time", "0"))
 											timer_node.start()
 											print("[DEBUG] §Timer_Status: Timer '%s' started fresh (%.2fs)." % [timer_name, timer_node.wait_time])
