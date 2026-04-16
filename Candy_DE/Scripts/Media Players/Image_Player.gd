@@ -58,6 +58,16 @@ func setup_animation(anim_folder: String, fps_value: float, loop) -> void:
 	reset_internal()
 	loop_target = loop
 	animated = true
+	var config_txt := anim_folder.path_join("config.txt")
+	if FileAccess.file_exists(config_txt):
+		var f := FileAccess.open(config_txt, FileAccess.READ)
+		if f:
+			var line := f.get_as_text().strip_edges()
+			f.close()
+			if "=" in line:
+				var val := line.split("=")[1].strip_edges()
+				if val.is_valid_float():
+					fps_value = float(val)
 	fps = max(fps_value, 0.001)
 	frames.clear()
 
@@ -71,7 +81,7 @@ func setup_animation(anim_folder: String, fps_value: float, loop) -> void:
 
 	while file != "":
 		if not dir.current_is_dir():
-			if not file.ends_with(".import"):
+			if not file.ends_with(".import") and not file.ends_with(".txt"):
 				var loaded_resource = load(anim_folder.path_join(file))
 				if loaded_resource != null:
 					frames.append(loaded_resource)

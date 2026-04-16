@@ -5196,8 +5196,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var time_target: float = 0.0
 			var default_fps: float = 30.0
 
-			if str(wait_raw).strip_edges() != "":
-				wait_target = int(wait_raw)
+			if str(wait_raw).strip_edges() == "":
+				wait_raw = "0"		
+
+			wait_target = int(wait_raw)
 
 			if typeof(time_raw) == TYPE_STRING:
 				var s = time_raw.strip_edges()
@@ -7512,8 +7514,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var time_target: float = 0.0
 			var default_fps: float = 30.0
 
-			if str(wait_raw).strip_edges() != "":
-				wait_target = int(wait_raw)
+			if str(wait_raw).strip_edges() == "":
+				wait_raw = "0"
+
+			wait_target = int(wait_raw)
 
 			if typeof(time_raw) == TYPE_STRING:
 				var s = time_raw.strip_edges()

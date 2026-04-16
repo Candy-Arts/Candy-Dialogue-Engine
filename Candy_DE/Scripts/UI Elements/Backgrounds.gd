@@ -16,12 +16,14 @@ extends Node
 
 @onready var bg_container = get_node("BG_Control")
 
-@export var default_image_extension = ".png"
-@export var default_sprite_extension = ".png"
-@export var default_animated_sprite_extension = ".tres"
-@export var default_video_extension = ".ogv"
+@export var default_image_extension = ".png"				#/ TextureRect, NinePatchRect, TextureButton
+@export var default_sprite_extension = ".png"				#/ Sprite2D, Sprite3D
+@export var default_animated_sprite_extension = ".tres"		#/ AnimatedSprite2D, AnimatedSprite3D
+@export var default_video_extension = ".ogv"				#/ VideoStreamPlayer
+@export var default_effect_extension = ".tres"				#/ AnimationPlayer
 
 #? The FPS value to use for Sprite2D, Sprite3D, AnimatedSprite2D or AnimatedSprite3D animations.
+@export var image_fps = 1.0
 @export var sprite_fps = 10.0
 
 #? Used for scaling Sprite2D or Sprite3D nodes to the desired size:
@@ -89,19 +91,24 @@ func assign_bg(layer: String, file_ref: String, anim_name: String, loop: int, wa
 	#@ Step 3 - Resolve file path:
 	var layer_folder = candy_de.background_folder.path_join(layer)
 	var file_name = str(file_ref).strip_edges()
+	var file_path: String
 	if file_name == "":
 		file_name = "Default"
 
-	#% Pick appropriate extension:
+	#% Pick appropriate extension or check for Animated folder:
+	var animated_path := layer_folder.path_join("Animated").path_join(file_name)
 	if file_name.find(".") == -1:
-		if bg_node is TextureRect or bg_node is NinePatchRect:
-			file_name += default_image_extension
-		elif bg_node is Sprite2D or bg_node is Sprite3D:
-			file_name += default_sprite_extension
-		elif bg_node is AnimatedSprite2D or bg_node is AnimatedSprite3D:
-			file_name += default_animated_sprite_extension
-		elif bg_node is VideoStreamPlayer:
-			file_name += default_video_extension
+		if DirAccess.dir_exists_absolute(animated_path):
+			file_path = animated_path
+		else:
+			if bg_node is TextureRect or bg_node is NinePatchRect:
+				file_name += default_image_extension
+			elif bg_node is Sprite2D or bg_node is Sprite3D:
+				file_name += default_sprite_extension
+			elif bg_node is AnimatedSprite2D or bg_node is AnimatedSprite3D:
+				file_name += default_animated_sprite_extension
+			elif bg_node is VideoStreamPlayer:
+				file_name += default_video_extension
 
 	#@ Step 4 - Stop existing playback:
 	var timer := bg_node.get_node_or_null("BGAnimTimer")
@@ -114,53 +121,123 @@ func assign_bg(layer: String, file_ref: String, anim_name: String, loop: int, wa
 		bg_node.stop()
 
 	#@ Step 5 - Determine resource path:
-	var file_path: String
-	if bg_node is AnimatedSprite2D or bg_node is AnimatedSprite3D:
-		file_path = layer_folder.path_join("Sprite Frames").path_join(file_name)
-	else:
-		file_path = layer_folder.path_join(file_name)
+	if file_path == "":
+		if bg_node is AnimatedSprite2D or bg_node is AnimatedSprite3D:
+			file_path = layer_folder.path_join("Sprite Frames").path_join(file_name)
+		else:
+			file_path = layer_folder.path_join(file_name)
 
 	#@ Step 6 - Validate resource existence:
 	if not ResourceLoader.exists(file_path):
-		printerr("assign_bg(): Missing file: ", file_path, " → trying Default with same extension")
-		var ext = file_name.get_extension()
-		var fallback_same_ext = layer_folder.path_join("Default." + ext)
-		if bg_node is AnimatedSprite2D or bg_node is AnimatedSprite3D:
-			fallback_same_ext = layer_folder.path_join("Sprite Frames").path_join("Default." + ext)
-
-		if ResourceLoader.exists(fallback_same_ext):
-			file_path = fallback_same_ext
-		else:
-			printerr("assign_bg(): Missing file: ", fallback_same_ext, " → trying Default with default extension")
-			var default_ext = ""
-			if bg_node is TextureRect or bg_node is NinePatchRect or bg_node is TextureButton:
-				default_ext = default_image_extension
-			elif bg_node is Sprite2D or bg_node is Sprite3D:
-				default_ext = default_sprite_extension
-			elif bg_node is AnimatedSprite2D or bg_node is AnimatedSprite3D:
-				default_ext = default_animated_sprite_extension
-			elif bg_node is VideoStreamPlayer:
-				default_ext = default_video_extension
-
-			var fallback_default_ext = layer_folder.path_join("Default" + default_ext)
+		if not DirAccess.dir_exists_absolute(file_path):
+			printerr("assign_bg(): Missing file: ", file_path, " → trying Default with same extension")
+			var ext = file_name.get_extension()
+			var fallback_same_ext = layer_folder.path_join("Default." + ext)
 			if bg_node is AnimatedSprite2D or bg_node is AnimatedSprite3D:
-				fallback_default_ext = layer_folder.path_join("Sprite Frames").path_join("Default" + default_ext)
+				fallback_same_ext = layer_folder.path_join("Sprite Frames").path_join("Default." + ext)
 
-			if ResourceLoader.exists(fallback_default_ext):
-				file_path = fallback_default_ext
+			if ResourceLoader.exists(fallback_same_ext):
+				file_path = fallback_same_ext
 			else:
-				printerr("assign_bg(): Missing file: ", fallback_default_ext, " → no fallback found, aborting")
-				return
+				printerr("assign_bg(): Missing file: ", fallback_same_ext, " → trying Default with default extension")
+				var default_ext = ""
+				if bg_node is TextureRect or bg_node is NinePatchRect or bg_node is TextureButton:
+					default_ext = default_image_extension
+				elif bg_node is Sprite2D or bg_node is Sprite3D:
+					default_ext = default_sprite_extension
+				elif bg_node is AnimatedSprite2D or bg_node is AnimatedSprite3D:
+					default_ext = default_animated_sprite_extension
+				elif bg_node is VideoStreamPlayer:
+					default_ext = default_video_extension
+
+				var fallback_default_ext = layer_folder.path_join("Default" + default_ext)
+				if bg_node is AnimatedSprite2D or bg_node is AnimatedSprite3D:
+					fallback_default_ext = layer_folder.path_join("Sprite Frames").path_join("Default" + default_ext)
+
+				if ResourceLoader.exists(fallback_default_ext):
+					file_path = fallback_default_ext
+				else:
+					printerr("assign_bg(): Missing file: ", fallback_default_ext, " → no fallback found, aborting")
+					return
 
 	var duration := 0.0
 
-	#@ Static image:
+	#@ Static image / folder animation:
 	if bg_node is TextureRect or bg_node is NinePatchRect:
-		var tex := load(file_path)
-		if tex is Texture2D:
-			bg_node.texture = tex
+		#% Check if file_path is a directory → folder animation:
+		if DirAccess.dir_exists_absolute(file_path):
+			var frames: Array[Texture2D] = []
+			var dir = DirAccess.open(file_path)
+			dir.list_dir_begin()
+			var file = dir.get_next()
+			while file != "":
+				if not dir.current_is_dir() and not file.ends_with(".import") and not file.ends_with(".txt"):
+					var loaded = load(file_path.path_join(file))
+					if loaded is Texture2D:
+						frames.append(loaded)
+				file = dir.get_next()
+			dir.list_dir_end()
+			frames.sort_custom(func(a, b): return a.resource_path < b.resource_path)
+
+			if frames.is_empty():
+				printerr("assign_bg(): No frames found in folder: ", file_path)
+				return
+
+			bg_node.texture = frames[0]
+			data["first_frame"] = frames[0]
 			bg_node.visible = true
-		return
+
+			if loop == 0:
+				return
+
+			var frame_state := {"index": 0}
+			var anim_fps = image_fps
+			var fps_txt := file_path.path_join("config.txt")
+			if FileAccess.file_exists(fps_txt):
+				var f := FileAccess.open(fps_txt, FileAccess.READ)
+				if f:
+					var line := f.get_as_text().strip_edges()
+					f.close()
+					if "=" in line:
+						var val := line.split("=")[1].strip_edges()
+						if val.is_valid_float():
+							anim_fps = float(val)
+
+			duration = float(frames.size()) / anim_fps
+			data["duration"] = duration
+			data["resume_at"] = (max(wait, 0) * duration) + max(time_target, 0.0)
+
+			var new_timer = Timer.new()
+			new_timer.name = "BGAnimTimer"
+			new_timer.wait_time = 1.0 / anim_fps
+			new_timer.autostart = true
+			bg_node.add_child(new_timer)
+			print("Timer added, wait_time=", new_timer.wait_time, " autostart=", new_timer.autostart, " in_tree=", new_timer.is_inside_tree())
+
+			var _animate_folder := func():
+				while true:
+					await new_timer.timeout
+					frame_state["index"] += 1
+					if frame_state["index"] >= frames.size():
+						frame_state["index"] = 0
+						data["loops_played"] += 1
+						data["elapsed_time"] = data["loops_played"] * duration
+						if loop == -1:
+							pass
+						elif loop > 0 and data["loops_played"] >= loop:
+							new_timer.stop()
+							new_timer.queue_free()
+							return
+					bg_node.texture = frames[frame_state["index"]]
+			_animate_folder.call_deferred()
+
+		else:
+			#% Static image:
+			var tex := load(file_path)
+			if tex is Texture2D:
+				bg_node.texture = tex
+				bg_node.visible = true
+			return
 
 	#@ Button:
 	if bg_node is TextureButton:
@@ -409,7 +486,8 @@ func stop_bg_animation(layers: Array, default: int) -> void:
 			bg_node.visible = true
 
 		elif bg_node is TextureRect or bg_node is NinePatchRect:
-			#% Static images - nothing to stop:
+			if default == 1 and bg_layer_data.has(layer_name) and bg_layer_data[layer_name].has("first_frame"):
+				bg_node.texture = bg_layer_data[layer_name]["first_frame"]
 			bg_node.visible = true
 
 		else:
@@ -538,8 +616,8 @@ func play_bg_effects(layers: Array, library: String, effects: Array, loop: int =
 
 		var layer_folder = candy_de.background_folder.path_join(_get_layer_folder(layer_name))
 		var lib_path = layer_folder.path_join("Animation Libraries").path_join(library)
-		if not lib_path.ends_with(".tres"):
-			lib_path = lib_path + ".tres"
+		if not lib_path.ends_with(".tres") and not lib_path.ends_with(".res"):
+			lib_path = lib_path + default_effect_extension
 		if not ResourceLoader.exists(lib_path):
 			printerr("play_bg_effects(): Missing Background Animation Library: ", lib_path)
 			continue
@@ -590,6 +668,9 @@ func _play_single_bg_effect(bg_node: Node, layer_name: String, anim_lib: Animati
 
 	#@ Step 2 - Register animation library:
 	if not player.has_animation_library(library):
+		#% Remove default empty library if present to avoid conflicts:
+		if player.has_animation_library(""):
+			player.remove_animation_library("")
 		player.add_animation_library(library, anim_lib)
 
 	#@ Step 3 - Prepare runtime data:
@@ -692,9 +773,11 @@ func stop_bg_effects(layers: Array, effects: Array) -> void:
 
 			#% Selective stop by effect name:
 			for e in effects:
-				if child.has_animation(e) and child.is_playing() and child.current_animation == e:
-					child.stop()
-					break   #/ one match is enough per player
+				for lib_name in child.get_animation_library_list():
+					var full_name = (lib_name + "/" + e) if lib_name != "" else e
+					if child.has_animation(full_name) and child.is_playing() and child.current_animation == full_name:
+						child.stop()
+						break
 
 		#@ Step 4 - Clean runtime effect data:
 		if bg_layer_data.has(layer_name) and bg_layer_data[layer_name].has("effects"):

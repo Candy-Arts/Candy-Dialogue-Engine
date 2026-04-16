@@ -24,6 +24,7 @@ extends Node
 @export var default_animated_sprite_extension = ".tres"		#/ AnimatedSprite2D, AnimatedSprite3D
 @export var default_video_extension = ".ogv"				#/ VideoStreamPlayer
 
+@export var image_fps = 1.0
 @export var sprite_fps = 8.0
 @export var portrait_h = 256
 @export var portrait_w = 256
@@ -87,12 +88,19 @@ func receive_portrait(character_ref: String, portrait_raw: String, play_portrait
 		var file_name = resolved
 		if file_name == "":
 			file_name = "Default"
+
+		var animated_path := candy_de.portraits_folder.path_join(character_ref).path_join("Animated").path_join(file_name)
 		if file_name.find(".") == -1:
-			file_name += default_ext
-		portrait_file = candy_de.portraits_folder.path_join(character_ref).path_join(file_name)
+			if DirAccess.dir_exists_absolute(animated_path):
+				portrait_file = animated_path
+			else:
+				file_name += default_ext
+				portrait_file = candy_de.portraits_folder.path_join(character_ref).path_join(file_name)
+		else:
+			portrait_file = candy_de.portraits_folder.path_join(character_ref).path_join(file_name)
 
 	#@ Step 5b - Fallback if file doesn't exist:
-	if not ResourceLoader.exists(portrait_file):
+	if not ResourceLoader.exists(portrait_file) and not DirAccess.dir_exists_absolute(portrait_file):
 		printerr("receive_portrait: Missing file: ", portrait_file, " → trying Default with same extension")
 		var ext = portrait_file.get_extension()
 		var base_folder = candy_de.portraits_folder.path_join(character_ref)
@@ -167,7 +175,59 @@ func texturerect_portrait(portrait_file: String) -> void:
 	portrait_node.visible = false
 	portrait_node.texture = null
 
-	#@ Verify texture path:
+	#@ Check if portrait_file is a folder → animated portrait:
+	if DirAccess.dir_exists_absolute(portrait_file):
+		var frames: Array[Texture2D] = []
+		var dir = DirAccess.open(portrait_file)
+		dir.list_dir_begin()
+		var file = dir.get_next()
+		while file != "":
+			if not dir.current_is_dir() and not file.ends_with(".import") and not file.ends_with(".txt"):
+				var loaded = load(portrait_file.path_join(file))
+				if loaded is Texture2D:
+					frames.append(loaded)
+			file = dir.get_next()
+		dir.list_dir_end()
+		frames.sort_custom(func(a, b): return a.resource_path < b.resource_path)
+
+		if frames.is_empty():
+			printerr("texturerect_portrait: No frames found in folder: ", portrait_file)
+			return
+
+		portrait_node.texture = frames[0]
+		portrait_node.visible = true
+
+		#% Read FPS from config.txt if present:
+		var anim_fps = image_fps
+		var config_txt := portrait_file.path_join("config.txt")
+		if FileAccess.file_exists(config_txt):
+			var f := FileAccess.open(config_txt, FileAccess.READ)
+			if f:
+				var line := f.get_as_text().strip_edges()
+				f.close()
+				if "=" in line:
+					var val := line.split("=")[1].strip_edges()
+					if val.is_valid_float():
+						anim_fps = float(val)
+
+		var timer := Timer.new()
+		timer.name = "PortraitAnimTimer"
+		timer.wait_time = 1.0 / anim_fps
+		timer.autostart = true
+		portrait_node.add_child(timer)
+
+		var frame_state := {"index": 0}
+		var _animate := func():
+			while true:
+				await timer.timeout
+				frame_state["index"] += 1
+				if frame_state["index"] >= frames.size():
+					frame_state["index"] = 0
+				portrait_node.texture = frames[frame_state["index"]]
+		_animate.call_deferred()
+		return
+
+	#@ Static portrait:
 	if not ResourceLoader.exists(portrait_file):
 		printerr("Portrait file not found: ", portrait_file)
 		return
@@ -375,6 +435,10 @@ func no_portrait():
 	self.visible = false
 
 	if portrait_node is TextureRect or portrait_node is NinePatchRect:
+		var timer := portrait_node.get_node_or_null("PortraitAnimTimer")
+		if timer:
+			timer.stop()
+			timer.queue_free()
 		portrait_node.texture = null
 
 	elif portrait_node is TextureButton:

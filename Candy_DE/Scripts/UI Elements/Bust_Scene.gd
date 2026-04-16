@@ -21,8 +21,10 @@ extends Node
 @export var default_sprite_extension = ".png"				#/ Sprite2D, Sprite3D
 @export var default_animated_sprite_extension = ".tres"		#/ AnimatedSprite2D, AnimatedSprite3D
 @export var default_video_extension = ".ogv"				#/ VideoStreamPlayer
+@export var default_effect_extension = ".tres"				#/ AnimationPlayer
 
 #? The FPS value to use for Sprite2D, Sprite3D, AnimatedSprite2D or AnimatedSprite3D animations.
+@export var image_fps = 30.0
 @export var sprite_fps = 30.0
 
 #? Used for scaling Sprite2D or Sprite3D nodes to the desired size:
@@ -201,8 +203,8 @@ func end_highlight_speaker(speaker_ref, dialogue_mode):
 
 #* Assign a bust and play/pause depending on Play:
 func set_bust(actor: String, bust_ref: String, file_ref: String, anim_name: String, loop: int, wait: int, time_target: float) -> void:
-	self.visible = true		#/ Precaution, in case the scene is invisible for some reason. 
-	
+	self.visible = true		#/ Precaution, in case the scene is invisible for some reason.
+
 	var bust_node = busts_container.get_node_or_null(bust_ref)
 	if bust_node == null:
 		printerr("set_bust: Bust node not found: ", bust_ref)
@@ -223,19 +225,24 @@ func set_bust(actor: String, bust_ref: String, file_ref: String, anim_name: Stri
 	#@ Step 1 - Resolve file path:
 	var actor_folder = candy_de.busts_folder.path_join(actor)
 	var file_name = file_ref.strip_edges()
+	var file_path: String
 	if file_name == "":
 		file_name = "Default"
 
-	#% Pick appropriate extension:
+	#% Pick appropriate extension or check for Animated folder:
+	var animated_path := actor_folder.path_join("Animated").path_join(file_name)
 	if file_name.find(".") == -1:
-		if bust_node is TextureRect or bust_node is NinePatchRect or bust_node is TextureButton:
-			file_name += default_image_extension
-		elif bust_node is Sprite2D or bust_node is Sprite3D:
-			file_name += default_sprite_extension
-		elif bust_node is AnimatedSprite2D or bust_node is AnimatedSprite3D:
-			file_name += default_animated_sprite_extension
-		elif bust_node is VideoStreamPlayer:
-			file_name += default_video_extension
+		if DirAccess.dir_exists_absolute(animated_path):
+			file_path = animated_path
+		else:
+			if bust_node is TextureRect or bust_node is NinePatchRect or bust_node is TextureButton:
+				file_name += default_image_extension
+			elif bust_node is Sprite2D or bust_node is Sprite3D:
+				file_name += default_sprite_extension
+			elif bust_node is AnimatedSprite2D or bust_node is AnimatedSprite3D:
+				file_name += default_animated_sprite_extension
+			elif bust_node is VideoStreamPlayer:
+				file_name += default_video_extension
 
 	#@ Step 2 - Stop existing playback:
 	var timer := bust_node.get_node_or_null("SpriteAnimTimer")
@@ -248,56 +255,130 @@ func set_bust(actor: String, bust_ref: String, file_ref: String, anim_name: Stri
 		bust_node.stop()
 
 	#@ Step 3 - Determine path depending on node type:
-	var file_path: String
-	if bust_node is AnimatedSprite2D or bust_node is AnimatedSprite3D:
-		file_path = actor_folder.path_join("Sprite Frames").path_join(file_name)
-	else:
-		file_path = actor_folder.path_join(file_name)
+	if file_path == "":
+		if bust_node is AnimatedSprite2D or bust_node is AnimatedSprite3D:
+			file_path = actor_folder.path_join("Sprite Frames").path_join(file_name)
+		else:
+			file_path = actor_folder.path_join(file_name)
 
 	#@ Step 4 - Validate resource existence:
 	if not ResourceLoader.exists(file_path):
-		printerr("set_bust: Missing file: ", file_path, " → trying Default with same extension")
-		var ext = file_name.get_extension()
-		var fallback_same_ext = actor_folder.path_join("Default." + ext)
-		if bust_node is AnimatedSprite2D or bust_node is AnimatedSprite3D:
-			fallback_same_ext = actor_folder.path_join("Sprite Frames").path_join("Default." + ext)
-
-		if ResourceLoader.exists(fallback_same_ext):
-			file_path = fallback_same_ext
-		else:
-			printerr("set_bust: Missing file: ", fallback_same_ext, " → trying Default with default extension")
-			var default_ext = ""
-			if bust_node is TextureRect or bust_node is NinePatchRect or bust_node is TextureButton:
-				default_ext = default_image_extension
-			elif bust_node is Sprite2D or bust_node is Sprite3D:
-				default_ext = default_sprite_extension
-			elif bust_node is AnimatedSprite2D or bust_node is AnimatedSprite3D:
-				default_ext = default_animated_sprite_extension
-			elif bust_node is VideoStreamPlayer:
-				default_ext = default_video_extension
-
-			var fallback_default_ext = actor_folder.path_join("Default" + default_ext)
+		if not DirAccess.dir_exists_absolute(file_path):
+			printerr("set_bust: Missing file: ", file_path, " → trying Default with same extension")
+			var ext = file_name.get_extension()
+			var fallback_same_ext = actor_folder.path_join("Default." + ext)
 			if bust_node is AnimatedSprite2D or bust_node is AnimatedSprite3D:
-				fallback_default_ext = actor_folder.path_join("Sprite Frames").path_join("Default" + default_ext)
+				fallback_same_ext = actor_folder.path_join("Sprite Frames").path_join("Default." + ext)
 
-			if ResourceLoader.exists(fallback_default_ext):
-				file_path = fallback_default_ext
+			if ResourceLoader.exists(fallback_same_ext):
+				file_path = fallback_same_ext
 			else:
-				printerr("set_bust: Missing file: ", fallback_default_ext, " → no fallback found, aborting")
-				return
+				printerr("set_bust: Missing file: ", fallback_same_ext, " → trying Default with default extension")
+				var default_ext = ""
+				if bust_node is TextureRect or bust_node is NinePatchRect or bust_node is TextureButton:
+					default_ext = default_image_extension
+				elif bust_node is Sprite2D or bust_node is Sprite3D:
+					default_ext = default_sprite_extension
+				elif bust_node is AnimatedSprite2D or bust_node is AnimatedSprite3D:
+					default_ext = default_animated_sprite_extension
+				elif bust_node is VideoStreamPlayer:
+					default_ext = default_video_extension
+
+				var fallback_default_ext = actor_folder.path_join("Default" + default_ext)
+				if bust_node is AnimatedSprite2D or bust_node is AnimatedSprite3D:
+					fallback_default_ext = actor_folder.path_join("Sprite Frames").path_join("Default" + default_ext)
+
+				if ResourceLoader.exists(fallback_default_ext):
+					file_path = fallback_default_ext
+				else:
+					printerr("set_bust: Missing file: ", fallback_default_ext, " → no fallback found, aborting")
+					return
 
 	var duration := 0.0
 
-	#@ Static image:
+	#@ Static image / folder animation:
 	if bust_node is TextureRect or bust_node is NinePatchRect:
-		var tex := load(file_path)
-		if tex is Texture2D:
-			bust_node.texture = tex
-			bust_node.visible = true
-		else:
-			printerr("set_bust: Invalid texture: ", file_path)
+		if DirAccess.dir_exists_absolute(file_path):
+			var frames: Array = []
+			var dir = DirAccess.open(file_path)
+			dir.list_dir_begin()
+			var file = dir.get_next()
+			while file != "":
+				if not dir.current_is_dir() and not file.ends_with(".import") and not file.ends_with(".txt"):
+					var loaded = load(file_path.path_join(file))
+					if loaded is Texture2D:
+						frames.append(loaded)
+				file = dir.get_next()
+			dir.list_dir_end()
+			frames.sort_custom(func(a, b): return a.resource_path < b.resource_path)
 
-		await _on_play_jml("Join", actor, bust_node, null)
+			if frames.is_empty():
+				printerr("set_bust: No frames found in folder: ", file_path)
+				return
+
+			bust_node.texture = frames[0]
+			bust_node.visible = true
+			data["first_frame"] = frames[0]
+
+			#% Read FPS from config.txt:
+			var anim_fps = image_fps
+			var config_txt := file_path.path_join("config.txt")
+			if FileAccess.file_exists(config_txt):
+				var f := FileAccess.open(config_txt, FileAccess.READ)
+				if f:
+					var line := f.get_as_text().strip_edges()
+					f.close()
+					if "=" in line:
+						var val := line.split("=")[1].strip_edges()
+						if val.is_valid_float():
+							anim_fps = float(val)
+
+			if loop == 0:
+				await _on_play_jml("Join", actor, bust_node, null)
+				return
+
+			duration = float(frames.size()) / anim_fps
+			data["duration"] = duration
+			data["resume_at"] = (max(wait, 0) * duration) + max(time_target, 0.0)
+			data["anim_fps"] = anim_fps
+			data["frames"] = frames
+
+			var new_timer = Timer.new()
+			new_timer.name = "SpriteAnimTimer"
+			new_timer.wait_time = 1.0 / anim_fps
+			new_timer.autostart = true
+			bust_node.add_child(new_timer)
+
+			var frame_state := {"index": 0}
+			data["frame_state"] = frame_state
+
+			var _animate := func():
+				while true:
+					await new_timer.timeout
+					frame_state["index"] += 1
+					if frame_state["index"] >= frames.size():
+						frame_state["index"] = 0
+						data["loops_played"] += 1
+						data["elapsed_time"] = data["loops_played"] * duration
+						if loop == -1:
+							pass
+						elif loop > 0 and data["loops_played"] >= loop:
+							new_timer.stop()
+							new_timer.queue_free()
+							return
+					bust_node.texture = frames[frame_state["index"]]
+			_animate.call_deferred()
+
+			await _on_play_jml("Join", actor, bust_node, null)
+
+		else:
+			var tex := load(file_path)
+			if tex is Texture2D:
+				bust_node.texture = tex
+				bust_node.visible = true
+			else:
+				printerr("set_bust: Invalid texture: ", file_path)
+			await _on_play_jml("Join", actor, bust_node, null)
 
 		return
 
@@ -502,8 +583,8 @@ func set_bust(actor: String, bust_ref: String, file_ref: String, anim_name: Stri
 
 #* Move a bust to another node, preserving animation and playback state:
 func move_bust(actor: String, old_bust: String, new_bust: String) -> void:
-	self.visible = true		#/ Precaution, in case the scene is invisible for some reason. 
-	
+	self.visible = true		#/ Precaution, in case the scene is invisible for some reason.
+
 	var bust_node_old = busts_container.get_node_or_null(old_bust)
 	var bust_node_new = busts_container.get_node_or_null(new_bust)
 	if bust_node_old == null or bust_node_new == null:
@@ -548,7 +629,45 @@ func move_bust(actor: String, old_bust: String, new_bust: String) -> void:
 		bust_node_new.paused = bust_node_old.paused
 
 	elif bust_node_old is TextureRect or bust_node_old is NinePatchRect:
+		#% Stop timer on old node:
+		var old_timer := bust_node_old.get_node_or_null("SpriteAnimTimer")
+		if old_timer:
+			old_timer.stop()
+			old_timer.queue_free()
+
+		#% Copy current texture:
 		bust_node_new.texture = bust_node_old.texture
+
+		#% If it was a folder animation, restart it on the new node from current frame:
+		var actor_data = bust_node_data.get(actor, {})
+		if actor_data.has("frames") and actor_data.has("frame_state"):
+			var frames = actor_data["frames"]
+			var frame_state = actor_data["frame_state"]
+			var anim_fps = actor_data.get("anim_fps", image_fps)
+			var loop = actor_data.get("loop_target", -1)
+
+			var new_timer = Timer.new()
+			new_timer.name = "SpriteAnimTimer"
+			new_timer.wait_time = 1.0 / anim_fps
+			new_timer.autostart = true
+			bust_node_new.add_child(new_timer)
+
+			var _animate := func():
+				while true:
+					await new_timer.timeout
+					frame_state["index"] += 1
+					if frame_state["index"] >= frames.size():
+						frame_state["index"] = 0
+						actor_data["loops_played"] += 1
+						actor_data["elapsed_time"] = actor_data["loops_played"] * actor_data["duration"]
+						if loop == -1:
+							pass
+						elif loop > 0 and actor_data["loops_played"] >= loop:
+							new_timer.stop()
+							new_timer.queue_free()
+							return
+					bust_node_new.texture = frames[frame_state["index"]]
+			_animate.call_deferred()
 
 	elif bust_node_old is TextureButton:
 		bust_node_new.texture_normal = bust_node_old.texture_normal
@@ -669,7 +788,8 @@ func stop_bust_animation(actors: Array, default: int) -> void:
 			bust_node.visible = true
 
 		elif bust_node is TextureRect or bust_node is NinePatchRect or bust_node is TextureButton:
-			#% Static images - nothing to pause, just ensure visibility:
+			if default == 1 and bust_node_data.has(actor) and bust_node_data[actor].has("first_frame"):
+				bust_node.texture = bust_node_data[actor]["first_frame"]
 			bust_node.visible = true
 
 		else:
@@ -914,7 +1034,7 @@ func play_bust_effects(actors: Array, library: String, effects: Array, loop_targ
 		if caller.bust_positions.has(actor):
 			bust_ref = caller.bust_positions[actor]["pos"]
 		else:
-			bust_ref = actor   #/ fallback for nodes not tracked in bust_positions
+			bust_ref = actor	#/ Fallback for nodes not tracked in bust_positions
 
 		var bust_node = busts_container.get_node_or_null(bust_ref)
 		if bust_node == null:
@@ -922,8 +1042,8 @@ func play_bust_effects(actors: Array, library: String, effects: Array, loop_targ
 			continue
 
 		var lib_path = candy_de.busts_folder.path_join(actor).path_join("Animation Libraries").path_join(library)
-		if not lib_path.ends_with(".tres"):
-			lib_path = lib_path + ".tres"
+		if not lib_path.ends_with(".tres") and not lib_path.ends_with(".res"):
+			lib_path = lib_path + default_effect_extension
 		if not ResourceLoader.exists(lib_path):
 			printerr("Missing Bust Animation Library: ", lib_path)
 			continue
@@ -980,6 +1100,9 @@ func _play_single_bust_effect(bust_node: Node, actor: String, anim_lib: Animatio
 
 	#@ Step 2 - Register animation library:
 	if not player.has_animation_library(library):
+		#% Remove default empty library if present to avoid conflicts:
+		if player.has_animation_library(""):
+			player.remove_animation_library("")
 		player.add_animation_library(library, anim_lib)
 
 	#@ Step 3 - Prepare runtime data:
@@ -1097,9 +1220,11 @@ func stop_bust_effects(actors: Array, effects: Array) -> void:
 
 			#% Selective stop by effect name:
 			for e in effects:
-				if child.has_animation(e) and child.is_playing() and child.current_animation == e:
-					child.stop()
-					break
+				for lib_name in child.get_animation_library_list():
+					var full_name = (lib_name + "/" + e) if lib_name != "" else e
+					if child.has_animation(full_name) and child.is_playing() and child.current_animation == full_name:
+						child.stop()
+						break
 
 		#@ Step 4 - Clean runtime effect data:
 		if bust_node_data.has(actor) and bust_node_data[actor].has("effects"):
@@ -1109,8 +1234,6 @@ func stop_bust_effects(actors: Array, effects: Array) -> void:
 			else:
 				for e in effects:
 					eff_dict.erase(e)
-
-
 
 
 #* Scale Sprite2D or Sprite3D busts to match target dimensions:
