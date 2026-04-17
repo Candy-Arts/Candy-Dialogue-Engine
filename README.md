@@ -1,5 +1,9 @@
 ![Candy Arts Logo](Logo.png)
 
+> [!TIP]
+> We've just opened our [Youtube channel](https://www.youtube.com/@CandyArtsStudio/playlists) and released several tutorial videos that will explain how to use Candy Dialogue Engine and Candy Dialogue Creator!
+> Please look at the playlists, to watch videos in the right order.
+
 # Candy Dialogue Engine
 **[Candy Dialogue Engine](https://candy-arts.com/index.php/candy-dialogue-engine) by [Candy Arts](https://candy-arts.com) is an extensive and powerful Dialogue System for Godot 4. More than that, it's also a Visual Novel Engine, Media Synchronizer, Cutscene Orchestrator, Narrative Manager, and Mod Support Solution.**
 
