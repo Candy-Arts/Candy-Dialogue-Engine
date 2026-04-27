@@ -1459,7 +1459,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		#* §If - Conditional branch:
 		"§if":
 			var condition_expr: String		= str(command_value.get("Condition", ""))
-			var result: String				= resolve_value(str(command_value.get("Result", "Transition")))
+			var result: String				= resolve_value(str(command_value.get("Type", "Transition")))
 			var transition_type: String		= resolve_value(str(command_value.get("Transition", "Bridge")))
 			var convo: String				= resolve_value(str(command_value.get("Conversation", "")).strip_edges())
 			var block: String				= resolve_value(str(command_value.get("Block", "")).strip_edges())
@@ -1774,7 +1774,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		#* §Elif - Continue the same conditional chain:
 		"§elif":
 			var condition_expr: String		= str(command_value.get("Condition", ""))
-			var result: String				= resolve_value(str(command_value.get("Result", "Transition")))
+			var result: String				= resolve_value(str(command_value.get("Type", "Transition")))
 			var transition_type: String		= resolve_value(str(command_value.get("Transition", "Bridge")))
 			var convo: String				= resolve_value(str(command_value.get("Conversation", "")).strip_edges())
 			var block: String				= resolve_value(str(command_value.get("Block", "")).strip_edges())
@@ -2082,7 +2082,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 		#* §Else - Fallback for the chain:
 		"§else":
-			var result: String				= resolve_value(str(command_value.get("Result", "Transition")))
+			var result: String				= resolve_value(str(command_value.get("Type", "Transition")))
 			var transition_type: String		= resolve_value(str(command_value.get("Transition", "Bridge")))
 			var convo: String				= resolve_value(str(command_value.get("Conversation", "")).strip_edges())
 			var block: String				= resolve_value(str(command_value.get("Block", "")).strip_edges())
@@ -2365,7 +2365,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		#* §For - Iterate over a condition-based sequence:
 		"§for":
 			var condition_expr: String = str(command_value.get("Condition", "")).strip_edges()
-			var result: String = resolve_value(str(command_value.get("Result", "Transition")))
+			var result: String = resolve_value(str(command_value.get("Type", "Transition")))
 			var transition_type: String = resolve_value(str(command_value.get("Transition", "Bridge")))
 			var convo: String = resolve_value(str(command_value.get("Conversation", "")).strip_edges())
 			var block: String = resolve_value(str(command_value.get("Block", "")).strip_edges())
@@ -2717,7 +2717,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		#* §While - repeat body while condition is true:
 		"§while":
 			var condition_expr: String		= str(command_value.get("Condition", ""))
-			var result: String				= resolve_value(str(command_value.get("Result", "Transition")))
+			var result: String				= resolve_value(str(command_value.get("Type", "Transition")))
 			var transition_type: String		= resolve_value(str(command_value.get("Transition", "Bridge")))
 			var convo: String				= resolve_value(str(command_value.get("Conversation", "")).strip_edges())
 			var block: String				= resolve_value(str(command_value.get("Block", "")).strip_edges())
