@@ -10151,7 +10151,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 	#@ If speech bubble mode, check that the line and speaker aren't exempt, and that the speaker has an actor node in the scene:
 	var speaker_node
-	if style == "Bubbles" or "VN_Bubbles":
+	if style == "Bubbles" or style == "VN_Bubbles":
 		#% Check if speaker is bubble exempt:
 		if candy_de.actors.has(speaker_ref) and candy_de.actors[speaker_ref].has("Bubble Exempt") and candy_de.actors[speaker_ref]["Bubble Exempt"] == true:
 			style = DialogueModes.keys()[bubble_exempt_mode]
@@ -10906,7 +10906,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 			#% 1. Instant writing (no typewriter):
 			if writing_speed <= 0:
-				vn_bubble_node.show_text(bbcode_text)
+				await vn_bubble_node.show_text(bbcode_text)
 
 			#% 2. Typewriter writing:
 			elif writing_speed > 0:
@@ -11718,7 +11718,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 				#% 3. Global override color:
 				if not has_speaker_override and enable_chat_speaker_color == true:
-					col = subtitle_speaker_color
+					col = chat_speaker_color
 					has_speaker_override = true
 					print("Override text color with general color.")
 
