@@ -1,5 +1,9 @@
 ![Candy Arts Logo](Logo.png)
 
+> [!NOTE]
+> Big news: Candy DE 1.1 is being worked on and will release soon! This is mainly an update to the [Candy Dialogue Creator](https://github.com/Candy-Arts/Candy-Dialogue-Creator) standalone application, but It will bring improvements to Candy DE as well.
+> Please see our [discussion post](https://github.com/Candy-Arts/Candy-Arts/discussions/10) and share your thoughts, ideas or requests.
+
 > [!TIP]
 > We've just opened our [Youtube channel](https://www.youtube.com/@CandyArtsStudio/playlists) and released several tutorial videos that will explain how to use Candy Dialogue Engine and Candy Dialogue Creator!
 > Please look at the playlists, to watch videos in the right order.
@@ -26,10 +30,14 @@ To put it simply: we want it to be the last dialogue system you'll ever need, ca
 - [Feedback](#feedback)
 
 ## Features
+*Note: images below were rendered in-engine using Candy DE's capabilities but may include AI-generated art assets*
+
 ### Simple to Advanced
 Despite its impressive breadth of features, Candy Dialogue Engine remains easy to use and get into: it's simple for basic use, and only requires learning the more advanced options that you actually need. Documentation is provided for every feature in the form of individual PDF guides.
 
 When you just need to display text and maybe the occasional player choices, it's all straightforward. When you need more, it delivers. Complexity scales with your project, so you're never overwhelmed.
+
+![](https://candy-arts.com/wp-content/uploads/2026/02/Visual-Novel-Example-2.png)
 
 ### Extensive display options
 Candy Dialogue Engine provides many options to display and format dialogues.
@@ -44,6 +52,8 @@ Candy Dialogue Engine provides many options to display and format dialogues.
 - Configure special portrait rules: display portraits only for NPCs, player characters, off-screen actors, or give specific lines or actors their own rules.
 - Simple to advanced choice lists: display a few choices with straightforward effects, or sort choices into browsable categories, setup timers to trigger choices, nest choice menus, and make choices modify themselves or other choices when selected.
 - Conditional branching: if/elif/else statements, and for/while loops.
+
+![](https://candy-arts.com/wp-content/uploads/2026/02/Choices-Example.png)
 
 ### Simple dialogue navigation
 Dialogues follow a simple structure: they're split into Conversations, which are split into Blocks, which contain Spoken Lines or Command Lines. There are no hard rules to what Conversations and Blocks mean, so you are free to split dialogues as you see fit.
@@ -67,6 +77,8 @@ If you're suspicious of dialogue systems that claim easy or complete UI customiz
 UI elements are easy to customize: create them however you want them to be - size, position on screen, even the node structure. Just be sure to attach the provided (customizable) scripts, and make sure they feature one or two nodes that the dialogue engine needs (e.g. a dialogue box needs a RichTextLabel to display text). Even these required nodes are flexible in terms of type: e.g. portraits can be TextureRect, NinePatchRect, TextureButton, (Animated)Sprite2D/3D, or even VideoStreamPlayer nodes.
 
 Templates are provided to guide you, and for quick testing or setup. UI customization doesn't get easier or more complete than that!
+
+![](https://candy-arts.com/wp-content/uploads/2026/02/Cyberpunk-Combat.png)
 
 ### Localization
 Localization isn't an afterthought: Candy Dialogue Engine includes several features to translate dialogues.
