@@ -47,12 +47,13 @@ Candy Dialogue Engine provides many options to display and format dialogues.
 - Display a custom string or single character at the end of line, to prompt the player to continue - supports BBCode for styling or visual effects (e.g. blinking).
 - Assign lines to actor roles when the speaker isn't a specific actor, make lines conditional based on the speaker's disposition, display variations based on the player or the speaker's gender, or let the engine randomly select between multiple line variants (with optional weights).
 - Assign voice files to lines, with an option to sync the typewriter effect with the speech duration.
+- Lexicon to automatically format keywords, add tooltips to them, and even make them clickable. Built-in option to avoid treating ordinary words as Lexicon homonyms (e.g. a character named June vs. the month of June).
+![](https://candy-arts.com/wp-content/uploads/2026/02/Lexicon-Example.png)
 - Display variables in spoken text. Includes support for actor roles, for when you want to display a property of whichever actor is assigned a specific role at runtime.
 - Easy and intuitive word substitution system, with automatic case matching and customizable tag symbols, for gendered language or other purposes: **"•He¦npc1• is nice, isn't •he¦npc1•?" → "She is nice, isn't she?"**
 - Configure special portrait rules: display portraits only for NPCs, player characters, off-screen actors, or give specific lines or actors their own rules.
-- Simple to advanced choice lists: display a few choices with straightforward effects, or sort choices into browsable categories, setup timers to trigger choices, nest choice menus, and make choices modify themselves or other choices when selected.
 - Conditional branching: if/elif/else statements, and for/while loops.
-
+- Simple to advanced choice lists: display a few choices with straightforward effects, or sort choices into browsable categories, setup timers to trigger choices, nest choice menus, and make choices modify themselves or other choices when selected.
 ![](https://candy-arts.com/wp-content/uploads/2026/02/Choices-Example.png)
 
 ### Simple dialogue navigation
