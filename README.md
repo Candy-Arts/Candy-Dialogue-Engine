@@ -37,9 +37,10 @@ Despite its impressive breadth of features, Candy Dialogue Engine remains easy t
 
 When you just need to display text and maybe the occasional player choices, it's all straightforward. When you need more, it delivers. Complexity scales with your project, so you're never overwhelmed.
 
+### Extensive display options
+
 ![](https://candy-arts.com/wp-content/uploads/2026/02/Visual-Novel-Example-2.png)
 
-### Extensive display options
 Candy Dialogue Engine provides many options to display and format dialogues.
 - Multiple dialogue modes are offered: RPG-style box with speaker portrait, speech bubbles, subtitles, chatbox, or voice only.
 - Format text or speaker names with BBCode, assign custom colors to different actors, add keywords to the Lexicon to give them custom styling (and make them display tooltips or clickable), etc.
@@ -70,16 +71,18 @@ Candy Dialogue Engine goes beyond just displaying dialogue text. Insert commands
 - Synchronize image, audio or video media with dialogue: play, stop, pause media or dialogue, skip, or adjust volume.
 - Move and alter nodes: change the location or rotation of objects, make characters play animations or set them in movement with the pathing logic of your choice, change the active camera or alter scene lights, instantiate or delete nodes or scenes...
 - Use the powerful 'Input' command to display interactive UIs that can communicate with the dialogue itself. Any UI of your own design is compatible: text input UIs, keypads with buttons, machines with dials, musical instruments, even mini-games.
-- Use dialogues as a scripting layer: modify any variables, call any functions or emit/await any signals in your code, and use conditions including 'for' and 'while' loops. This can be leveraged to make your game moddable by just letting it read and run player-created dialogue files.
+- Use dialogues as a scripting layer: modify any variables, call any functions or emit/await any signals in your code, and use conditions including 'for' and 'while' loops.
+- Candy Dialogue Engine can make your game moddable by just letting it read and run player-created dialogue files.
 
 ### UI Customization
+
+![](https://candy-arts.com/wp-content/uploads/2026/02/Variables-Example.png)
+
 If you're suspicious of dialogue systems that claim easy or complete UI customization but fail to deliver, Candy Dialogue Engine won't disappoint you.
 
 UI elements are easy to customize: create them however you want them to be - size, position on screen, even the node structure. Just be sure to attach the provided (customizable) scripts, and make sure they feature one or two nodes that the dialogue engine needs (e.g. a dialogue box needs a RichTextLabel to display text). Even these required nodes are flexible in terms of type: e.g. portraits can be TextureRect, NinePatchRect, TextureButton, (Animated)Sprite2D/3D, or even VideoStreamPlayer nodes.
 
 Templates are provided to guide you, and for quick testing or setup. UI customization doesn't get easier or more complete than that!
-
-![](https://candy-arts.com/wp-content/uploads/2026/02/Cyberpunk-Combat.png)
 
 ### Localization
 Localization isn't an afterthought: Candy Dialogue Engine includes several features to translate dialogues.
@@ -90,6 +93,9 @@ Localization isn't an afterthought: Candy Dialogue Engine includes several featu
 - This doesn't prevent you from letting your own code and logic handle localization if you prefer.
 
 ### Technical capabilities
+
+![](https://candy-arts.com/wp-content/uploads/2026/02/Cyberpunk-Combat.png)
+
 For advanced users, Candy Dialogue Engine offers tremendous power:
 - Built-in support for game state tracking: game state can be automatically changed when dialogues start and end, to block player inputs or pause game events.
 - Use variable references in place of data pieces anywhere in dialogues, to fetch values updated at runtime.
