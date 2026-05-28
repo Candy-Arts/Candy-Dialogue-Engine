@@ -1,0 +1,32 @@
+[gd_scene load_steps=3 format=3 uid="uid://cdgw2ktgguveu"]
+
+[ext_resource type="Script" uid="uid://b4n2u1cd6be8l" path="res://Candy_DE/Scripts/UI_Elements/Choice_Button.gd" id="1_8x6ca"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0w7e7"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.1, 0.1, 0.1, 0.6)
+draw_center = false
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[node name="Choice" type="PanelContainer"]
+custom_minimum_size = Vector2(384, 64)
+offset_right = 384.0
+offset_bottom = 64.0
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_0w7e7")
+script = ExtResource("1_8x6ca")
+
+[node name="Button" type="Button" parent="."]
+layout_mode = 2
+mouse_filter = 1
+
+[connection signal="pressed" from="Button" to="." method="_choice_selected"]

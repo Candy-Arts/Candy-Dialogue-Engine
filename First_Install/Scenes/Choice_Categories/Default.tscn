@@ -1,0 +1,40 @@
+[gd_scene load_steps=3 format=3 uid="uid://dmgxavnr48wcn"]
+
+[ext_resource type="Script" uid="uid://cora3nfnodxjc" path="res://Candy_DE/Scripts/UI_Elements/Choice_Category.gd" id="1_t78y5"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lswg7"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.1, 0.1, 0.1, 0.6)
+draw_center = false
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[node name="Category" type="PanelContainer"]
+offset_right = 384.0
+offset_bottom = 512.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_lswg7")
+script = ExtResource("1_t78y5")
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+editor_description = "Displays the choices available to the player during dialogues."
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+horizontal_scroll_mode = 0
+metadata/_edit_lock_ = true
+
+[node name="List" type="VBoxContainer" parent="Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_constants/separation = 8

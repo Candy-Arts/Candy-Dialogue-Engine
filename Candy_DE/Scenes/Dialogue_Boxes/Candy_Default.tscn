@@ -1,0 +1,72 @@
+[gd_scene load_steps=4 format=3 uid="uid://be74tnfqnv6a1"]
+
+[ext_resource type="Script" uid="uid://b1ilw8nl2s22p" path="res://Candy_DE/Scripts/UI_Elements/Dialogue_Box.gd" id="1_82hi1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6da47"]
+content_margin_left = 4.0
+content_margin_top = 0.0
+content_margin_right = 4.0
+content_margin_bottom = 0.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_lsi01"]
+content_margin_left = 8.0
+content_margin_top = 0.0
+content_margin_right = 8.0
+content_margin_bottom = 0.0
+
+[node name="DialogueBox" type="PanelContainer"]
+z_index = 100
+offset_left = 576.0
+offset_top = 816.0
+offset_right = 1344.0
+offset_bottom = 1072.0
+script = ExtResource("1_82hi1")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Speaker" type="PanelContainer" parent="VBox"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+
+[node name="BG" type="ColorRect" parent="VBox/Speaker"]
+layout_mode = 2
+color = Color(0.1584723, 0.15847233, 0.1584723, 0.78431374)
+
+[node name="Text" type="RichTextLabel" parent="VBox/Speaker"]
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 28
+theme_override_font_sizes/bold_font_size = 28
+theme_override_font_sizes/bold_italics_font_size = 28
+theme_override_font_sizes/italics_font_size = 28
+theme_override_font_sizes/mono_font_size = 28
+theme_override_styles/normal = SubResource("StyleBoxEmpty_6da47")
+bbcode_enabled = true
+text = "Speaker name"
+scroll_active = false
+autowrap_mode = 0
+vertical_alignment = 1
+
+[node name="Dialogue" type="PanelContainer" parent="VBox"]
+custom_minimum_size = Vector2(0, 208)
+layout_mode = 2
+
+[node name="BG" type="ColorRect" parent="VBox/Dialogue"]
+layout_mode = 2
+color = Color(0, 0, 0, 0.784314)
+
+[node name="Text" type="RichTextLabel" parent="VBox/Dialogue"]
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 24
+theme_override_font_sizes/bold_font_size = 24
+theme_override_font_sizes/bold_italics_font_size = 24
+theme_override_font_sizes/italics_font_size = 24
+theme_override_font_sizes/mono_font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxEmpty_lsi01")
+bbcode_enabled = true
+text = "Speech shows here.
+"
+scroll_active = false
+meta_underlined = false
+hint_underlined = false

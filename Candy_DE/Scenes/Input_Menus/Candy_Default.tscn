@@ -1,0 +1,71 @@
+[gd_scene load_steps=3 format=3 uid="uid://chvve6hvjd0fn"]
+
+[ext_resource type="Script" uid="uid://bruc8pwmtugvj" path="res://Candy_DE/Scripts/UI_Elements/Input.gd" id="1_oho0r"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ycgf0"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0.4117647, 0.654902, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[node name="Input" type="PanelContainer"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -256.0
+offset_top = -68.0
+offset_right = 256.0
+offset_bottom = 76.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ycgf0")
+script = ExtResource("1_oho0r")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Instructions" type="RichTextLabel" parent="VBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+bbcode_enabled = true
+text = "Input Instructions
+"
+fit_content = true
+
+[node name="Input" type="LineEdit" parent="VBox"]
+layout_mode = 2
+placeholder_text = "Player Input"
+
+[node name="Error" type="RichTextLabel" parent="VBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+theme_override_colors/default_color = Color(1, 0, 0, 1)
+bbcode_enabled = true
+text = "Error Message"
+
+[node name="HBox" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 128
+alignment = 1
+
+[node name="Cancel" type="Button" parent="VBox/HBox"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Cancel"
+
+[node name="Confirm" type="Button" parent="VBox/HBox"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Confirm"
+
+[connection signal="pressed" from="VBox/HBox/Cancel" to="." method="cancel"]
+[connection signal="pressed" from="VBox/HBox/Confirm" to="." method="submit"]

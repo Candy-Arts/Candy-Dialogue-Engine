@@ -1,172 +1,121 @@
 ![Candy Arts Logo](Logo.png)
 
-> [!NOTE]
-> Big news: Candy DE 1.1 is being worked on and will release soon! This is mainly an update to the [Candy Dialogue Creator](https://github.com/Candy-Arts/Candy-Dialogue-Creator) standalone application, but It will bring improvements to Candy DE as well.
-> Please see our [discussion post](https://github.com/Candy-Arts/Candy-Arts/discussions/10) and share your thoughts, ideas or requests.
-
-> [!TIP]
-> We've just opened our [Youtube channel](https://www.youtube.com/@CandyArtsStudio/playlists) and released several tutorial videos that will explain how to use Candy Dialogue Engine and Candy Dialogue Creator!
-> Please look at the playlists, to watch videos in the right order.
-
 # Candy Dialogue Engine
 **[Candy Dialogue Engine](https://candy-arts.com/index.php/candy-dialogue-engine) by [Candy Arts](https://candy-arts.com) is an extensive and powerful Dialogue System for Godot 4. More than that, it's also a Visual Novel Engine, Media Synchronizer, Cutscene Orchestrator, Narrative Manager, and Mod Support Solution.**
 
-Candy Dialogue Engine was designed to achieve five core goals:
-- Make dialogues fast and simple to write.
-- Adapt to any game type or genre.
-- Provide or support any features developers may need.
-- Make dialogue synchronization with game events easy.
-- Allow full code and UI customization.
-
-To put it simply: we want it to be the last dialogue system you'll ever need, capable of fulfilling all your dialogue-related requirements.
+![](https://candy-arts.com/wp-content/uploads/2026/02/Cyberpunk-Combat.png)
+*<sub>Disclaimer: Images in this document provided for illustrative purposes. Images were rendered in-engine using Candy DE's capabilities and may include AI-generated art assets.<sub>*
 
 ## Table of Contents
 - [Features](#features)
-- [Usage](#usage)
+- [Candy Dialogue Creator](#candy-dialogue-creator)
+- [Instructions](#instructions)
 - [Pricing](#pricing)
-- [Licensing](#licensing)
 - [Compatibility](#compatibility)
 - [Bugs and issues](#bugs-and-issues)
 - [Feedback](#feedback)
 
 ## Features
-*Note: images below were rendered in-engine using Candy DE's capabilities but may include AI-generated art assets*
-
-### Simple to Advanced
-Despite its impressive breadth of features, Candy Dialogue Engine remains easy to use and get into: it's simple for basic use, and only requires learning the more advanced options that you actually need. Documentation is provided for every feature in the form of individual PDF guides.
-
-When you just need to display text and maybe the occasional player choices, it's all straightforward. When you need more, it delivers. Complexity scales with your project, so you're never overwhelmed.
-
-### Extensive display options
-
 ![](https://candy-arts.com/wp-content/uploads/2026/02/Visual-Novel-Example-2.png)
 
-Candy Dialogue Engine provides many options to display and format dialogues.
-- Multiple dialogue modes are offered: RPG-style box with speaker portrait, speech bubbles, subtitles, chatbox, or voice only.
-- Format text or speaker names with BBCode, assign custom colors to different actors, add keywords to the Lexicon to give them custom styling (and make them display tooltips or clickable), etc.
-- Display text instantly or use a typewriter effect, with options to configure keys that make text write faster, slower, or instant. And configure dialogues to automatically advance once a line has fully displayed.
-- Display a custom string or single character at the end of line, to prompt the player to continue - supports BBCode for styling or visual effects (e.g. blinking).
-- Assign lines to actor roles when the speaker isn't a specific actor, make lines conditional based on the speaker's disposition, display variations based on the player or the speaker's gender, or let the engine randomly select between multiple line variants (with optional weights).
-- Assign voice files to lines, with an option to sync the typewriter effect with the speech duration.
-- Lexicon to automatically format keywords, add tooltips to them, and even make them clickable. Built-in option to avoid treating ordinary words as Lexicon homonyms (e.g. a character named June vs. the month of June).
-![](https://candy-arts.com/wp-content/uploads/2026/02/Lexicon-Example.png)
-- Display variables in spoken text. Includes support for actor roles, for when you want to display a property of whichever actor is assigned a specific role at runtime.
-- Easy and intuitive word substitution system, with automatic case matching and customizable tag symbols, for gendered language or other purposes: **"•He¦npc1• is nice, isn't •he¦npc1•?" → "She is nice, isn't she?"**
-- Configure special portrait rules: display portraits only for NPCs, player characters, off-screen actors, or give specific lines or actors their own rules.
-- Conditional branching: if/elif/else statements, and for/while loops.
-- Simple to advanced choice lists: display a few choices with straightforward effects, or sort choices into browsable categories, setup timers to trigger choices, nest choice menus, and make choices modify themselves or other choices when selected.
+**Candy Dialogue Engine was designed to achieve five core goals:**
+1. Make dialogues fast and simple to write.
+2. Adapt to any game type or genre.
+3. Provide or support any features developers may need.
+4. Make dialogue synchronization with game events easy.
+5. Allow full code and UI customization.
+
+**To that end, Candy Dialogue Engine combines the usual tools you need for speech and narrative crafting, plus more:** <br>
+- Different dialogue modes with various settings and options: dialogue box with portrait, subtitles, speech bubbles, chat box…
+- Voiced dialogue support.
+- VN busts and background image display.
+- Full UI customization.
+- Branching dialogues / Conditions.
+- Call functions and emit/detect signals.
+- Player choices and input prompts.
 ![](https://candy-arts.com/wp-content/uploads/2026/02/Choices-Example.png)
+- Media playback controls.
+- Variable modification and display.
+- Cutscene scripting.
+- Gendered word substitution.
+- Gendered and random variants.
+- Lexicon (Glossary).
+![](https://candy-arts.com/wp-content/uploads/2026/02/Lexicon-Example.png)
+- Localization/Translation features.
+- Compatibility features for Text-To-Speech and LLM-generated dialogue.
+- Dialogue live edit at runtime, parallel dialogues, dialogues as a modding / programming layer.
+- Fully accessible and extendable code.
+- Standalone dialogue editing GUI with simple ‘click to add line, fill in data, don’t type syntax’ approach.
 
-### Simple dialogue navigation
-Dialogues follow a simple structure: they're split into Conversations, which are split into Blocks, which contain Spoken Lines or Command Lines. There are no hard rules to what Conversations and Blocks mean, so you are free to split dialogues as you see fit.
+You can see the (almost) full feature list [here](Feature_List.md).
 
-Transition commands allow you to permanently jump or momentarily bridge to other Blocks in any Conversation (and even to specific Lines in a Block), or to return from a bridge at any time.
-
-A special 'Line Mark' command, with a unique reference name or code, can be inserted anywhere in a Block and be jumped or bridged to directly, to avoid relying on line indexes that may change during editing or even at runtime.
-
-### More than dialogue
-Candy Dialogue Engine goes beyond just displaying dialogue text. Insert commands in your dialogue script to do the following:
-- Change and animate layered backgrounds, or display, animate or move Visual Novel character busts.
-- Play visual effects on screen: fade, shake, flash, or any other animation you can create in an AnimationPlayer.
-- Synchronize image, audio or video media with dialogue: play, stop, pause media or dialogue, skip, or adjust volume.
-- Move and alter nodes: change the location or rotation of objects, make characters play animations or set them in movement with the pathing logic of your choice, change the active camera or alter scene lights, instantiate or delete nodes or scenes...
-- Use the powerful 'Input' command to display interactive UIs that can communicate with the dialogue itself. Any UI of your own design is compatible: text input UIs, keypads with buttons, machines with dials, musical instruments, even mini-games.
-- Use dialogues as a scripting layer: modify any variables, call any functions or emit/await any signals in your code, and use conditions including 'for' and 'while' loops.
-- Candy Dialogue Engine can make your game moddable by just letting it read and run player-created dialogue files.
-
-### UI Customization
-
-![](https://candy-arts.com/wp-content/uploads/2026/02/Variables-Example.png)
-
-If you're suspicious of dialogue systems that claim easy or complete UI customization but fail to deliver, Candy Dialogue Engine won't disappoint you.
-
-UI elements are easy to customize: create them however you want them to be - size, position on screen, even the node structure. Just be sure to attach the provided (customizable) scripts, and make sure they feature one or two nodes that the dialogue engine needs (e.g. a dialogue box needs a RichTextLabel to display text). Even these required nodes are flexible in terms of type: e.g. portraits can be TextureRect, NinePatchRect, TextureButton, (Animated)Sprite2D/3D, or even VideoStreamPlayer nodes.
-
-Templates are provided to guide you, and for quick testing or setup. UI customization doesn't get easier or more complete than that!
-
-### Localization
-Localization isn't an afterthought: Candy Dialogue Engine includes several features to translate dialogues.
-- Translation variants can be written directly in spoken lines, and the engine will select the right one based on language settings.
-- Voice files for alternate languages are automatically matched to their corresponding lines by the engine, saving you potentially dozens of hours of work!
-- Localization dictionaries can be used by the engine to translate text inside UIs that it interacts with, and even to translate the names of actors where relevant.
-- The Lexicon and the Word Substitution dictionaries can include entries exclusive to specific languages.
-- This doesn't prevent you from letting your own code and logic handle localization if you prefer.
-
-### Technical capabilities
-
-![](https://candy-arts.com/wp-content/uploads/2026/02/Cyberpunk-Combat.png)
-
-For advanced users, Candy Dialogue Engine offers tremendous power:
-- Built-in support for game state tracking: game state can be automatically changed when dialogues start and end, to block player inputs or pause game events.
-- Use variable references in place of data pieces anywhere in dialogues, to fetch values updated at runtime.
-- Run simultaneous parallel dialogues, each in their own engine instance and with their own UI: perfect for NPC barks, groups having their own conversations, radio or TV channels, or multiplayer games.
-- If your game implements or connects to an LLM (AI) or TTS (text-to-speech) API, the dialogue engine can make use of it: it can query the LLM to generate spoken text, or use the TTS system to voice lines. Various options are built-in for both: specific lines and actors can be excluded or forced to use LLM or TTS, and you can provide lines with special 'TTS' variants where the text can be formatted or modified specifically for TTS reading, so as to achieve perfect tone, timing and pronunciation. You can also include your own logic in the process, for example to craft LLM prompts from line data, or to check and edit LLM outputs before displaying them on screen.
-- Modify dialogues live, even while they are being processed: not required by any features, but useful if you want more flexibility in controlling the dialogue script. This can be leveraged for procedural dialogues.
-- Add code to UI element scripts to extend features, or to implement custom logic and behavior.
-- Create your own custom dialogue modes or custom commands, by just adding code for them to match statements.
-- Let your game read and run player-created dialogues from external .txt files, allowing them to act as game mods by leveraging the power of dialogue commands.
-- And for very advanced uses, the full code is accessible and can be modified.
-
-Importantly, Candy Dialogue Engine is self-contained: it doesn't secretly leave things in your code or alter variables or project settings. It's just scenes and scripts that you drop-in, call upon when needed, and which you can remove at any time (it's a true asset, not a plugin). It's also flexible enough to adapt to your game, instead of forcing your game to be designed around it.
-
-It's meant to feel as comfortable as your own code, with straightforward logic you can understand and tinker with, not an obscure blackbox or convoluted machinery.
-
-## Usage
+## Candy Dialogue Creator
 Candy Dialogue Engine is intended to be used in conjunction with the [Candy Dialogue Creator](https://github.com/Candy-Arts/Candy-Dialogue-Creator): a free standalone GUI for creating and editing dialogues.
 
-Integrating the dialogue engine to your project is easy and can be done in a couple of minutes:
-1. Download the official release.
-2. Unpack the compressed file.
-3. Copy the Candy_DE folder to your project folder.
-4. Open your project in Godot. Click 'Project Settings > Tools > Upgrade Project Files...' to fix UID issues. Reload the editor if prompted to do so.
-5. Go to project settings. In the 'Globals' tab, add two autoloads: Candy_UI.tscn (in Candy_DE/Scenes) with the prefix 'candy_ui', and Candy_Functions.gd (in Candy_DE/Scripts) with the prefix 'candy_de'.
-6. In the project settings, go to the 'Input Map' tab. Add a new input, named "Dialogue_Advance" and assign it a key or button of your choice (e.g. spacebar or left mouse button)
-7. Add three more input actions: "Dialogue_Skip", "Dialogue_Speed", "Dialogue_Slow". Assigning keys is optional.
-8. Done. It's now ready to use with the basic (default) setup.
+Candy Dialogue Creator writes and edits the dialogues, Candy Dialogue Engine runs them.
 
-To learn more about settings and configuration, features, and writing dialogues, see the various guides in the Candy_DE/Documents/Guides folder. We recommend starting with the numbered guides ('1. Basic Setup Guide.pdf' to '7. Translations.pdf') as they cover general information and features you'll probably need to know for any project.
+## Instructions
+### Download
+Download the [latest release](https://github.com/Candy-Arts/Candy-Dialogue-Engine/releases) of Candy Dialogue Engine.<br>
+Remember to also download the latest release of [Candy Dialogue Creator](https://github.com/Candy-Arts/Candy-Dialogue-Creator/releases).
 
-The other guides cover more specialized features: we suggest taking a quick glance to see what Candy Dialogue Engine can do, but only read them more closely when you want to use specific features.
+### Installation
+**Installation is an easy 5-step process:**
+1. Merge two folders.
+2. Copy the merged folder to your Godot project.
+3. Add two autoloads.
+4. Add a few input actions.
+5. Update UIDs.
 
-Be sure to also read the 'Important.pdf' document in Candy_DE, as it contains important information you should be aware of early.
+See the detailed instructions [here](Installation_Instructions.pdf).
+
+### Updating
+**Updating is even simpler:**
+- Drop one folder in your project and overwrite old files.
+  - Any custom files or modifications you may make under normal use are kept safe thanks to the two-folder design during installation.
+  - On rare occasions, some updates may also require running a patcher: drop the provided patcher script in your project, right-click → "Run" in Godot, delete the script.
+  - Advanced users who make modifications to the engine code only need to backup the main .gd script.
+
+See the detailed instructions [here](Update_Instructions.pdf).
+
+### Get Started
+After installation, read [this guide](Getting_Started.pdf) for important further instructions.
 
 ## Pricing
-We want to encourage game creation, support indie developers, and be fair to studios:
-
 Candy Dialogue Engine is free for non-commercial use, under either the Free Indie License or the Studio License.
+Commercial projects require that you purchase a commercial license or pay royalties on your project's revenue.
 
-Commercial use requires payment under the Starter Indie License, Pro Indie License, or Studio License:
-- For indie projects, this is a one-time fee of €100 (Starter Indie) or €500 (Pro Indie) (currently discounted to €50 and €400 until July 2026).
-- For other projects (Studio), payment is royalty-based, at a rate of 2.5% on your project's direct revenue.
+**We offer very good deals for small indie developers:**
+- Starter Indie License: €100 (€50 until July 2026), budget limit of €5'000 per project.
+- Pro Indie License: €500 (€400 until July 2026), budget limit of €25'000 per project.
 
-All licenses provide access to the full features.
+These licenses don't have a project limit: **pay once - make as many games as you like, for life.** <br>
+No revenue caps: if your game is a huge success and earns millions, you don't pay more.<br>
+You can upgrade to the Studio license at any time if your project grows bigger.<br>
+See our [Indie Project Checklist](https://candy-arts.com/index.php/indie-project-checklist/) to find out if your project qualifies.
 
-**Starter and Pro Indie Licenses are valid for life, and can be used for any number of projects without additional payment.**
+**Studio License:** <br>
+If your project is too big to qualify as indie or if you find royalties more affordable, you can use the Studio License.
+- You only pay us 2.5% of your project's revenue, every 3 months.
+- Earn 0, pay 0.
+- No budget limits.
 
-Free and Starter Indie Licenses have a budget limit of €5000 (per project), while Pro Indie Licenses provide a budget limit of €25000. The budget is the amount of money spent on development, it does not include revenue.
+**Additional Info:**
+- All licenses provide access to the complete features.
+- When you apply a license to a project, we can't change the terms retroactively. No "Agree to the new license or remove Candy DE from your project".
+- For a simplified overview of our license terms, see our [Licensing](https://candy-arts.com/index.php/licensing/) page.
+- The full license texts can be found on [our website](https://candy-arts.com/index.php/licenses/).
 
-Considering the capabilities of Candy Dialogue Engine, we believe these prices are affordable and generous to indie projects, while studios will likely appreciate the strong return-on-investment value. Importantly, these prices allow us to continue working full-time on improving our assets and developing new ones.
+**Purchase:**
+- The Free Indie and Studio licenses don't require any upfront payment. They're included with downloads of Candy Dialogue Engine.
+- You can purchase Starter Indie and Pro Indie licenses on [Gumroad](https://candyarts.gumroad.com/).
+- Note that you're actually buying a Certificate (LARC) that gives you permission to apply licenses to your projects... It's just a technicality: you're paying so you can use Indie licenses.
 
-For more information, see our [Licensing](https://candy-arts.com/index.php/licensing/) page.
+We're aware our indie prices are on the higher-end of hobbyist/small indie add-ons. But Candy Dialogue Engine provides **a lot** of value in many ways: feature breadth and depth, time saved, the cost of making a comparable program in-house, a tool you can reuse for any future game instead or learning new ones... It can do a lot of the work in your game.
 
-Certificates to use the Starter and Pro Indie Licenses can be purchased on our [Gumroad](https://candyarts.gumroad.com/) page.
+It's also built on a solid, modular core structure: this means there are almost no limits to how it can be expanded, and deep-rooted bugs that can't be fixed without major code rewrites are not a concern.
 
-The Free Indie and Studio Licenses don't require purchase, and the certificates to use them are provided with Candy Dialogue Engine directly.
-
-We encourage you to download and test it for free before committing to any purchases, so that you can best decide if it will fit your project's requirements. We're confident that if you give it a fair chance, you'll be persuaded of its ease-of-use, and you'll find many of its features invaluable to your projects and a boost to your productivity.
-
-## Licensing
-You can find our licenses on [our website](https://candy-arts.com/index.php/licenses/).
-
-They're quite a long read, but they have the merit of being specific enough to cover even most edge cases. This hopefully makes the conditions clear: you can know exactly how you may use Candy Dialogue Engine, while we remain protected against loopholes created by unusual software distribution or commercialization practices. No ambiguity and unanswered questions.
-
-That said, if you just want to get the bottomline or don't want to deal with lawyer-speak, our [Licensing](https://candy-arts.com/index.php/licensing/) page provides a general overview of our license terms in human form.
-
-We want to especially mention that our licenses protect your from retroactive changes: once you assign a license to a project, we can't force you to accept new terms if you don't want to. The license is 'locked', and you can continue to develop, publish and sell your game under those original terms. We can't even ask that you stop using Candy Dialogue Engine if you don't accept the new license terms.
-
-The only exception are changes that don't negatively impact you, such as updating our brand name in the license text if we ever change it.
-
-We hope this gives you confidence that your projects are safe with us in the long-term.
+Importantly, Candy Dialogue Engine requires a lot of work to create and maintain: something of this scale can't be made by working on it a few hours every week-end. This pricing model allows us to work on Candy Dialogue Engine full time, add features and improvements, and develop more assets that you might also find useful.
 
 ## Compatibility
 Candy Dialogue Engine should work with any version of Godot 4.
@@ -174,7 +123,7 @@ Candy Dialogue Engine should work with any version of Godot 4.
 It should also work with any operating system that Godot can compile for.
 
 ## Bugs and issues
-Bugs should be reported here on Github.
+Bugs should be reported here on GitHub.
 
 We really don't expect security issues considering the nature of Candy Dialogue Engine, but if you find any, please [report them directly to us](https://candy-arts.com/index.php/contact/) (don't report them publicly: someone could exploit them).
 
@@ -184,3 +133,4 @@ We're looking forward to [user feedback](https://github.com/Candy-Arts/Candy-Art
 We certainly don't know everything about Godot, or all the different ways game devs might want to use Candy Dialogue Engine, so please let us know if a particular feature, dialogue mode or command could help you.
 
 When adding requested features, we weigh several factors: whether it could serve many users or only a few rare cases, whether it's actually a 'proper' method of achieving something or if there are objectively better methods of doing the same thing, and how much more complex it might make Candy Dialogue Engine to use.
+

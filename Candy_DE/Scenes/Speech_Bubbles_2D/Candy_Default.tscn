@@ -1,0 +1,39 @@
+[gd_scene load_steps=5 format=3 uid="uid://da7rpjjud3ps7"]
+
+[ext_resource type="Script" uid="uid://npd6cahw1au5" path="res://Candy_DE/Scripts/Actor_Nodes/Speech_Bubble_2D.gd" id="1_edayh"]
+[ext_resource type="Texture2D" uid="uid://5d2mm6gm2iij" path="res://Candy_DE/UI Resources/SpeechBubble.png" id="2_2ai2r"]
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_mf4pr"]
+viewport_path = NodePath("SubViewport")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_7qej5"]
+texture = ExtResource("2_2ai2r")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[node name="SpeechBubble" type="Node2D"]
+visible = false
+script = ExtResource("1_edayh")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = SubResource("ViewportTexture_mf4pr")
+
+[node name="SubViewport" type="SubViewport" parent="."]
+disable_3d = true
+transparent_bg = true
+size = Vector2i(64, 40)
+
+[node name="Text" type="RichTextLabel" parent="SubViewport"]
+offset_right = 11.0
+offset_bottom = 33.0
+theme_override_colors/default_color = Color(0, 0, 0, 1)
+theme_override_styles/normal = SubResource("StyleBoxTexture_7qej5")
+theme_override_styles/focus = SubResource("StyleBoxTexture_7qej5")
+bbcode_enabled = true
+text = "Text"
+fit_content = true
+scroll_active = false
+meta_underlined = false
+hint_underlined = false

@@ -1,0 +1,36 @@
+[gd_scene load_steps=4 format=3 uid="uid://kqiokw80upti"]
+
+[ext_resource type="Script" uid="uid://d2e6oe1pt3v8a" path="res://Candy_DE/Scripts/UI_Elements/Portrait.gd" id="1_nwcpp"]
+[ext_resource type="Texture2D" uid="uid://6uufxltk0d8t" path="res://Candy_DE/UI Resources/PortraitFG1.png" id="2_sxsqo"]
+[ext_resource type="Script" uid="uid://cskkgj4sr1843" path="res://Candy_DE/Scripts/Media_Players/Portrait_Player.gd" id="3_dl0sr"]
+
+[node name="Portrait" type="PanelContainer"]
+z_index = 100
+offset_left = 320.0
+offset_top = 816.0
+offset_right = 576.0
+offset_bottom = 1072.0
+script = ExtResource("1_nwcpp")
+
+[node name="BG" type="TextureRect" parent="."]
+layout_mode = 2
+
+[node name="Image" type="TextureRect" parent="."]
+layout_mode = 2
+expand_mode = 4
+stretch_mode = 6
+
+[node name="Effect" type="TextureRect" parent="."]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="FG" type="TextureRect" parent="."]
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("2_sxsqo")
+
+[node name="PortraitEffectPlayer" type="AnimationPlayer" parent="."]
+editor_description = "For playing portrait animations."
+script = ExtResource("3_dl0sr")
+
+[connection signal="animation_finished" from="PortraitEffectPlayer" to="PortraitEffectPlayer" method="_on_animation_finished"]
