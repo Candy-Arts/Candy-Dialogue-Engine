@@ -1,7 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://ce3q0wx4pu8w2"]
+[gd_scene format=3 uid="uid://ce3q0wx4pu8w2"]
 
-[ext_resource type="Script" uid="uid://dy0puqt424da2" path="res://Candy_DE/Scripts/Actor_Nodes/Speech_Bubble_3D.gd" id="1_8miak"]
-[ext_resource type="Texture2D" uid="uid://5d2mm6gm2iij" path="res://Candy_DE/UI Resources/SpeechBubble.png" id="2_tlcda"]
+[ext_resource type="Script" uid="uid://bfb45h7i5pqd0" path="res://Candy_DE/Scripts/Actor_Nodes/Speech_Bubble_3D.gd" id="1_8miak"]
+[ext_resource type="Texture2D" uid="uid://bhkr0a80wckto" path="res://Candy_DE/UI Resources/SpeechBubble.png" id="2_tlcda"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_cbast"]
 viewport_path = NodePath("SubViewport")
@@ -13,21 +13,21 @@ texture_margin_top = 5.0
 texture_margin_right = 5.0
 texture_margin_bottom = 5.0
 
-[node name="SpeechBubble" type="Node3D"]
+[node name="SpeechBubble" type="Node3D" unique_id=1106928248]
 visible = false
 script = ExtResource("1_8miak")
 
-[node name="Sprite3D" type="Sprite3D" parent="."]
+[node name="Sprite3D" type="Sprite3D" parent="." unique_id=1805537853]
 billboard = 1
 render_priority = 9
 texture = SubResource("ViewportTexture_cbast")
 
-[node name="SubViewport" type="SubViewport" parent="."]
+[node name="SubViewport" type="SubViewport" parent="." unique_id=1350385980]
 disable_3d = true
 transparent_bg = true
 size = Vector2i(64, 40)
 
-[node name="Text" type="RichTextLabel" parent="SubViewport"]
+[node name="Text" type="RichTextLabel" parent="SubViewport" unique_id=1300343309]
 offset_right = 11.0
 offset_bottom = 33.0
 theme_override_colors/default_color = Color(0, 0, 0, 1)

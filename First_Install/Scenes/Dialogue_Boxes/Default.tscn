@@ -1,6 +1,6 @@
-[gd_scene load_steps=4 format=3 uid="uid://cu8nu52nitm37"]
+[gd_scene format=3 uid="uid://cu8nu52nitm37"]
 
-[ext_resource type="Script" uid="uid://b1ilw8nl2s22p" path="res://Candy_DE/Scripts/UI_Elements/Dialogue_Box.gd" id="1_a1dbu"]
+[ext_resource type="Script" uid="uid://cop0efslvb0s2" path="res://Candy_DE/Scripts/UI_Elements/Dialogue_Box.gd" id="1_a1dbu"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6da47"]
 content_margin_left = 4.0
@@ -14,7 +14,7 @@ content_margin_top = 0.0
 content_margin_right = 8.0
 content_margin_bottom = 0.0
 
-[node name="DialogueBox" type="PanelContainer"]
+[node name="DialogueBox" type="PanelContainer" unique_id=1988174630]
 z_index = 100
 offset_left = 576.0
 offset_top = 816.0
@@ -22,19 +22,19 @@ offset_right = 1344.0
 offset_bottom = 1072.0
 script = ExtResource("1_a1dbu")
 
-[node name="VBox" type="VBoxContainer" parent="."]
+[node name="VBox" type="VBoxContainer" parent="." unique_id=1688236441]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Speaker" type="PanelContainer" parent="VBox"]
+[node name="Speaker" type="PanelContainer" parent="VBox" unique_id=104118922]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 
-[node name="BG" type="ColorRect" parent="VBox/Speaker"]
+[node name="BG" type="ColorRect" parent="VBox/Speaker" unique_id=488775658]
 layout_mode = 2
 color = Color(0.1584723, 0.15847233, 0.1584723, 0.78431374)
 
-[node name="Text" type="RichTextLabel" parent="VBox/Speaker"]
+[node name="Text" type="RichTextLabel" parent="VBox/Speaker" unique_id=1102836608]
 layout_mode = 2
 theme_override_font_sizes/normal_font_size = 28
 theme_override_font_sizes/bold_font_size = 28
@@ -48,15 +48,15 @@ scroll_active = false
 autowrap_mode = 0
 vertical_alignment = 1
 
-[node name="Dialogue" type="PanelContainer" parent="VBox"]
+[node name="Dialogue" type="PanelContainer" parent="VBox" unique_id=1573743770]
 custom_minimum_size = Vector2(0, 208)
 layout_mode = 2
 
-[node name="BG" type="ColorRect" parent="VBox/Dialogue"]
+[node name="BG" type="ColorRect" parent="VBox/Dialogue" unique_id=130528446]
 layout_mode = 2
 color = Color(0, 0, 0, 0.784314)
 
-[node name="Text" type="RichTextLabel" parent="VBox/Dialogue"]
+[node name="Text" type="RichTextLabel" parent="VBox/Dialogue" unique_id=408068046]
 layout_mode = 2
 theme_override_font_sizes/normal_font_size = 24
 theme_override_font_sizes/bold_font_size = 24

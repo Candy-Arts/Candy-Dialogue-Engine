@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://dydlqsi1cey0m"]
+[gd_scene format=3 uid="uid://dydlqsi1cey0m"]
 
-[ext_resource type="Script" uid="uid://covxklyfcjvue" path="res://Candy_DE/Scripts/UI_Elements/History_Display.gd" id="1_8ydl1"]
+[ext_resource type="Script" uid="uid://786guk7wgd2b" path="res://Candy_DE/Scripts/UI_Elements/History_Display.gd" id="1_8ydl1"]
 
-[node name="History" type="PanelContainer"]
+[node name="History" type="PanelContainer" unique_id=1952454281]
 visible = false
 z_index = 100
 offset_left = 640.0
@@ -11,34 +11,34 @@ offset_right = 1280.0
 offset_bottom = 768.0
 script = ExtResource("1_8ydl1")
 
-[node name="BG" type="ColorRect" parent="."]
+[node name="BG" type="ColorRect" parent="." unique_id=1915163599]
 layout_mode = 2
 color = Color(0.20152658, 0.20152658, 0.20152658, 1)
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=2125946363]
 layout_mode = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 16
 
-[node name="VBox" type="VBoxContainer" parent="MarginContainer"]
+[node name="VBox" type="VBoxContainer" parent="MarginContainer" unique_id=744353193]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Label" type="Label" parent="MarginContainer/VBox"]
+[node name="Label" type="Label" parent="MarginContainer/VBox" unique_id=1798898491]
 custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 text = "History:"
 vertical_alignment = 1
 
-[node name="Log" type="RichTextLabel" parent="MarginContainer/VBox"]
+[node name="Log" type="RichTextLabel" parent="MarginContainer/VBox" unique_id=170004173]
 layout_mode = 2
 size_flags_vertical = 3
 bbcode_enabled = true
 
-[node name="Button" type="Button" parent="MarginContainer/VBox"]
+[node name="Button" type="Button" parent="MarginContainer/VBox" unique_id=874041648]
 custom_minimum_size = Vector2(128, 32)
 layout_mode = 2
 size_flags_horizontal = 4

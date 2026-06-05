@@ -11,7 +11,7 @@
 #!###########################################################################################
 
 
-extends "res://Candy_DE/Scripts/User_Data/Candy_Database.gd"
+extends "res://First_Install/Scripts/User_Data/Candy_Database.gd"
 
 
 #& GAME STATE INTEGRATION:

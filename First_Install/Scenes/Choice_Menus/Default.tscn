@@ -1,6 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://klfgxhm5wqpi"]
+[gd_scene format=3 uid="uid://klfgxhm5wqpi"]
 
-[ext_resource type="Script" uid="uid://dy85mbdrskhwy" path="res://Candy_DE/Scripts/UI_Elements/Choice_Menu.gd" id="1_gn84f"]
+[ext_resource type="Script" uid="uid://b6bpjfd2y6umu" path="res://Candy_DE/Scripts/UI_Elements/Choice_Menu.gd" id="1_gn84f"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8od5y"]
 content_margin_left = 0.0
@@ -15,7 +15,7 @@ corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 corner_detail = 5
 
-[node name="Menu" type="PanelContainer"]
+[node name="Menu" type="PanelContainer" unique_id=342127481]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -31,13 +31,13 @@ mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_8od5y")
 script = ExtResource("1_gn84f")
 
-[node name="Categories" type="PanelContainer" parent="."]
+[node name="Categories" type="PanelContainer" parent="." unique_id=180863609]
 custom_minimum_size = Vector2(384, 512)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 mouse_filter = 2
 
-[node name="Timers" type="Control" parent="."]
+[node name="Timers" type="Control" parent="." unique_id=2123470504]
 layout_mode = 2
 mouse_filter = 2

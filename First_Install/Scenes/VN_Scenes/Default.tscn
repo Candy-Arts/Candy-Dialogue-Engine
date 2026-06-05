@@ -1,9 +1,9 @@
-[gd_scene load_steps=3 format=3 uid="uid://bw0jqq8piul6c"]
+[gd_scene format=3 uid="uid://bw0jqq8piul6c"]
 
-[ext_resource type="Script" uid="uid://bteaew4ta4y88" path="res://Candy_DE/Scripts/UI_Elements/Bust_Scene.gd" id="1_rd1yg"]
+[ext_resource type="Script" uid="uid://djfctensjx1pr" path="res://Candy_DE/Scripts/UI_Elements/Bust_Scene.gd" id="1_rd1yg"]
 [ext_resource type="PackedScene" uid="uid://drrfg0krvk72m" path="res://First_Install/Scenes/Speech_Bubbles_2D/Default.tscn" id="2_4owtt"]
 
-[node name="Busts" type="Control"]
+[node name="Busts" type="Control" unique_id=348557497]
 editor_description = "Bust nodes can be:
 - Added or removed freely
 - Be changed to any node type (e.g. Sprite2D)
@@ -20,7 +20,7 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_rd1yg")
 
-[node name="Busts_Control" type="Control" parent="."]
+[node name="Busts_Control" type="Control" parent="." unique_id=1720304424]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -29,7 +29,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="1" type="TextureButton" parent="Busts_Control"]
+[node name="1" type="TextureButton" parent="Busts_Control" unique_id=589583689]
 z_index = -10
 layout_mode = 0
 offset_left = -320.0
@@ -37,11 +37,11 @@ offset_top = 64.0
 offset_right = 704.0
 offset_bottom = 1144.0
 
-[node name="SpeechBubble" parent="Busts_Control/1" instance=ExtResource("2_4owtt")]
+[node name="SpeechBubble" parent="Busts_Control/1" unique_id=2031688439 instance=ExtResource("2_4owtt")]
 
-[node name="JML" type="AnimationPlayer" parent="Busts_Control/1"]
+[node name="JML" type="AnimationPlayer" parent="Busts_Control/1" unique_id=507301960]
 
-[node name="2" type="TextureButton" parent="Busts_Control"]
+[node name="2" type="TextureButton" parent="Busts_Control" unique_id=1363941534]
 z_index = -10
 layout_mode = 0
 offset_left = -136.0
@@ -49,11 +49,11 @@ offset_top = 48.0
 offset_right = 888.0
 offset_bottom = 1128.0
 
-[node name="SpeechBubble" parent="Busts_Control/2" instance=ExtResource("2_4owtt")]
+[node name="SpeechBubble" parent="Busts_Control/2" unique_id=1276758255 instance=ExtResource("2_4owtt")]
 
-[node name="JML" type="AnimationPlayer" parent="Busts_Control/2"]
+[node name="JML" type="AnimationPlayer" parent="Busts_Control/2" unique_id=865913235]
 
-[node name="3" type="TextureButton" parent="Busts_Control"]
+[node name="3" type="TextureButton" parent="Busts_Control" unique_id=246720473]
 z_index = -12
 layout_mode = 0
 offset_left = 64.0
@@ -61,11 +61,11 @@ offset_top = 32.0
 offset_right = 1088.0
 offset_bottom = 1112.0
 
-[node name="SpeechBubble" parent="Busts_Control/3" instance=ExtResource("2_4owtt")]
+[node name="SpeechBubble" parent="Busts_Control/3" unique_id=757255464 instance=ExtResource("2_4owtt")]
 
-[node name="JML" type="AnimationPlayer" parent="Busts_Control/3"]
+[node name="JML" type="AnimationPlayer" parent="Busts_Control/3" unique_id=1975396097]
 
-[node name="4" type="TextureButton" parent="Busts_Control"]
+[node name="4" type="TextureButton" parent="Busts_Control" unique_id=1522629716]
 z_index = -13
 layout_mode = 0
 offset_left = 256.0
@@ -73,22 +73,22 @@ offset_top = 16.0
 offset_right = 1280.0
 offset_bottom = 1096.0
 
-[node name="SpeechBubble" parent="Busts_Control/4" instance=ExtResource("2_4owtt")]
+[node name="SpeechBubble" parent="Busts_Control/4" unique_id=1987399653 instance=ExtResource("2_4owtt")]
 
-[node name="JML" type="AnimationPlayer" parent="Busts_Control/4"]
+[node name="JML" type="AnimationPlayer" parent="Busts_Control/4" unique_id=1564360937]
 
-[node name="5" type="TextureButton" parent="Busts_Control"]
+[node name="5" type="TextureButton" parent="Busts_Control" unique_id=114270008]
 z_index = -14
 layout_mode = 0
 offset_left = 448.0
 offset_right = 1472.0
 offset_bottom = 1080.0
 
-[node name="SpeechBubble" parent="Busts_Control/5" instance=ExtResource("2_4owtt")]
+[node name="SpeechBubble" parent="Busts_Control/5" unique_id=1552836915 instance=ExtResource("2_4owtt")]
 
-[node name="JML" type="AnimationPlayer" parent="Busts_Control/5"]
+[node name="JML" type="AnimationPlayer" parent="Busts_Control/5" unique_id=597293695]
 
-[node name="6" type="TextureButton" parent="Busts_Control"]
+[node name="6" type="TextureButton" parent="Busts_Control" unique_id=1870208765]
 z_index = -13
 layout_mode = 0
 offset_left = 640.0
@@ -96,11 +96,11 @@ offset_top = 16.0
 offset_right = 1664.0
 offset_bottom = 1096.0
 
-[node name="SpeechBubble" parent="Busts_Control/6" instance=ExtResource("2_4owtt")]
+[node name="SpeechBubble" parent="Busts_Control/6" unique_id=650115463 instance=ExtResource("2_4owtt")]
 
-[node name="JML" type="AnimationPlayer" parent="Busts_Control/6"]
+[node name="JML" type="AnimationPlayer" parent="Busts_Control/6" unique_id=1744042732]
 
-[node name="7" type="TextureButton" parent="Busts_Control"]
+[node name="7" type="TextureButton" parent="Busts_Control" unique_id=748905175]
 z_index = -12
 layout_mode = 0
 offset_left = 832.0
@@ -108,18 +108,18 @@ offset_top = 32.0
 offset_right = 1856.0
 offset_bottom = 1112.0
 
-[node name="SpeechBubble" parent="Busts_Control/7" instance=ExtResource("2_4owtt")]
+[node name="SpeechBubble" parent="Busts_Control/7" unique_id=134812702 instance=ExtResource("2_4owtt")]
 
-[node name="JML" type="AnimationPlayer" parent="Busts_Control/7"]
+[node name="JML" type="AnimationPlayer" parent="Busts_Control/7" unique_id=1757461006]
 
-[node name="ColorRect" type="ColorRect" parent="Busts_Control/7"]
+[node name="ColorRect" type="ColorRect" parent="Busts_Control/7" unique_id=482945813]
 layout_mode = 0
 offset_top = -120.0
 offset_right = 1024.0
 offset_bottom = 1120.0
 color = Color(1, 1, 1, 0)
 
-[node name="8" type="TextureButton" parent="Busts_Control"]
+[node name="8" type="TextureButton" parent="Busts_Control" unique_id=864228472]
 z_index = -11
 layout_mode = 0
 offset_left = 1024.0
@@ -127,11 +127,11 @@ offset_top = 48.0
 offset_right = 2048.0
 offset_bottom = 1128.0
 
-[node name="SpeechBubble" parent="Busts_Control/8" instance=ExtResource("2_4owtt")]
+[node name="SpeechBubble" parent="Busts_Control/8" unique_id=1543980389 instance=ExtResource("2_4owtt")]
 
-[node name="JML" type="AnimationPlayer" parent="Busts_Control/8"]
+[node name="JML" type="AnimationPlayer" parent="Busts_Control/8" unique_id=1440537012]
 
-[node name="9" type="TextureButton" parent="Busts_Control"]
+[node name="9" type="TextureButton" parent="Busts_Control" unique_id=1070964150]
 z_index = -10
 layout_mode = 0
 offset_left = 1216.0
@@ -139,8 +139,8 @@ offset_top = 64.0
 offset_right = 2240.0
 offset_bottom = 1144.0
 
-[node name="SpeechBubble" parent="Busts_Control/9" instance=ExtResource("2_4owtt")]
+[node name="SpeechBubble" parent="Busts_Control/9" unique_id=245220404 instance=ExtResource("2_4owtt")]
 
-[node name="JML" type="AnimationPlayer" parent="Busts_Control/9"]
+[node name="JML" type="AnimationPlayer" parent="Busts_Control/9" unique_id=1835691054]
 
-[node name="HighlightPlayer_1" type="AnimationPlayer" parent="."]
+[node name="HighlightPlayer_1" type="AnimationPlayer" parent="." unique_id=1687074080]

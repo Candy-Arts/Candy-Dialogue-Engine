@@ -9,6 +9,23 @@
 
 -----
 
+## 1.1.0.b
+### 1.0 to 1.1 Patcher:
+- (FIX) Fixed "Chat Speaker Color" in Candy_Databse.gd 'actors' dictionary accidentally changing to "ChatTextColor"
+- (MISSING) Patcher wasn't adding 'var file\_var\_symbol = "¬"' to Candy_Properties.gd
+- (IMPROVE) Changed the order that the User Data files are modified in, to avoid error messages. The files are now edited in the order they extend each other in, from top to bottom. These error prints weren't causing any actual problems once the patching process was finished. To clarify/for example: after modification, Candy\_Database.gd was looking for Candy\_Properties.gd in the User\_Data folder, before it was actually moved there. By changing the modification order, Candy\_Properties.gd is now already at the new location when Candy\_Database.gd is modified to look for it there.
+
+### Installation Patcher
+- (NEW) Created a patcher for installing Candy Dialogue Engine.
+- Installation_Instructions.pdf has been updated accordingly.
+
+### Guides:
+#### 1. Basic Setup Guide.pdf
+- (CHANGE) Removed the contents of the guide, as it is no longer needed.
+
+
+-----
+
 ## 1.1.0.a
 ### Scripts:
 #### Candy_Engine.gd:

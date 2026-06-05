@@ -1,6 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://bge21iajaxt8j"]
+[gd_scene format=3 uid="uid://bge21iajaxt8j"]
 
-[ext_resource type="Script" uid="uid://bmrkp30v0qfb4" path="res://Candy_DE/Scripts/UI_Elements/Chat_Box.gd" id="1_ran7n"]
+[ext_resource type="Script" uid="uid://bjkc16s4s71jj" path="res://Candy_DE/Scripts/UI_Elements/Chat_Box.gd" id="1_ran7n"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_03ioi"]
 content_margin_left = 8.0
@@ -14,7 +14,7 @@ corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 corner_detail = 5
 
-[node name="ChatBox" type="PanelContainer"]
+[node name="ChatBox" type="PanelContainer" unique_id=319780911]
 offset_left = 8.0
 offset_top = 816.0
 offset_right = 456.0
@@ -22,7 +22,7 @@ offset_bottom = 1072.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_03ioi")
 script = ExtResource("1_ran7n")
 
-[node name="Text" type="RichTextLabel" parent="."]
+[node name="Text" type="RichTextLabel" parent="." unique_id=315532954]
 layout_mode = 2
 bbcode_enabled = true
 text = "Chat"

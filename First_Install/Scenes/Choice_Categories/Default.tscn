@@ -1,6 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://dmgxavnr48wcn"]
+[gd_scene format=3 uid="uid://dmgxavnr48wcn"]
 
-[ext_resource type="Script" uid="uid://cora3nfnodxjc" path="res://Candy_DE/Scripts/UI_Elements/Choice_Category.gd" id="1_t78y5"]
+[ext_resource type="Script" uid="uid://h0anyyblojsl" path="res://Candy_DE/Scripts/UI_Elements/Choice_Category.gd" id="1_t78y5"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lswg7"]
 content_margin_left = 0.0
@@ -15,7 +15,7 @@ corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 corner_detail = 5
 
-[node name="Category" type="PanelContainer"]
+[node name="Category" type="PanelContainer" unique_id=286155141]
 offset_right = 384.0
 offset_bottom = 512.0
 size_flags_horizontal = 3
@@ -24,7 +24,7 @@ mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_lswg7")
 script = ExtResource("1_t78y5")
 
-[node name="Scroll" type="ScrollContainer" parent="."]
+[node name="Scroll" type="ScrollContainer" parent="." unique_id=1950560518]
 editor_description = "Displays the choices available to the player during dialogues."
 layout_mode = 2
 size_flags_vertical = 3
@@ -32,7 +32,7 @@ mouse_filter = 2
 horizontal_scroll_mode = 0
 metadata/_edit_lock_ = true
 
-[node name="List" type="VBoxContainer" parent="Scroll"]
+[node name="List" type="VBoxContainer" parent="Scroll" unique_id=1840541234]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3

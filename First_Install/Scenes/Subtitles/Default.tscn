@@ -1,6 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://cs7e0jg65vo5f"]
+[gd_scene format=3 uid="uid://cs7e0jg65vo5f"]
 
-[ext_resource type="Script" uid="uid://cp0r4y04pugdm" path="res://Candy_DE/Scripts/UI_Elements/Subtitles.gd" id="1_6fwsw"]
+[ext_resource type="Script" uid="uid://b0l67r4wrhknl" path="res://Candy_DE/Scripts/UI_Elements/Subtitles.gd" id="1_6fwsw"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wvo6s"]
 content_margin_left = 4.0
@@ -8,7 +8,7 @@ content_margin_top = 2.0
 content_margin_right = 4.0
 content_margin_bottom = 2.0
 
-[node name="Subtitles" type="PanelContainer"]
+[node name="Subtitles" type="PanelContainer" unique_id=1518834691]
 visible = false
 z_index = 100
 offset_left = 576.0
@@ -17,7 +17,7 @@ offset_right = 1344.0
 offset_bottom = 1040.0
 script = ExtResource("1_6fwsw")
 
-[node name="Text" type="RichTextLabel" parent="."]
+[node name="Text" type="RichTextLabel" parent="." unique_id=884971847]
 layout_mode = 2
 theme_override_font_sizes/normal_font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxEmpty_wvo6s")

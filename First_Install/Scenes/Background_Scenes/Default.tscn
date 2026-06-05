@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://0cpr3ptois67"]
+[gd_scene format=3 uid="uid://0cpr3ptois67"]
 
-[ext_resource type="Script" uid="uid://ds82bx78n0y4i" path="res://Candy_DE/Scripts/UI_Elements/Backgrounds.gd" id="1_hf70y"]
+[ext_resource type="Script" uid="uid://dcltr8lstms8v" path="res://Candy_DE/Scripts/UI_Elements/Backgrounds.gd" id="1_hf70y"]
 
-[node name="Control" type="Control"]
+[node name="Control" type="Control" unique_id=668820951]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,10 +11,10 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_hf70y")
 
-[node name="BG_Control" type="Control" parent="."]
+[node name="BG_Control" type="Control" parent="." unique_id=1846681621]
 anchors_preset = 0
 
-[node name="1" type="TextureRect" parent="BG_Control"]
+[node name="1" type="TextureRect" parent="BG_Control" unique_id=365317752]
 editor_description = "A full-screen background."
 z_index = -200
 layout_mode = 0
@@ -23,9 +23,9 @@ offset_bottom = 1080.0
 mouse_filter = 2
 expand_mode = 2
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="BG_Control/1"]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BG_Control/1" unique_id=1837234054]
 
-[node name="2" type="TextureButton" parent="BG_Control"]
+[node name="2" type="TextureButton" parent="BG_Control" unique_id=1484219382]
 editor_description = "A full-screen background."
 z_index = -200
 layout_mode = 0
@@ -33,31 +33,31 @@ offset_right = 1920.0
 offset_bottom = 1080.0
 mouse_filter = 2
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="BG_Control/2"]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BG_Control/2" unique_id=96285182]
 
-[node name="ColorRect" type="ColorRect" parent="BG_Control/2"]
+[node name="ColorRect" type="ColorRect" parent="BG_Control/2" unique_id=1761738371]
 layout_mode = 0
 offset_right = 1920.0
 offset_bottom = 1080.0
 color = Color(1, 1, 1, 0)
 
-[node name="3" type="Sprite2D" parent="BG_Control"]
+[node name="3" type="Sprite2D" parent="BG_Control" unique_id=1080119959]
 editor_description = "A full-screen background."
 z_index = -200
 position = Vector2(960, 638)
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="BG_Control/3"]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BG_Control/3" unique_id=1201412450]
 
-[node name="4" type="AnimatedSprite2D" parent="BG_Control"]
+[node name="4" type="AnimatedSprite2D" parent="BG_Control" unique_id=370201709]
 editor_description = "A full-screen background."
 z_index = -200
 position = Vector2(960, 638)
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="BG_Control/4"]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BG_Control/4" unique_id=1745070727]
 
-[node name="5" type="VideoStreamPlayer" parent="BG_Control"]
+[node name="5" type="VideoStreamPlayer" parent="BG_Control" unique_id=1884889570]
 layout_mode = 0
 offset_right = 1920.0
 offset_bottom = 1080.0
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="BG_Control/5"]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BG_Control/5" unique_id=1664821165]

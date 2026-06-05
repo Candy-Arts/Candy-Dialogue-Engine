@@ -1,6 +1,7 @@
 @tool
 extends EditorScript
 
+
 #° ─── Direct folder renames ────────────────────────────────────────────────────
 #? These are renamed exactly as specified. Deeper paths must come first so that
 #? we don't rename a parent before we've processed its children.
@@ -65,9 +66,15 @@ const FILE_MOVES = [
 #? Each entry is a file path (using the *new* location after the move),
 #? mapped to a list of [find, replace] pairs to apply in that file.
 const STRING_PATCHES = {
-	"res://Candy_DE/Scripts/User_Data/Candy_Functions.gd": [
-		["extends \"res://Candy_DE/Scripts/Candy_Database.gd\"",
-		"extends \"res://Candy_DE/Scripts/User_Data/Candy_Database.gd\""],
+	"res://Candy_DE/Scripts/User_Data/Candy_Properties.gd": [
+		["extends \"res://Candy_DE/Scripts/Candy_Localizations.gd\"",
+		"extends \"res://Candy_DE/Scripts/User_Data/Candy_Localizations.gd\""],
+		["\"res://Candy_DE/Scenes/VN Scenes\"",          "\"res://Candy_DE/Scenes/VN_Scenes\""],
+		["\"res://Candy_DE/Scenes/Background Scenes\"",  "\"res://Candy_DE/Scenes/Background_Scenes\""],
+		["\"res://Candy_DE/Scenes/Input Menus\"",        "\"res://Candy_DE/Scenes/Input_Menus\""],
+		["\"res://Candy_DE/Scenes/Choice Menus\"",       "\"res://Candy_DE/Scenes/Choice_Menus\""],
+		["\"res://Candy_DE/Scenes/Choice Categories\"",  "\"res://Candy_DE/Scenes/Choice_Categories\""],
+		["\"res://Candy_DE/Scenes/Choice Buttons\"",     "\"res://Candy_DE/Scenes/Choice_Buttons\""],
 	],
 	"res://Candy_DE/Scripts/User_Data/Candy_Database.gd": [
 		["extends \"res://Candy_DE/Scripts/Candy_Properties.gd\"",
@@ -86,27 +93,20 @@ const STRING_PATCHES = {
 		["\"Bubble Text Color\":",			"\"BubbleTextColor\":"],
 		["\"Subtitle Text Color\":",		"\"SubtitleTextColor\":"],
 		["\"Chat Text Color\":",			"\"ChatTextColor\":"],
+		["\"Chat Speaker Color\":",			"\"ChatSpeakerColor\":"],
 		["\"Bark Text Color\":",			"\"BarkTextColor\":"],
 		["\"Box Speaker Color\":",			"\"BoxSpeakerColor\":"],
 		["\"Subtitle Speaker Color\":",		"\"SubtitleSpeakerColor\":"],
-		["\"Chat Speaker Color\":",			"\"ChatTextColor\":"],
 	],
-	"res://Candy_DE/Scripts/User_Data/Candy_Properties.gd": [
-		["extends \"res://Candy_DE/Scripts/Candy_Localizations.gd\"",
-		"extends \"res://Candy_DE/Scripts/User_Data/Candy_Localizations.gd\""],
-		["\"res://Candy_DE/Scenes/VN Scenes\"",          "\"res://Candy_DE/Scenes/VN_Scenes\""],
-		["\"res://Candy_DE/Scenes/Background Scenes\"",  "\"res://Candy_DE/Scenes/Background_Scenes\""],
-		["\"res://Candy_DE/Scenes/Input Menus\"",        "\"res://Candy_DE/Scenes/Input_Menus\""],
-		["\"res://Candy_DE/Scenes/Choice Menus\"",       "\"res://Candy_DE/Scenes/Choice_Menus\""],
-		["\"res://Candy_DE/Scenes/Choice Categories\"",  "\"res://Candy_DE/Scenes/Choice_Categories\""],
-		["\"res://Candy_DE/Scenes/Choice Buttons\"",     "\"res://Candy_DE/Scenes/Choice_Buttons\""],
+	"res://Candy_DE/Scripts/User_Data/Candy_Functions.gd": [
+		["extends \"res://Candy_DE/Scripts/Candy_Database.gd\"",
+		"extends \"res://Candy_DE/Scripts/User_Data/Candy_Database.gd\""],
 	],
 	"res://project.godot": [
 		["res://Candy_DE/Scripts/Candy_Functions.gd",
 		"res://Candy_DE/Scripts/User_Data/Candy_Functions.gd"],
 	],
 }
-
 
 
 #* Run the patcher:
@@ -220,7 +220,11 @@ func _apply_string_patches():
 		var patched = text
 		for substitution in STRING_PATCHES[file_path]:
 			patched = patched.replace(substitution[0], substitution[1])
-		
+
+		if file_path == "res://Candy_DE/Scripts/User_Data/Candy_Properties.gd":
+			if not patched.contains("var file_var_symbol"):
+				patched = _insert_after_separator_symbol_line(patched)
+
 		if patched != text:
 			file = FileAccess.open(file_path, FileAccess.WRITE)
 			file.store_string(patched)
@@ -230,3 +234,18 @@ func _apply_string_patches():
 			#% If nothing changed, it likely means the find string didn't match.
 			#% This could mean the file was already patched, or the path is wrong.
 			print("No changes made to: ", file_path)
+
+
+func _insert_after_separator_symbol_line(text: String) -> String:
+	var marker = "var separator_symbol ="
+	var idx = text.find(marker)
+	if idx == -1:
+		push_error("Could not find 'var separator_symbol =' in Candy_Properties.gd")
+		return text
+	
+	var line_end = text.find("\n", idx)
+	if line_end == -1:
+		line_end = text.length()
+	
+	var insert = "\nvar file_var_symbol = \"¬\""
+	return text.substr(0, line_end) + insert + text.substr(line_end)

@@ -1,10 +1,10 @@
-[gd_scene load_steps=3 format=3 uid="uid://ca8l3h21vfiv7"]
+[gd_scene format=3 uid="uid://ca8l3h21vfiv7"]
 
-[ext_resource type="Script" uid="uid://qswjjcovbup" path="res://Candy_DE/Scripts/Media_Players/Image_Player.gd" id="1_jxd4f"]
+[ext_resource type="Script" uid="uid://dy3qf72gubkkd" path="res://Candy_DE/Scripts/Media_Players/Image_Player.gd" id="1_jxd4f"]
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_5rqxr"]
 
-[node name="ImagePlayer" type="TextureRect"]
+[node name="ImagePlayer" type="TextureRect" unique_id=613761943]
 visible = false
 z_index = 120
 anchors_preset = 8
@@ -21,6 +21,6 @@ grow_vertical = 2
 texture = SubResource("PlaceholderTexture2D_5rqxr")
 script = ExtResource("1_jxd4f")
 
-[node name="Timer" type="Timer" parent="."]
+[node name="Timer" type="Timer" parent="." unique_id=1996404319]
 
 [connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
