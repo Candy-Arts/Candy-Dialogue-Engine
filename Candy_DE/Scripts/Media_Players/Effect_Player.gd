@@ -13,7 +13,10 @@
 
 extends AnimationPlayer
 
-@onready var effect_player = self
+var effect_player
+
+## Required
+@export var effect_player_path = self
 
 var pause_count = 0
 var pause_mode = "speech"
@@ -26,6 +29,12 @@ var loops_played: int = 0
 var duration: float = 0.0
 
 var caller: Node
+
+
+
+func _ready():
+	effect_player = get_node(effect_player_path)
+
 
 func _on_animation_finished(_anim_name: StringName) -> void:
 	loops_played += 1
@@ -48,7 +57,7 @@ func _on_animation_finished(_anim_name: StringName) -> void:
 	wait_target = -1
 
 func unpause():
-	effect_player.paused = false
+	effect_player.play()
 	pause_count = 0
 	pause_mode = "speech"
 	pause_re_wait = false

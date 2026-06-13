@@ -14,7 +14,8 @@
 extends Node
 
 
-@onready var bg_container = get_node("BG_Control")
+## Required
+@export var bg_container: Node
 
 @export var default_image_extension = ".png"				#/ TextureRect, NinePatchRect, TextureButton
 @export var default_sprite_extension = ".png"				#/ Sprite2D, Sprite3D
@@ -65,7 +66,7 @@ func _get_layer_folder(layer: String) -> String:
 
 #* Assign or animate a background image / animation / video:
 func assign_bg(layer: String, file_ref: String, anim_name: String, loop: int, wait: int, time_target: float) -> void:
-	self.visible = true		#/ Precaution, in case the scene is invisible for some reason. 
+	self.visible = true		#/ Precaution, in case the scene is invisible for some reason.
 
 	#@ Step 1 - Locate the background node:
 	var bg_node = bg_container.get_node_or_null(layer)
@@ -436,7 +437,7 @@ func assign_bg(layer: String, file_ref: String, anim_name: String, loop: int, wa
 
 
 #* Stop background animations for one or more layers:
-func stop_bg_animation(layers: Array, default: int) -> void:
+func stop_bg_animation(layers: Array, default_val: int) -> void:
 	#@ Step 1 - Resolve which layers to stop:
 	var layers_to_stop: Array = []
 	if layers.is_empty():
@@ -467,30 +468,42 @@ func stop_bg_animation(layers: Array, default: int) -> void:
 		if bg_layer_data.has(layer_name):
 			var data = bg_layer_data[layer_name]
 			data["paused"] = true
-			if default == 1:
+			if default_val != 0:
 				data["loops_played"] = 0
 				data["elapsed_time"] = 0.0
 
 		#@ Step 3 - Pause depending on node type:
 		if bg_node is AnimatedSprite2D or bg_node is AnimatedSprite3D:
 			bg_node.stop()
-			if default == 1:
-				bg_node.frame = 0
+			if default_val == 0:
+				pass    #% Keep current frame
+			elif default_val == -1:
+				bg_node.frame = bg_node.sprite_frames.get_frame_count(bg_node.animation) - 1
+			else:
+				bg_node.frame = clamp(default_val - 1, 0, bg_node.sprite_frames.get_frame_count(bg_node.animation) - 1)
 			bg_node.visible = true
 
 		elif bg_node is Sprite2D or bg_node is Sprite3D:
-			if default == 1:
-				bg_node.frame = 0
+			if default_val == 0:
+				pass    #% Keep current frame
+			elif default_val == -1:
+				bg_node.frame = bg_node.hframes * bg_node.vframes - 1
+			else:
+				bg_node.frame = clamp(default_val - 1, 0, bg_node.hframes * bg_node.vframes - 1)
 			bg_node.visible = true
 
 		elif bg_node is VideoStreamPlayer:
 			bg_node.stop()
-			if default == 1:
-				bg_node.stream_position = 0.0
+			if default_val == 0:
+				pass    #% Keep current position
+			elif default_val == -1:
+				pass    #% No reliable way to seek to last frame
+			else:
+				bg_node.stream_position = float(default_val) / 30.0
 			bg_node.visible = true
 
 		elif bg_node is TextureRect or bg_node is NinePatchRect:
-			if default == 1 and bg_layer_data.has(layer_name) and bg_layer_data[layer_name].has("first_frame"):
+			if default_val != 0 and bg_layer_data.has(layer_name) and bg_layer_data[layer_name].has("first_frame"):
 				bg_node.texture = bg_layer_data[layer_name]["first_frame"]
 			bg_node.visible = true
 
@@ -661,20 +674,24 @@ func _play_single_bg_effect(bg_node: Node, layer_name: String, anim_lib: Animati
 	#@ Step 1 - Find or create AnimationPlayer:
 	var player: AnimationPlayer = null
 	for child in bg_node.get_children():
-		if child is AnimationPlayer and not child.is_playing():
+		if child is AnimationPlayer \
+		and not child.is_playing() \
+		and not child.get_meta("bg_effect_claimed", false):
 			player = child
 			break
 
 	if player == null:
 		player = AnimationPlayer.new()
-		player.root_node = "."
+		player.root_node = NodePath("..")
 		bg_node.add_child(player)
+
+	player.set_meta("bg_effect_claimed", true)   #/ Claim immediately, before any deferred playback
 
 	#@ Step 2 - Register animation library:
 	if not player.has_animation_library(library):
-		#% Remove default empty library if present to avoid conflicts:
 		if player.has_animation_library(""):
 			player.remove_animation_library("")
+		#% Duplicate the library so each AnimationPlayer owns its own instance:
 		player.add_animation_library(library, anim_lib)
 
 	#@ Step 3 - Prepare runtime data:
@@ -699,6 +716,9 @@ func _play_single_bg_effect(bg_node: Node, layer_name: String, anim_lib: Animati
 	var resume_at = (max(wait_target, 0) * anim.length) + max(time_target, 0.0)
 
 	#@ Step 4 - Launch asynchronous coroutine:
+	var _release := func():
+		player.set_meta("bg_effect_claimed", false)
+
 	var _run_effect := func():
 		var loops_played := 0
 
@@ -711,6 +731,7 @@ func _play_single_bg_effect(bg_node: Node, layer_name: String, anim_lib: Animati
 				effect_data["loops_played"] = loops_played
 				if loop_target > 0 and loops_played >= loop_target:
 					player.seek(anim.length, true)
+					_release.call()
 					return
 				player.play(library + "/" + effect_name)
 			return
@@ -729,6 +750,7 @@ func _play_single_bg_effect(bg_node: Node, layer_name: String, anim_lib: Animati
 					while true:
 						if loop_target > 0 and bg_loops >= loop_target:
 							player.seek(anim.length, true)
+							_release.call()
 							return
 						player.play(library + "/" + effect_name)
 						await player.animation_finished
@@ -738,6 +760,7 @@ func _play_single_bg_effect(bg_node: Node, layer_name: String, anim_lib: Animati
 
 			if loop_target > 0 and loops_played >= loop_target:
 				player.seek(anim.length, true)
+				_release.call()
 				return
 
 	_run_effect.call_deferred()
@@ -773,6 +796,7 @@ func stop_bg_effects(layers: Array, effects: Array) -> void:
 			#% No specific effects → stop everything:
 			if effects.is_empty():
 				child.stop()
+				child.set_meta("bg_effect_claimed", false)
 				continue
 
 			#% Selective stop by effect name:
@@ -781,6 +805,7 @@ func stop_bg_effects(layers: Array, effects: Array) -> void:
 					var full_name = (lib_name + "/" + e) if lib_name != "" else e
 					if child.has_animation(full_name) and child.is_playing() and child.current_animation == full_name:
 						child.stop()
+						child.set_meta("bg_effect_claimed", false)
 						break
 
 		#@ Step 4 - Clean runtime effect data:

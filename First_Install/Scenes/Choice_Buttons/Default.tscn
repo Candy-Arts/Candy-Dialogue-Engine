@@ -15,7 +15,7 @@ corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 corner_detail = 5
 
-[node name="Choice" type="PanelContainer" unique_id=165858562]
+[node name="Choice" type="PanelContainer" unique_id=165858562 node_paths=PackedStringArray("choice_label", "choice_tooltip", "choice_button")]
 custom_minimum_size = Vector2(384, 64)
 offset_right = 384.0
 offset_bottom = 64.0
@@ -24,6 +24,9 @@ size_flags_vertical = 4
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_0w7e7")
 script = ExtResource("1_8x6ca")
+choice_label = NodePath("Button")
+choice_tooltip = NodePath("Button")
+choice_button = NodePath("Button")
 
 [node name="Button" type="Button" parent="." unique_id=1448529186]
 layout_mode = 2

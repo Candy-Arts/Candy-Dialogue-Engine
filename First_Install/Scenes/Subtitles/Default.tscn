@@ -8,7 +8,7 @@ content_margin_top = 2.0
 content_margin_right = 4.0
 content_margin_bottom = 2.0
 
-[node name="Subtitles" type="PanelContainer" unique_id=1518834691]
+[node name="Subtitles" type="PanelContainer" unique_id=1518834691 node_paths=PackedStringArray("dialogue_node")]
 visible = false
 z_index = 100
 offset_left = 576.0
@@ -16,6 +16,7 @@ offset_top = 1008.0
 offset_right = 1344.0
 offset_bottom = 1040.0
 script = ExtResource("1_6fwsw")
+dialogue_node = NodePath("Text")
 
 [node name="Text" type="RichTextLabel" parent="." unique_id=884971847]
 layout_mode = 2

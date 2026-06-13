@@ -11,9 +11,10 @@
 #!###########################################################################################
 
 
-extends VideoStreamPlayer
+extends Control
 
-@onready var video_player = self
+## Required
+@export var video_player = self
 
 var pause_count = 0
 var pause_mode = "speech"

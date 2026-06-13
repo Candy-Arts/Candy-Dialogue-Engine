@@ -14,7 +14,7 @@ corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 corner_detail = 5
 
-[node name="Input" type="PanelContainer" unique_id=1733597000]
+[node name="Input" type="PanelContainer" unique_id=1733597000 node_paths=PackedStringArray("input_line_path", "input_instructions_node", "input_error_node", "input_cancel_button", "input_confirm_button")]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -28,6 +28,11 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_ycgf0")
 script = ExtResource("1_oho0r")
+input_line_path = NodePath("VBox/Input")
+input_instructions_node = NodePath("VBox/Instructions")
+input_error_node = NodePath("VBox/Error")
+input_cancel_button = NodePath("VBox/HBox/Cancel")
+input_confirm_button = NodePath("VBox/HBox/Confirm")
 
 [node name="VBox" type="VBoxContainer" parent="." unique_id=353267106]
 layout_mode = 2

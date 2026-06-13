@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://786guk7wgd2b" path="res://Candy_DE/Scripts/UI_Elements/History_Display.gd" id="1_p0eli"]
 
-[node name="History" type="PanelContainer" unique_id=487529836]
+[node name="History" type="PanelContainer" unique_id=487529836 node_paths=PackedStringArray("log_node")]
 visible = false
 z_index = 100
 offset_left = 640.0
@@ -10,6 +10,7 @@ offset_top = 64.0
 offset_right = 1280.0
 offset_bottom = 768.0
 script = ExtResource("1_p0eli")
+log_node = NodePath("MarginContainer/VBox/Log")
 
 [node name="BG" type="ColorRect" parent="." unique_id=1317178657]
 layout_mode = 2

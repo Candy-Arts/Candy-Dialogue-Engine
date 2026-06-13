@@ -4,7 +4,7 @@
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_5rqxr"]
 
-[node name="ImagePlayer" type="TextureRect" unique_id=613761943]
+[node name="ImagePlayer" type="TextureRect" unique_id=613761943 node_paths=PackedStringArray("image_player")]
 visible = false
 z_index = 120
 anchors_preset = 8
@@ -20,6 +20,7 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = SubResource("PlaceholderTexture2D_5rqxr")
 script = ExtResource("1_jxd4f")
+image_player = NodePath(".")
 
 [node name="Timer" type="Timer" parent="." unique_id=1996404319]
 

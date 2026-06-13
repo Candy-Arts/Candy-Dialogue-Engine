@@ -15,7 +15,7 @@ corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 corner_detail = 5
 
-[node name="Category" type="PanelContainer" unique_id=902508637]
+[node name="Category" type="PanelContainer" unique_id=902508637 node_paths=PackedStringArray("button_list")]
 offset_right = 384.0
 offset_bottom = 512.0
 size_flags_horizontal = 3
@@ -23,6 +23,7 @@ size_flags_vertical = 3
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_lswg7")
 script = ExtResource("1_e23v5")
+button_list = NodePath("Scroll/List")
 
 [node name="Scroll" type="ScrollContainer" parent="." unique_id=738552670]
 editor_description = "Displays the choices available to the player during dialogues."

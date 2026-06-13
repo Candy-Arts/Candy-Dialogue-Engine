@@ -9,6 +9,125 @@
 
 -----
 
+## 1.1.0.c
+### Scripts:
+- (CHANGE) All UI and Media Player scripts now take direct node references instead of string paths for required and optional nodes. **You will need to update your scenes to provide these direct node references!**
+
+#### Candy_Engine.gd:
+- (IMPROVE) Renamed the variable 'dialogue\_skip\_speed' to 'dialogue\_fast\_speed' to avoid confusion.
+    - **MAKE SURE YOU UPDATE YOUR CODE IF IT REFERRED TO 'dialogue\_skip\_speed'!**
+    - If you assigned a custom value to 'dialogue\_skip\_speed' you will need to re-assign that value to 'dialogue\_fast\_speed'.
+- (IMPROVE) Added missing types to several exported variables.
+- (NEW) Added the variable 'mouse\_mode\_choice' for selecting a default mouse\_mode for choice menus.
+
+commands():
+- (FIX) §Role was broken after a previous update, where we allowed roles to be used as variable references. This caused the §Role command to treat roles as variable references to be substituted with their assigned values. This has now been fixed.
+- (FIX) §Elif and §Else may not have worked properly when nesting\_depth > 0. Added if\_array padding to solve this. Added if\_array cleanup in various places as well.
+- (FIX) §Jump command was crashing when a line reference was provided.
+- (FIX) §Bridge command was propagating "Continue" instead of "END" after an §End command.
+- (FIX) §Bridge not reactivating §Choice_Lists correctly.
+- (NEW) §Choice_List handles the new Menu shield during "Continue" choice select (see Choice Menu scene changes for details) and during timer timeout.
+- (FIX) §Choice_List now correctly changes Mouse\_Mode when navigating to other categories.
+- (FIX) §Choice_List Mouse\_Mode: "Default" doesn't change Mouse\_Mode (previously, it set to Visible).
+- (IMPROVE): §Choice_List Mouse\_Mode: "Default" uses the engine instance's 'mouse\_mode\_choice' setting. Empty string doesn't change Mouse\_Mode. For categories: "Menu" uses the menu's' Mouse\_Mode.
+- (NEW): §Mouse: supports 3 new options: "dialogue\_start", "dialogue\_end" and "choice". Each sets Mouse\_Mode to respectively match mouse\_mode\_start, mouse\_mode\_end and mouse\_mode\_choice engine settings.
+- (FIX): §Input: fixed arguments order in input_instance.setup() call.
+- (FIX): Fixed §Image, §Audio, §Video, §I\_Wait, §A\_Wait, §V\_Wait not handling Wait and Time properly.
+- (FIX): Fixed §Video\_Wait trying to get video length by using the get\_length() instead of get\_stream\_length().
+- (NEW): §Player\_Advance command: pauses dialogue until the player presses the dialogue\_advance key. Please be mindful that if input_enabled == false in the engine instance, or if there is no action (key) assigned for advancing dialogue, the dialogue will essentially freeze. The lack of safeguards is intentional: in some special cases, users might want to enable input or assign an action at a later point at runtime.
+- (FIX): §Effect and §Effect_Wait now correctly handle pausing dialogue as defined by "Time" and "Wait".
+- (IMPROVE): §CS\_Scene now supports providing custom names for each scene instance.
+- (IMPROVE): §BG\_Stop, §VN\_Stop, §CS\_Anim\_Stop, §CS\_Sprite\_Stop: "Default" data: "0" = stop on current frame, "-1" = stop on last frame, "value above 0" = stop on that specific frame.
+- (IMPROVE): §CS\_Anim and CS\_Sprite: removed the "Play" data key. Set "Loop" to "0" to stop on the first frame, or "-1" to play indefinitely.
+
+start_dialogue():
+- (IMPROVE) Added a warning print if dialogue is set to start at a Line Mark reference that doesn't exist.
+
+process_lines():
+- (CHANGE) Variables named 'match' were renamed to match\_num and match\_var to avoid conflicts with the match statement. This is just a good practice precaution: the original name did not seem to cause any issues.
+- (NEW): Spoken Lines skipped due to non-matching dispositions can now count towards §Media_Pause line decrementation (var mp\_count\_dispositions)
+- (NEW): Spoken Lines skipped due to no valid variant found can now count towards §Media_Pause line decrementation (var mp\_count\_variants)
+- (IMPROVE): Improved the variant selection code to allow easy adding of tags (player\_tags and speaker\_tags dictionaries).
+- (NEW): In variant selection code: tags can be designated to automatically pass (passed\_tags array) or always disqualify variants that include them (disabled\_tags).
+
+display_line():
+- (FIX) Bubbles pre-configuration: now correctly forces the use of speech bubbles based on actor or line override.
+- (FIX) Bubbles mode: Now checks that each actor node has the internal\_node\_dict dictionary before clearing bubbles.
+- (IMPROVE) When VN_\Bubbles mode is selected, added various checks that a VN scene is also loaded. If not, should default to bubble\_exempt\_mode in all cases as a failsafe.
+- (FIX) Fixed Dialogue\_Skip, Dialogue\_Speed and Dialogue\_Slow not working since 1.1.
+
+apply\_lexicon\_tags():
+- (FIX) Fixed "Click_Data" from lexicon dictionary breaking the keyword formatting, and fixed issues with how data is formatted and passed when keywords are clicked.
+
+
+#### Portrait.gd:
+- (IMPROVE) The portrait box is now hidden when a portrait file can't be located. This avoids displaying an empty portrait box. Note that normally, if you don't want to show a portrait, you should change the engine settings or set the actor or the line overrides to forbid portraits. An error message will continue to be printed to warn you that a file couldn't be found.
+
+#### Video_Player.gd:
+- (IMPROVE) Now extends 'Control' by default (previous: 'VideoStreamPlayer').
+
+#### Image_Player.gd:
+- (IMPROVE) Now extends 'Control' by default (previous: 'TextureRect').
+
+#### Audio_Player.gd, Audio_Player_2D.gd, Audio_Player_3D.gd:
+- (FIX) In \_on\_finished(), changed 'stream = null' to 'audio_player.stream = null'. This would have caused issues if the script was assigned to a parent of the actual AudioStreamPlayer node.
+
+#### Effect_Player.gd:
+- (FIX) unpause(): changed effect\_player.pause = false to effect\_player.play().
+
+#### Choice_Menu.gd:
+- (IMPROVE) Node pointer variables are now @export, allowing to directly assign a node to them.
+- (NEW) Added 'shield' variable pointer for the menu shield.
+
+#### Choice_Category.gd:
+- (IMPROVE) Node pointer variables are now @export, allowing to directly assign a node to them.
+
+#### Choice_Button.gd:
+- (IMPROVE) Node pointer variables are now @export, allowing to directly assign a node to them.
+- (NEW) Added 'choice_button' pointer variable to point to the Button node.
+- (IMPROVE) \_choice\_selected() function now releases focus on the button, to avoid accidentally selecting it when Dialogue_Advance or other input keys are pressed.
+
+#### Input.gd:
+- (FIX) check_input(): Fixed errors in print statements (integers not being converted to strings).
+
+#### Backgrounds.gd
+- (FIX) §BG_Effect: can now correctly play multiple animations simultaneously.
+
+#### Bust_Scene.gd:
+- (IMPROVE) Can now specify a custom name or path for speech bubble nodes in the exported speech\_bubbles\_name variable.
+- (CHANGE) highlight\_speaker() and end\_highlight\_speaker(): all dialogue modes are now in the same match case, for out-of-the-box compatibility. Split them in separate match cases if you need different highlight behavior for each mode.
+- (FIX) §VN_Effect: can now correctly play multiple animations simultaneously.
+- (FIX) §VN_Move: animation not continuing after move for Sprite2D and Sprite3D nodes (missing code).
+- (FIX) §VN_Move: sprite not being rescaled after move.
+- (FIX) end\_highlight\_speaker() now plays the RESET animation.
+
+#### Speech/Bark Bubble Scripts:
+- (CHANGE) Changed override default text color to black.
+- (FIX) Added missing code for applying override text color.
+- (FIX) Large padding no longer causes additional empty lines.
+- (FIX) \_ready(): fixed issues with how the meta\_clicked signal is connected and data is passed to \_on\_lexicon\_clicked().
+
+#### Dialogue_Box.gd:
+- (FIX) \_ready(): fixed issues with how the meta\_clicked signal is connected and data is passed to \_on\_lexicon\_clicked().
+
+#### Subtitles.gd:
+- (FIX) \_ready(): fixed issues with how the meta\_clicked signal is connected and data is passed to \_on\_lexicon\_clicked().
+
+#### Chat_Box.gd:
+- (FIX) \_ready(): fixed issues with how the meta\_clicked signal is connected and data is passed to \_on\_lexicon\_clicked().
+
+
+### Scenes:
+- (NEW) Choice Menu scenes now include a shield.
+
+### 1.0 to 1.1 Patcher:
+- (FIX) Patcher now renames 'Candy\_DE/Media/General/Backgrounds/Animation Libraries' to Animation\_Libraries (underscore instead of space).
+
+### Guides:
+- (CHANGE) Updated multiple guides.
+
+-----
+
 ## 1.1.0.b
 ### 1.0 to 1.1 Patcher:
 - (FIX) Fixed "Chat Speaker Color" in Candy_Databse.gd 'actors' dictionary accidentally changing to "ChatTextColor"
@@ -22,7 +141,6 @@
 ### Guides:
 #### 1. Basic Setup Guide.pdf
 - (CHANGE) Removed the contents of the guide, as it is no longer needed.
-
 
 -----
 

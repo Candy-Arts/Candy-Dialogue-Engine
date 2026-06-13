@@ -14,7 +14,8 @@
 extends PanelContainer
 
 
-@onready var dialogue_node: RichTextLabel = get_node("Text")
+## Required
+@export var dialogue_node: Node
 
 ## Default colors to use for spoken text and speaker names.
 @export_group("Default Colors")
@@ -28,7 +29,6 @@ extends PanelContainer
 var caller: Node
 
 
-
 func _ready():
 	self.z_index = default_z
 
@@ -36,7 +36,10 @@ func _ready():
 	#% Only used if the Lexicon is used in dialogues.
 	if dialogue_node is RichTextLabel:
 		var callable = func(meta):
-			candy_de._on_lexicon_clicked(meta, caller, self)  #/ Pass 'caller' as extra argument
+			var json_str = Marshalls.base64_to_variant(str(meta))
+			var data = JSON.parse_string(json_str)
+			if data is Dictionary:
+				candy_de._on_lexicon_clicked(data, caller, self)
 		if not dialogue_node.is_connected("meta_clicked", callable):
 			dialogue_node.connect("meta_clicked", callable)
 

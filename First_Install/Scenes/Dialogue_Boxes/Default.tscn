@@ -14,13 +14,15 @@ content_margin_top = 0.0
 content_margin_right = 8.0
 content_margin_bottom = 0.0
 
-[node name="DialogueBox" type="PanelContainer" unique_id=1988174630]
+[node name="DialogueBox" type="PanelContainer" unique_id=1988174630 node_paths=PackedStringArray("dialogue_node", "speaker_node")]
 z_index = 100
 offset_left = 576.0
 offset_top = 816.0
 offset_right = 1344.0
 offset_bottom = 1072.0
 script = ExtResource("1_a1dbu")
+dialogue_node = NodePath("VBox/Dialogue/Text")
+speaker_node = NodePath("VBox/Speaker/Text")
 
 [node name="VBox" type="VBoxContainer" parent="." unique_id=1688236441]
 layout_mode = 2

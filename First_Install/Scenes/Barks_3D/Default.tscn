@@ -27,18 +27,21 @@ script = ExtResource("1_qo0ij")
 engine_mode = "Bark"
 dialogue_mode = 5
 input_enabled = false
-ui_elements_paths = {
-&"barks_path": "BarkBubble"
-}
-media_players_locations = {
+ui_elements_paths = Dictionary[String, String]({
+"barks_path": "BarkBubble"
+})
+media_players_locations = Dictionary[String, String]({
 "Voice": "VoicePlayer"
-}
+})
 bubbles_npc_path = ""
 bubbles_player_path = ""
 
-[node name="BarkBubble" type="Node3D" parent="." unique_id=661473030]
+[node name="BarkBubble" type="Node3D" parent="." unique_id=661473030 node_paths=PackedStringArray("label", "sprite", "viewport")]
 visible = false
 script = ExtResource("2_kp8r3")
+label = NodePath("SubViewport/Text")
+sprite = NodePath("Sprite3D")
+viewport = NodePath("SubViewport")
 
 [node name="Sprite3D" type="Sprite3D" parent="BarkBubble" unique_id=910485908]
 billboard = 1

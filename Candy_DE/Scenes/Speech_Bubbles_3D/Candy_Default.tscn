@@ -13,9 +13,12 @@ texture_margin_top = 5.0
 texture_margin_right = 5.0
 texture_margin_bottom = 5.0
 
-[node name="SpeechBubble" type="Node3D" unique_id=1572853955]
+[node name="SpeechBubble" type="Node3D" unique_id=1572853955 node_paths=PackedStringArray("label", "sprite", "viewport")]
 visible = false
 script = ExtResource("1_aygvy")
+label = NodePath("SubViewport/Text")
+sprite = NodePath("Sprite3D")
+viewport = NodePath("SubViewport")
 
 [node name="Sprite3D" type="Sprite3D" parent="." unique_id=302698225]
 billboard = 1

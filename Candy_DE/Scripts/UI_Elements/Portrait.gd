@@ -13,11 +13,14 @@
 
 extends Node
 
-@onready var portrait_node = get_node("Image")		#/ Required
-
-@onready var portrait_bg = get_node("BG")			#/ Optional
-@onready var portrait_fg = get_node("FG")			#/ Optional
-@onready var portrait_effect_player = get_node("PortraitEffectPlayer")	#/ Optional
+## Required
+@export var portrait_node: Node
+## Optional
+@export var portrait_bg: Node
+## Optional
+@export var portrait_fg: Node
+## Optional
+@export var portrait_effect_player: Node
 
 @export var default_image_extension = ".png"				#/ TextureRect, NinePatchRect, TextureButton
 @export var default_sprite_extension = ".png"				#/ Sprite2D, Sprite3D
@@ -36,7 +39,6 @@ var caller: Node
 
 func _ready():
 	self.z_index = default_z
-
 
 #* Receive and display a portrait based on node type and portrait data:
 func receive_portrait(character_ref: String, portrait_raw: String, play_portrait: String) -> void:
@@ -115,6 +117,7 @@ func receive_portrait(character_ref: String, portrait_raw: String, play_portrait
 			if ResourceLoader.exists(fallback_default_ext):
 				portrait_file = fallback_default_ext
 			else:
+				self.visible = false
 				printerr("receive_portrait: Missing file: ", fallback_default_ext, " → no fallback found, aborting")
 				return
 
@@ -431,7 +434,7 @@ func no_portrait():
 	self.visible = false
 
 	if portrait_node is TextureRect or portrait_node is NinePatchRect:
-		var timer := portrait_node.get_node_or_null("PortraitAnimTimer")
+		var timer = portrait_node.get_node_or_null("PortraitAnimTimer")
 		if timer:
 			timer.stop()
 			timer.queue_free()

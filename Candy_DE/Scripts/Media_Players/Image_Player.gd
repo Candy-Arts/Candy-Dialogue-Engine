@@ -11,9 +11,10 @@
 #!###########################################################################################
 
 
-extends TextureRect
+extends Control
 
-@onready var image_player = self
+## Required
+@export var image_player = self
 
 var pause_count = 0
 var pause_mode = "speech"

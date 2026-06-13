@@ -25,6 +25,7 @@ const FOLDER_RENAMES = [
 	["res://Candy_DE/Scenes/Speech Bubbles 3D",  "res://Candy_DE/Scenes/Speech_Bubbles_3D"],
 	["res://Candy_DE/Scenes/Subtitles",          "res://Candy_DE/Scenes/Subtitles"],
 	["res://Candy_DE/Scenes/VN Scenes",          "res://Candy_DE/Scenes/VN_Scenes"],
+	["res://Candy_DE/Media/General/Backgrounds/Animation Libraries", "res://Candy_DE/Media/General/Backgrounds/Animation_Libraries"],
 ]
 
 #° ─── Folders whose direct subfolders need specific child renames ──────────────

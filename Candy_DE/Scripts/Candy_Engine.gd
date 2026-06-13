@@ -245,14 +245,15 @@ enum TtsModes {Off, Simple, Advanced}
 @export var bubble_exempt_mode: DialogueModes = DialogueModes.Box
 
 
+#& WRITING:
 @export_group("Writing")
 #^ Writing speed:
 #? The speed at which spoken text is written on screen (typewriter effect).
 #+ Value represents characters written per second
 #% 0 = instant display
-## Typewriter effect speed.
+## Typewriter effect speed.[br][br]
+## Set to 0 to disable.
 @export var writing_speed: int = 30
-
 
 #^ Manual speed:
 #? Change the spoken text writing speed with the Dialogue_Advance input.
@@ -264,7 +265,7 @@ enum TtsModes {Off, Simple, Advanced}
 #% -1 = instant display
 #% -2 = can't skip
 ## Typewriter speed when input_speed_dialogue is pressed.
-@export var continue_skip_speed: int = 60
+@export var continue_fast_speed: int = 60
 ## Typewriter speed when input_slow_dialogue is pressed.
 @export var continue_slow_speed: int = 15
 
@@ -289,13 +290,15 @@ enum TtsModes {Off, Simple, Advanced}
 #? Prevents the player from skipping voice playback, even if the line has finished writing.
 #% true = prevent skipping voice
 #% false = allow skipping voice
-## Prevent manual advance until voice playback has finished.
+## Prevent manual and auto advance until voice playback has finished.
 @export var await_voice_playback: bool = false
 
+
+#& CHOICES
 @export_group("Choice Menus")
 #^ Hide choice lists by default:
 ## If false, nested choice menus never hide older menus automatically.
-@export var hide_choice_lists = true
+@export var hide_choice_lists: bool = true
 
 
 #& VN MODE
@@ -322,13 +325,13 @@ enum TtsModes {Off, Simple, Advanced}
 #% Write the name of the animations to play.
 #+ The animation must exist in the bust node's child animation player.
 ## Default JML effect when an actor joins (§VN_Bust command).
-@export var vn_join_effect = ["", ""]
+@export var vn_join_effect: Array[String] = ["", ""]
 ## Default JML effect when an actor moves from a bust node (§VN_Move command).
-@export var vn_move_from_effect = ["", ""]
+@export var vn_move_from_effect: Array[String] = ["", ""]
 ## Default JML effect when an actor moves to a bust node (§VN_Move command).
-@export var vn_move_to_effect = ["", ""]
+@export var vn_move_to_effect: Array[String] = ["", ""]
 ## Default JML effect when an actor leaves (§VN_Remove command).
-@export var vn_leave_effect = ["", ""]
+@export var vn_leave_effect: Array[String] = ["", ""]
 
 
 #& BACKGROUNDS
@@ -361,6 +364,25 @@ enum TtsModes {Off, Simple, Advanced}
 @export var lexicon_bark_mode: bool = true
 
 
+#& MEDIA
+@export_group("Media")
+#^ Count lines skipped by dispositions towards §Media_Pause commands:
+## Count skipped lines towards §Media_Pause decrementation.[br][br]
+## When a disposition check fails, the line is skipped.
+## This option determines if skipped lines should still decrement the line count for §Media_Pause commands.[br][br]
+## 'true' will ensure consistent line count whether dispositions fail or pass.[br]
+## 'false' will make media resume based on the number of lines that actually displayed on screen.[br][br]
+## Tip: for more fine-tuned behavior, consider using a variable reference for line count inside §Media_Pause commands.
+@export var mp_count_dispositions: bool = false
+#^ Count lines skipped by variants towards §Media_Pause commands:
+## Count skipped lines towards §Media_Pause decrementation.[br][br]
+## If no suitable variant is found for a line, the line is skipped.
+## This option determines if skipped lines should still decrement the line count for §Media_Pause commands.[br][br]
+## 'true' will ensure consistent line count across languages and variant tags.[br]
+## 'false' will make media resume based on the number of lines that actually displayed on screen.[br][br]
+## Tip: for more fine-tuned behavior, consider using a variable reference for line count inside §Media_Pause commands.
+@export var mp_count_variants: bool = false
+
 #& HISTORY LOG
 #^ History log:
 #? Enable or disable saving of dialogue history.
@@ -370,9 +392,6 @@ enum TtsModes {Off, Simple, Advanced}
 ## Log dialogue history.[br]
 ## Enable recommended, even if you don't expect to use the log.
 @export var write_dialogue_history: bool = true
-
-
-
 
 
 #& LLM (AI-GENERATED SPEECH)
@@ -396,7 +415,10 @@ enum MouseModes {None = -1, Visible, Hidden, Captured, Confined, Confined_Hidden
 @export var mouse_mode_start: MouseModes = MouseModes.None		#/ Mouse Mode when dialogue starts
 ## Set Mouse Mode when dialogue ends.[br]
 ## Set to "NONE" to disable.
-@export var mouse_mode_end: MouseModes = MouseModes.None			#/ Mouse Mode when dialogue exits
+@export var mouse_mode_end: MouseModes = MouseModes.None		#/ Mouse Mode when dialogue exits
+## Default Mouse Mode for §Choice_List commands.
+## Set to "NONE" to disable.
+@export var mouse_mode_choice: MouseModes = MouseModes.None		#/ Default Mouse Mode for §Choice_List
 
 
 #& VARIANTS
@@ -404,14 +426,28 @@ enum MouseModes {None = -1, Visible, Hidden, Captured, Confined, Confined_Hidden
 #? Automatically switch to special variants based on gender,
 #? or randomly select among multiple variations of a same variant.
 @export_group("Variants")
-## Use variants based on player's gender.
-@export var player_gender_variants: bool = false	#/ Select variants based on player_gender
-## Player's gender, as used by gendered variants. Can be modified at runtime as appropriate.
-@export var player_gender: String = ""				#/ Gender of the player character. Update dynamically if player character/gender changes during the game
-## Use variants based on speaker's gender.
-@export var speaker_gender_variants: bool = false	#/ Select variants based on speaker gender as specified in actors dictionary
 ## Use random variants.
 @export var random_variants: bool = true			#/ Select random variants if they exist
+## Custom variant tags for player attributes.[br][br]
+## Attribute values are read from the actors dictionary and based on current_player in Candy_Database.gd.[br][br]
+## DO NOT use spaces or underscores '_' inside tags![br]
+## DO NOT name tags in player_tags the same as tags in speaker_tags!
+@export var player_tags: Dictionary[String, String] = {
+	"P": "Gender"
+}
+## Custom variant tags for speaker attributes.[br][br]
+## Attribute values are read from the actors dictionary.[br][br]
+## DO NOT use spaces or underscores '_' inside tags!
+## DO NOT name tags in speaker_tags the same as tags in player_tags!
+@export var speaker_tags: Dictionary[String, String] = {
+	"S": "Gender",
+}
+## Tags that automatically pass regardless of their value.
+## These tags will never prevent a variant from being selected.
+@export var passed_tags: Array[String] = []
+## Disabled tags.[br]
+## Variants that feature any of these tags will never be selected.
+@export var disabled_tags: Array[String] = []
 
 
 #& DIALOGUE SUSPEND
@@ -420,7 +456,7 @@ enum MouseModes {None = -1, Visible, Hidden, Captured, Confined, Confined_Hidden
 #? Effectively pauses dialogue if true.
 ## Suspend dialogue by default if 'true'.[br]
 ## Dialogue suspension requires that you write code to toggle this value.
-@export var dialogue_suspended = false
+@export var dialogue_suspended: bool = false
 
 #^ Suspend dialogue elements:
 #? Set to false for things you don't want to be paused when dialogue_suspended = true.
@@ -470,15 +506,16 @@ enum MouseModes {None = -1, Visible, Hidden, Captured, Confined, Confined_Hidden
 @export var input_enabled: bool = true
 
 #? Input required to make dialogue advance manually:
-## Name of the input for manually advancing to the next line
-@export var input_advance_dialogue = "Dialogue_Advance"		#/ Advance to next line
+## Name of the input for manually advancing to the next line (Spoken Lines)
+@export var input_advance_dialogue: String = "Dialogue_Advance"		#/ Advance to next line (Spoken Lines)
 ## Name of the input for speeding up the typewriter.
-@export var input_speed_dialogue = "Dialogue_Speed"			#/ Speed up writing
+@export var input_speed_dialogue: String = "Dialogue_Speed"			#/ Speed up writing
 ## Name of the input for slowing down the typewriter.
-@export var input_slow_dialogue = "Dialogue_Slow"			#/ Slow down writing
+@export var input_slow_dialogue: String = "Dialogue_Slow"			#/ Slow down writing
 ## Name of the input for skipping the typewriter (instant text display).
-@export var input_skip_dialogue = "Dialogue_Skip"			#/ Skip writing
-
+@export var input_skip_dialogue: String = "Dialogue_Skip"			#/ Skip writing
+## Name of the input for manually advancing to the next line (§Player_Advance command)
+@export var input_player_advance: String = "Dialogue_Advance"		#/ Advance to next line (§Player_Advance command)
 
 
 #endregion
@@ -499,7 +536,7 @@ enum MouseModes {None = -1, Visible, Hidden, Captured, Confined, Confined_Hidden
 ## Edit paths or remove keys to match your dialogue UI scene;[br]
 ## Add keys/UI Elements as needed for your custom commands or custom dialogue modes.[br]
 ## NOTE: Media players are added to media_and effect players_locations.
-@export var ui_elements_paths = {
+@export var ui_elements_paths: Dictionary[String, String] = {
 	"backgrounds_path" = "Backgrounds",
 	"busts_path" = "Busts",
 	"dialogue_box_path" = "DialogueBox",
@@ -517,7 +554,7 @@ enum MouseModes {None = -1, Visible, Hidden, Captured, Confined, Confined_Hidden
 ## Paths to media and effect players used by various commands.[br]
 ## Edit paths or remove keys to match your dialogue UI scene, or add keys for your custom media/effect players.[br]
 ## WARNING: Do not rename the "Voice" key (changing its path is OK).
-@export var media_players_locations = {
+@export var media_players_locations: Dictionary[String, String] = {
 	"Voice": "VoicePlayer",									#/ For Spoken Line voice files
 															#/ Don't change "Voice" key name: referenced in various functions for voiced dialogue
 	"PEffect": "Portrait/PortraitEffectPlayer",				#/ AnimationPlayer for portrait effects
@@ -536,15 +573,15 @@ enum MouseModes {None = -1, Visible, Hidden, Captured, Confined, Confined_Hidden
 #? If actor nodes change paths during the course of your game, update dynamicaly.
 #? E.g. make your game update these paths during combat, exploration, cutscenes, etc.
 ## Paths to NPC nodes for "Bubbles" dialogue mode.
-@export var bubbles_npc_path = "/root/Game/Actors"		#/ Path to NPC actor nodes, for speech bubbles.
+@export var bubbles_npc_path: String = "/root/Game/Actors"		#/ Path to NPC actor nodes, for speech bubbles.
 ## Paths to player nodes for "Bubbles" dialogue mode.
-@export var bubbles_player_path = "/root/Game/Actors"	#/ Path to Player actor node, for speech bubbles.
+@export var bubbles_player_path: String = "/root/Game/Actors"	#/ Path to Player actor node, for speech bubbles.
 
 
 #^ Cutscene Commands paths:
 #TODO: Edit paths to fit your game structure, add path keys as needed.
 ## Paths to nodes used by Cutscene (§CS_) commands:
-@export var cs_locations = {
+@export var cs_locations: Dictionary[String, String] = {
 		"Player": "/root/Game/Actors",
 		"Actors": "/root/Game/Actors",
 		"Vehicles": "",
@@ -1205,14 +1242,19 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 		#* §Role - Change or assign a role mapping in candy_de.roles:
 		"§role":
-			var role_key: String	= resolve_value(command_value.get("Role", ""))
-			var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
+			var raw_role: String = str(command_value.get("Role", ""))
+			var actor_ref: String = str(resolve_value(command_value.get("Reference", "")))
 
-			#@ Step 1 - Resolve actor role if needed:
+			#@ Step 1 - Resolve Role variable reference:
+			var role_key = raw_role
+			if not raw_role.begins_with(candy_de.role_symbol):
+				role_key = str(resolve_value(raw_role))
+
+			#@ Step 2 - Resolve empty actor reference:
 			if actor_ref == "":
 				print_debug("§Role: [CAUTION] A Role Reference is provided for assignment, but has no Actor assigned. Target Role will be cleared.")
 
-			#@ Step 2 - Assign to candy_de.roles:
+			#@ Step 3 - Assign to candy_de.roles:
 			candy_de.roles[role_key] = actor_ref
 
 			return "Continue"
@@ -1635,25 +1677,32 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			print("[DEBUG] condition_expr: ", condition_expr)
 			print("[DEBUG] expr_line after replace: ", expr_line)
 
+			#@ Pad if_array to match depth index:
+			while if_array.size() < nesting_depth:
+				if_array.append(0)
 
 			#@ Evaluate the condition:
 			var expression = Expression.new()
 			if expression.parse(expr_line) != OK:
 				printerr("§If: failed to parse → ", expr_line)
+				if if_array.size() > nesting_depth:
+					if_array.remove_at(nesting_depth)
 				if_array.insert(nesting_depth, 0)
 				return "Continue"
 
 			var cond_result = expression.execute()
 			if expression.has_execute_failed():
 				printerr("§If: runtime error → ", expr_line)
+				if if_array.size() > nesting_depth:
+					if_array.remove_at(nesting_depth)
 				if_array.insert(nesting_depth, 0)
 				return "Continue"
 
-			#% Remove any existing chain at this depth:
+			#@ Remove any existing chain at this depth:
 			if if_array.size() > nesting_depth:
 				if_array.remove_at(nesting_depth)
 
-			#% Create new open chain (0 = false, 1 = true):
+			#@ Create new open chain (0 = false, 1 = true):
 			if_array.insert(nesting_depth, 1 if cond_result else 0)
 			print("[DEBUG] §If chain at depth %d → if_array=%s" % [nesting_depth, str(if_array)])
 
@@ -1701,6 +1750,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				condition_expr = "v_res://" + resolve_value(condition_expr.substr("sv_res://".length()))
 			elif condition_expr.begins_with("sv_user://"):
 				condition_expr = "v_user://" + resolve_value(condition_expr.substr("sv_user://".length()))
+
+			#@ Pad if_array to match depth index:
+			while if_array.size() < nesting_depth:
+				if_array.append(0)
 
 			#@ Skip if chain already executed at this depth:
 			if if_array.size() > nesting_depth and if_array[nesting_depth] == 1:
@@ -1756,6 +1809,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		#* §Else - Fallback for the chain:
 		"§else":
 			var cmd_type: String = resolve_value(str(command_value.get("Type", ""))).strip_edges()
+
+			#@ Pad if_array to match depth index:
+			while if_array.size() < nesting_depth:
+				if_array.append(0)
 
 			#@ Only run if no previous condition succeeded at this depth:
 			if if_array.size() > nesting_depth:
@@ -1969,7 +2026,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 			var new_conversation: String 	= resolve_value(str(command_value.get("Conversation", "")))
 			var new_block: String 			= resolve_value(str(command_value.get("Block", "")))
-			var line_ref: Variant 			= resolve_value(command_value.get("Line", 0))
+			var line_ref: Variant 			= resolve_value(command_value.get("Line", "0"))
 
 			#@ Step 1 - Fallbacks for empty conversation or block:
 			if new_conversation.strip_edges() == "":
@@ -2004,10 +2061,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 			#@ Step 4 - Resolve target line (number or §LM tag):
 			var target_line: int = 0
-			if line_ref == "":
+			if typeof(line_ref) == TYPE_STRING and line_ref == "":
 				line_ref = 0
-			if typeof(line_ref) == TYPE_INT:
 
+			if typeof(line_ref) == TYPE_INT:
 				target_line = line_ref
 			elif typeof(line_ref) == TYPE_STRING:
 				var text_array = running_dialogue[new_conversation][new_block]["Text"]
@@ -2022,6 +2079,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			nesting_depth = 0
 			choice_lists.clear()
 			choice_list_data.clear()
+			if_array.clear()
 			var choice_lists_path = get_node_or_null(ui_elements_paths["choices_path"])
 			if choice_lists_path:
 				for child in choice_lists_path.get_children():
@@ -2041,7 +2099,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		"§bridge":
 			var new_conversation: String 	= resolve_value(str(command_value.get("Conversation", "")))
 			var new_block: String 			= resolve_value(str(command_value.get("Block", "")))
-			var line_ref: Variant 			= resolve_value(command_value.get("Line", 0))
+			var line_ref: Variant 			= resolve_value(command_value.get("Line", "0"))
 
 			#@ Step 1 - Fallback to current conversation or block:
 			if new_conversation.strip_edges() == "":
@@ -2091,12 +2149,20 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			#@ Step 5 - Run the new Block:
 			nesting_depth += 1
 			print(target_line)
-			await run_dialogue(new_conversation, new_block, target_line, "Text", false)
+			var bridge_result = await run_dialogue(new_conversation, new_block, target_line, "Text", false)
 			nesting_depth -= 1
 
+			#% Trim any if_array entries left behind by §If/§Elif/§Else inside the bridged block:
+			if if_array.size() > nesting_depth + 1:
+				if_array.resize(nesting_depth + 1)
+
+			#% Propagate "END" if it was returned:
+			if bridge_result == "END":
+				return "END"
+
 			#@ Step 6 - Reactivate the current depth's choice menu if exists:
-			if choice_lists.has(str(nesting_depth)):
-				var previous_menu = choice_lists[str(nesting_depth)]["Menu"]
+			if choice_lists.has(nesting_depth):
+				var previous_menu = choice_lists[nesting_depth]["Menu"]
 				previous_menu.reactivate()
 
 			return "Continue"
@@ -2121,8 +2187,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		#region - Input Commands
 		#* §Mouse - change mouse mode:
 		"§mouse":
-			var mode: String 	= resolve_value(str(command_value.get("Mouse Mode", "")))
-
+			var mode: String = resolve_value(str(command_value.get("Mouse Mode", "")))
 			match mode.to_lower():
 				"visible":
 					Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
@@ -2134,7 +2199,50 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
 				"confined_hidden":
 					Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED_HIDDEN)
-
+				"dialogue_start":
+					match mouse_mode_start:
+						MouseModes.None:
+							print("[DEBUG] §Mouse: mouse_mode_start is None; mouse mode left unchanged.")
+						MouseModes.Visible:
+							Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+						MouseModes.Hidden:
+							Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+						MouseModes.Captured:
+							Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+						MouseModes.Confined:
+							Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
+						MouseModes.Confined_Hidden:
+							Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED_HIDDEN)
+				"dialogue_end":
+					match mouse_mode_end:
+						MouseModes.None:
+							print("[DEBUG] §Mouse: mouse_mode_end is None; mouse mode left unchanged.")
+						MouseModes.Visible:
+							Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+						MouseModes.Hidden:
+							Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+						MouseModes.Captured:
+							Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+						MouseModes.Confined:
+							Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
+						MouseModes.Confined_Hidden:
+							Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED_HIDDEN)
+				"choice":
+					match mouse_mode_choice:
+						MouseModes.None:
+							print("[DEBUG] §Mouse: mouse_mode_choice is None; mouse mode left unchanged.")
+						MouseModes.Visible:
+							Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+						MouseModes.Hidden:
+							Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+						MouseModes.Captured:
+							Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+						MouseModes.Confined:
+							Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
+						MouseModes.Confined_Hidden:
+							Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED_HIDDEN)
+				_:
+					print("[DEBUG] §Mouse: Unknown Mouse Mode '%s'; keeping current mode." % mode)
 			return "Continue"
 
 
@@ -2293,7 +2401,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 			#@ Step 7 - Setup input menu:
 			if input_instance.has_method("setup"):
-				input_instance.setup(input_variable, setup_mode, input_instructions, input_placeholder, input_default_text, input_custom_1, input_custom_2, input_custom_3, input_custom_4, input_custom_5)
+				input_instance.setup(input_variable, setup_mode, input_instructions, input_default_text, input_placeholder, input_custom_1, input_custom_2, input_custom_3, input_custom_4, input_custom_5)
 			else:
 				push_warning("[NOTICE] §Input: setup() function missing in Input UI script.")
 
@@ -2343,7 +2451,15 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				Input.set_mouse_mode(mouse_mode_start as Input.MouseMode)
 
 			return "Continue"
- 		#endregion - input commands
+
+
+		#* §Player_Advance - Pause dialogue until player manually advances:
+		"§player_advance":
+			print("§Player_Advance: waiting for input.")
+			await wait_for_player_advance(null, true)
+			return "Continue"
+
+		#endregion - input commands
 
 
 		#&########################################
@@ -2596,7 +2712,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					general_category_scene += ".tscn"
 			general_category_scene = candy_de.choice_categories_folder.path_join(general_category_scene)
 
-			var category_list: Node = menu_node.get_node_or_null("Categories")
+			var category_list: Node = menu_node.category_list
 			if category_list == null:
 				print("§Choice_List: Menu scene is missing a 'Categories' node.")
 				return "Continue"
@@ -2768,14 +2884,40 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var cat_mouse_mode: String = resolve_value(main_cat_data.get("Mouse", "Default")).strip_edges()
 
 			var final_mouse_mode: String = cat_mouse_mode
-			if final_mouse_mode == "Default":
+			var defer_to_default := false
+
+			#% "Menu" - Use the menu's own Mouse value:
+			if final_mouse_mode == "Menu":
 				final_mouse_mode = general_mouse_mode
+				if final_mouse_mode == "Default":
+					defer_to_default = true
+
+			#% "Default" - Skip the menu entirely, go straight to mouse_mode_choice:
+			elif final_mouse_mode == "Default":
+				defer_to_default = true
+
+			if defer_to_default:
+				match mouse_mode_choice:
+					MouseModes.None:
+						final_mouse_mode = ""
+					MouseModes.Visible:
+						final_mouse_mode = "Visible"
+					MouseModes.Hidden:
+						final_mouse_mode = "Hidden"
+					MouseModes.Captured:
+						final_mouse_mode = "Captured"
+					MouseModes.Confined:
+						final_mouse_mode = "Confined"
+					MouseModes.Confined_Hidden:
+						final_mouse_mode = "Confined_Hidden"
 
 			#% Apply to engine mouse mode:
 			match final_mouse_mode.to_lower():
-				"default", "visible":
+				"":
+					print("[DEBUG] §Choice_List: Mouse_Mode_Start is None; mouse mode left unchanged.")
+				"visible":
 					Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-					print("[DEBUG] §Choice_List: Mouse_Mode set to Visible (Default).")
+					print("[DEBUG] §Choice_List: Mouse_Mode set to Visible.")
 				"hidden":
 					Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 					print("[DEBUG] §Choice_List: Mouse_Mode set to Hidden.")
@@ -2874,7 +3016,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 								% [choice_name, category_name])
 							continue
 
-						#@ Step 11-A - Pause all active timers during choice processing:
+						#% Pause all active timers during choice processing:
 						timers_array = choice_list_data[this_depth].get("Timers", [])
 						for timer_entry in timers_array:
 							for timer_key in timer_entry.keys():
@@ -2943,6 +3085,65 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							print("[DEBUG] §Choice_List: Navigated from '%s' → '%s'." %
 								[category_name, nav_target])
 
+							#% Re-resolve Mouse_Mode for the newly active category:
+							var nav_cat_data: Dictionary = {}
+							var nav_categories_array: Array = choice_list_data[this_depth].get("Categories", [])
+							for nav_category_entry in nav_categories_array:
+								if nav_category_entry.has(nav_target):
+									nav_cat_data = nav_category_entry[nav_target]
+									break
+
+							var nav_general_mouse_mode: String = resolve_value(choice_list_data[this_depth].get("Mouse", "Default")).strip_edges()
+							var nav_cat_mouse_mode: String = resolve_value(nav_cat_data.get("Mouse", "Default")).strip_edges()
+
+							var nav_final_mouse_mode: String = nav_cat_mouse_mode
+							var nav_defer_to_default := false
+
+							if nav_final_mouse_mode == "Menu":
+								nav_final_mouse_mode = nav_general_mouse_mode
+								if nav_final_mouse_mode == "Default":
+									nav_defer_to_default = true
+							elif nav_final_mouse_mode == "Default":
+								nav_defer_to_default = true
+
+							#% Solve mouse_mode_choice if used:
+							if nav_defer_to_default:
+								match mouse_mode_choice:
+									MouseModes.None:
+										nav_final_mouse_mode = ""
+									MouseModes.Visible:
+										nav_final_mouse_mode = "Visible"
+									MouseModes.Hidden:
+										nav_final_mouse_mode = "Hidden"
+									MouseModes.Captured:
+										nav_final_mouse_mode = "Captured"
+									MouseModes.Confined:
+										nav_final_mouse_mode = "Confined"
+									MouseModes.Confined_Hidden:
+										nav_final_mouse_mode = "Confined_Hidden"
+
+							#% Assign final Mouse_Mode:
+							match nav_final_mouse_mode.to_lower():
+								"":
+									print("[DEBUG] §Choice_List: Mouse_Mode_Start is None; mouse mode left unchanged after navigation to '%s'." % nav_target)
+								"visible":
+									Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+									print("[DEBUG] §Choice_List: Mouse_Mode set to Visible after navigation to '%s'." % nav_target)
+								"hidden":
+									Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+									print("[DEBUG] §Choice_List: Mouse_Mode set to Hidden after navigation to '%s'." % nav_target)
+								"captured", "locked":
+									Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+									print("[DEBUG] §Choice_List: Mouse_Mode set to Captured (Locked) after navigation to '%s'." % nav_target)
+								"confined":
+									Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
+									print("[DEBUG] §Choice_List: Mouse_Mode set to Confined after navigation to '%s'." % nav_target)
+								"confined_hidden":
+									Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED_HIDDEN)
+									print("[DEBUG] §Choice_List: Mouse_Mode set to Confined Hidden after navigation to '%s'." % nav_target)
+								_:
+									print("[DEBUG] §Choice_List: Unknown Mouse_Mode '%s' after navigation to '%s'; keeping current mode." % [nav_final_mouse_mode, nav_target])
+
 						#% If navigation only (no finish transition), resume timers immediately:
 						if nav_target != "" and convo == "" and block == "" and line_ref == "":
 							for timer_entry in timers_array:
@@ -2972,9 +3173,11 @@ func commands(command_key, command_value, current_conversation, current_block, _
 									var fake_line := [
 										{ cmd_to_run: { "Conversation": convo, "Block": block, "Line": line_ref } }
 									]
+									menu_node.shield.visible = true		#/ Shield hides menu and blocks mouse until returning from Bridge
 									nesting_depth += 1
 									var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
 									nesting_depth -= 1
+									menu_node.shield.visible = false
 									if feedback in ["END", "Return"]:
 										return feedback
 
@@ -3085,9 +3288,11 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							var fake_line := [
 								{ cmd_to_run: { "Conversation": convo, "Block": block, "Line": line_ref } }
 							]
+							menu_node.shield.visible = true
 							nesting_depth += 1
 							var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
 							nesting_depth -= 1
+							menu_node.shield.visible = false
 							if feedback in ["END", "Return"]:
 								return feedback
 
@@ -3136,7 +3341,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							timer_data["Status"] = "Hold"
 							print("[DEBUG] §Choice_List: Timer '%s' completed all loops (Status=Hold)." % timer_name)
 
-						#@ Step 11-E - Trigger one or more choices if defined in timer data:
+						#@ Step 11E - Trigger one or more choices if defined in timer data:
 						var choice_trigger: String = resolve_value(timer_data.get("Timer Choices", "")).strip_edges()
 
 						if choice_trigger != "":
@@ -3148,7 +3353,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 									print("[DEBUG] §Choice_List: Timer '%s' skipped invalid trigger (cat='%s', choice='%s')."
 										% [timer_name, cat_name, choice_name])
 								else:
-									print("[DEBUG] §Choice_List: Timer '%s' triggering choice '%s' in category '%s'." 
+									print("[DEBUG] §Choice_List: Timer '%s' triggering choice '%s' in category '%s'."
 										% [timer_name, choice_name, cat_name])
 									var cat_nodes: Dictionary = choice_lists[this_depth].get("Category Nodes", {})
 									if cat_nodes.has(cat_name):
@@ -3174,7 +3379,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							else:
 								printerr("§Choice_List: Timer '%s' 'Timer Choices' must follow format '[Category, Choice]'." % timer_name)
 
-						#@ Step 11-F - Resume paused timers:
+						#@ Step 11F - Resume paused timers:
 						print("timer data: " + str(timer_data))
 						for t_entry in timers_array:
 							for t_key in t_entry.keys():
@@ -3894,7 +4099,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		#* §BG_Stop - Stop one or more background animations:
 		"§bg_stop":
 			var layers_raw: Variant		= resolve_value(command_value.get("Layers", ""))
-			var use_default: Variant	= int(resolve_value(command_value.get("Default", "0")))
+			var default_val: int		= int(resolve_value(command_value.get("Default", "0")))
 
 			#@ Step 1 - Convert to array:
 			var layers_array: Array = []
@@ -3909,7 +4114,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			#@ Step 2 - Stop animations:
 			var bg_scene = get_node(ui_elements_paths["backgrounds_path"])
 			bg_scene.caller = self
-			bg_scene.stop_bg_animation(layers_array, use_default)
+			bg_scene.stop_bg_animation(layers_array, default_val)
 
 			return "Continue"
 
@@ -4337,7 +4542,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		#&            EFFECT COMMANDS           ##
 		#&										##
 		#region - VFX Commands
-		#* §Effect - play a visual effect animation clip:
+		#* §Effect - Play a visual effect animation clip:
 		"§effect":
 			var node_name: Variant		= resolve_value(command_value.get("Node", "Effect"))
 			var anim_name: String		= str(resolve_value(command_value.get("Animation", ""))).strip_edges()
@@ -4393,43 +4598,33 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				return "Continue"
 
 			var duration: float = anim.length
-			var resume_at: float = 0.0
-
-			if wait_target >= 0:
-				resume_at = (wait_target * duration) + time_target
-			elif time_target > 0.0:
-				resume_at = time_target
+			var resume_at: float = max(wait_target, 0) * duration + time_target
 
 			#@ Step 4 - Configure node and start playing:
 			player_node.loop_target		= loop_target
-			player_node.wait_target		= wait_target
+			player_node.wait_target		= -1
 			player_node.loops_played	= 0
 			player_node.duration		= duration
 			player_node.caller			= self
 			player_node.effect_player.play(anim_name)
+			active_media_players.append(player_node)
 
 			#% No wait required - continue immediately:
 			if resume_at <= 0.0:
 				return "Continue"
 
-			#@ Step 5 - Wait until resume_at is reached:
-			while true:
+			#@ Step 5 - Wait until resume_at is reached or playback ends:
+			while player_node in active_media_players:
+				if player_node.effect_player.is_playing():
+					var elapsed = player_node.loops_played * duration + player_node.effect_player.current_animation_position
+					if elapsed >= resume_at:
+						break
 				await get_tree().process_frame
-
-				if not player_node.effect_player.is_playing():
-					if loop_target > 0 and player_node.loops_played >= loop_target:
-						return "Continue"
-					await get_tree().process_frame
-					continue
-
-				var elapsed = player_node.loops_played * duration + player_node.effect_player.current_animation_position
-				if elapsed >= resume_at:
-					return "Continue"
 
 			return "Continue"
 
 
-		#* §Effect_Wait - pause dialogue until a visual effect animation reaches a loop/time target:
+		#* §Effect_Wait - Pause dialogue until a visual effect animation reaches a loop/time target:
 		"§effect_wait":
 			var node_name: Variant		= resolve_value(command_value.get("Node", "Effect"))
 			var wait_raw: Variant		= resolve_value(command_value.get("Wait", ""))
@@ -4465,45 +4660,29 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				player_node = get_node_or_null(media_players_locations.get(str(node_name), ""))
 
 			if not player_node or not (player_node.effect_player is AnimationPlayer):
-				printerr("§EffectWait: invalid or missing AnimationPlayer → ", node_name)
-				return "Continue"
-
-			var anim_name: String = player_node.effect_player.current_animation
-			if anim_name == "":
-				return "Continue"
-
-			var anim: Animation = player_node.effect_player.get_animation(anim_name)
-			if anim == null:
-				printerr("§EffectWait: current animation invalid → ", anim_name)
+				printerr("§Effect_Wait: invalid or missing AnimationPlayer → ", node_name)
 				return "Continue"
 
 			var duration: float = player_node.duration
-			var resume_at: float = 0.0
+			if duration <= 0.0:
+				return "Continue"
 
-			if wait_target >= 0:
-				resume_at = (wait_target * duration) + time_target
-			elif time_target > 0.0:
-				resume_at = time_target
-
+			var resume_at: float = max(wait_target, 0) * duration + time_target
 			if resume_at <= 0.0:
 				return "Continue"
 
 			#@ Step 2 - Wait for the animation progress:
-			while true:
-				if not player_node.effect_player.is_playing():
-					if player_node.loop_target > 0 and player_node.loops_played >= player_node.loop_target:
-						return "Continue"
-					await get_tree().process_frame
-					continue
-
-				var elapsed = player_node.loops_played * duration + player_node.effect_player.current_animation_position
-				if elapsed >= resume_at:
-					return "Continue"
-
+			while player_node in active_media_players:
+				if player_node.effect_player.is_playing():
+					var elapsed = player_node.loops_played * duration + player_node.effect_player.current_animation_position
+					if elapsed >= resume_at:
+						break
 				await get_tree().process_frame
 
+			return "Continue"
 
-		#* §Effect_Stop - stop a currently playing effect animation:
+
+		#* §Effect_Stop - Stop a currently playing effect animation:
 		"§effect_stop":
 			var node_name: Variant		= resolve_value(command_value.get("Node", "Effect"))
 
@@ -4525,7 +4704,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			return "Continue"
 
 
-		#* §Wait - pause dialogue processing for a set duration:
+		#* §Wait - Pause dialogue processing for a set duration:
 		"§wait":
 			var time_raw: Variant		= resolve_value(command_value.get("Time", 0.0))
 
@@ -4718,6 +4897,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				player_node = node_name
 			else:
 				player_node = get_node(media_players_locations[str(node_name)])
+
 			if not player_node:
 				printerr("§Image: invalid image node → ", node_name)
 				return "Continue"
@@ -4729,10 +4909,13 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				if duration > 0:
 					fps_value = float(duration)
 				player_node.setup_animation(str(animation_path), fps_value, loop)
+
 			elif animated == 0:
 				var image_path = candy_de.image_folder.path_join(node_name).path_join(image).path_join(player_node.default_image_extension)
 				player_node.setup_static(str(image_path), float(duration), loop)
+
 			player_node.visible = true
+			player_node.caller = self
 
 			#@ Step 3 - Adjust z-index:
 			if show_box == 1:
@@ -4762,22 +4945,22 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			player_node.start()
 
 			#@ Step 5 - Optional blocking wait (Time + Wait):
-			if wait != -1 or time_raw != "":
-				var target_seconds: float = 0.0
-				if typeof(time_raw) == TYPE_STRING:
-					var s = time_raw.strip_edges()
-					if s != "":
-						var parts = s.split(":")
-						match parts.size():
-							3:
-								target_seconds = int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
-							2:
-								target_seconds = int(parts[0]) * 60 + float(parts[1])
-							1:
-								target_seconds = float(parts[0])
-				elif typeof(time_raw) in [TYPE_FLOAT, TYPE_INT]:
-					target_seconds = float(time_raw)
+			var target_seconds: float = 0.0
+			if typeof(time_raw) == TYPE_STRING:
+				var s = time_raw.strip_edges()
+				if s != "":
+					var parts = s.split(":")
+					match parts.size():
+						3:
+							target_seconds = int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
+						2:
+							target_seconds = int(parts[0]) * 60 + float(parts[1])
+						1:
+							target_seconds = float(parts[0])
+			elif typeof(time_raw) in [TYPE_FLOAT, TYPE_INT]:
+				target_seconds = float(time_raw)
 
+			if wait > 0 or target_seconds > 0.0:
 				#% Calculate duration per loop:
 				var media_length: float = player_node.static_duration
 				if player_node.animated and player_node.fps > 0:
@@ -4785,23 +4968,40 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				if media_length <= 0.0:
 					media_length = 1.0
 
-				var total_seconds = target_seconds
-				var loop_offset = int(total_seconds / media_length)
-				var offset_time = total_seconds - (loop_offset * media_length)
-				var target_loop = loop_offset
-				if wait > 0:
-					target_loop += int(wait)
+				var loop_offset = int(target_seconds / media_length)
+				var offset_time = target_seconds - (loop_offset * media_length)
+				var target_loop = wait + loop_offset
 
-				var elapsed := 0.0
+				#% Track position within the current playback, resetting at each rollover:
+				var loop_elapsed := 0.0
+				var prev_loops: int = player_node.loops_played
+
 				while player_node in active_media_players:
+					#% Suspension check - freeze the clock while dialogue is suspended:
+					if dialogue_suspended == true:
+						while dialogue_suspended == true:
+							await get_tree().process_frame
+						continue
+
+					#% Reset per-loop clock on rollover:
+					if player_node.loops_played != prev_loops:
+						loop_elapsed = 0.0
+						prev_loops = player_node.loops_played
+
+					#% Loop cap - never wait past the image's own loop count:
 					if loop > 0 and player_node.loops_played >= loop:
 						break
+
+					#% Passed the target playback entirely:
 					if player_node.loops_played > target_loop:
 						break
-					if player_node.loops_played == target_loop and elapsed >= offset_time:
+
+					#% Reached the timestamp within the target playback:
+					if player_node.loops_played == target_loop and loop_elapsed >= offset_time:
 						break
+
 					await get_tree().process_frame
-					elapsed += get_process_delta_time()
+					loop_elapsed += get_process_delta_time()
 
 			return "Continue"
 
@@ -4841,31 +5041,48 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			elif typeof(time_raw) in [TYPE_FLOAT, TYPE_INT]:
 				target_seconds = float(time_raw)
 
-			#@ Step 4 - Determine per-loop duration:
+			#@ Step 4 - No dialogue pause if neither Wait nor Time is set:
+			if wait <= 0 and target_seconds <= 0.0:
+				return "Continue"
+
+			#% Determine per-loop duration:
 			var media_length: float = player_node.static_duration
 			if player_node.animated and player_node.fps > 0:
 				media_length = float(player_node.frames.size()) / player_node.fps
 			if media_length <= 0.0:
 				media_length = 1.0
 
-			var total_seconds = target_seconds
-			var loop_offset = int(total_seconds / media_length)
-			var offset_time = total_seconds - (loop_offset * media_length)
-			var target_loop = loop_offset
-			if wait > 0:
-				target_loop += int(wait)
+			var loop_offset = int(target_seconds / media_length)
+			var offset_time = target_seconds - (loop_offset * media_length)
+			var target_loop = wait + loop_offset
 
-			#@ Step 5 - Wait until elapsed time and loop reached:
-			var elapsed := 0.0
+			#@ Step 5 - Wait until target loop/timestamp reached:
+			#% Estimate current position within the ongoing playback when attaching mid-loop:
+			var loop_elapsed := 0.0
+			if player_node.animated and player_node.fps > 0:
+				loop_elapsed = float(player_node.frame_index) / player_node.fps
+			var prev_loops: int = player_node.loops_played
+
 			while player_node in active_media_players:
+				#% Freeze the clock while dialogue is suspended:
+				if dialogue_suspended == true:
+					while dialogue_suspended == true:
+						await get_tree().process_frame
+					continue
+
+				#% Reset per-loop clock on rollover:
+				if player_node.loops_played != prev_loops:
+					loop_elapsed = 0.0
+					prev_loops = player_node.loops_played
+
 				if player_node.loop_target > 0 and player_node.loops_played >= player_node.loop_target:
 					break
 				if player_node.loops_played > target_loop:
 					break
-				if player_node.loops_played == target_loop and elapsed >= offset_time:
+				if player_node.loops_played == target_loop and loop_elapsed >= offset_time:
 					break
 				await get_tree().process_frame
-				elapsed += get_process_delta_time()
+				loop_elapsed += get_process_delta_time()
 
 			#@ Step 6 - Overlay reset:
 			if show_box == 1:
@@ -5140,6 +5357,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				return "Continue"
 
 			player_node.audio_player.stream = stream
+			player_node.caller = self
 
 			#@ Step 3 - Assign loop tracking:
 			player_node.loop_target = loop
@@ -5167,25 +5385,28 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			active_media_players.append(player_node)
 
 			#@ Step 6 - Optional blocking wait until time/loop reached:
-			if wait != -1 or time_raw != "":
+			if wait > 0 or target_seconds > 0.0:
 				var media_length: float = stream.get_length()
 				if media_length <= 0.0:
 					media_length = 1.0
 
-				var total_seconds = target_seconds
-				var loop_offset = int(total_seconds / media_length)
-				var offset_time = total_seconds - (loop_offset * media_length)
-				var target_loop = loop_offset
-				if wait > 0:
-					target_loop += int(wait)
+				var loop_offset = int(target_seconds / media_length)
+				var offset_time = target_seconds - (loop_offset * media_length)
+				var target_loop = wait + loop_offset
 
 				while player_node in active_media_players:
+					#% Loop cap - never wait past the audio's own loop count:
 					if loop > 0 and player_node.loops_played >= loop:
 						break
+
+					#% Passed the target playback entirely:
 					if player_node.loops_played > target_loop:
 						break
+
+					#% Reached the timestamp within the target playback:
 					if player_node.loops_played == target_loop and player_node.audio_player.get_playback_position() >= offset_time:
 						break
+
 					await get_tree().process_frame
 
 			return "Continue"
@@ -5194,7 +5415,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		#* §A_Wait - Block dialogue until audio reaches a timestamp or loop (with carryover):
 		"§a_wait":
 			var time_raw: Variant	= resolve_value(command_value.get("Time","0.0"))
-			var wait: Variant		= int(resolve_value(command_value.get("Wait", "1")))
+			var wait: Variant		= int(resolve_value(command_value.get("Wait", "0")))
 			var node_name: Variant	= resolve_value(command_value.get("Node", "Sound"))
 
 			#@ Step 1 - Get the target audio node:
@@ -5226,20 +5447,23 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			elif typeof(time_raw) in [TYPE_FLOAT, TYPE_INT]:
 				target_seconds = float(time_raw)
 
-			#@ Step 3 - Compute loop carryover:
+			#@ Step 3 - No dialogue pause if neither Wait nor Time is set:
+			if wait <= 0 and target_seconds <= 0.0:
+				return "Continue"
+
+			#@ Step 4 - Compute loop carryover:
 			var media_length: float = audio_stream.get_length()
 			if media_length <= 0.0:
 				media_length = 1.0
 
-			var total_seconds = target_seconds
-			var loop_offset = int(total_seconds / media_length)
-			var offset_time = total_seconds - (loop_offset * media_length)
-			var target_loop = loop_offset
-			if wait > 0:
-				target_loop += int(wait)
+			var loop_offset = int(target_seconds / media_length)
+			var offset_time = target_seconds - (loop_offset * media_length)
+			var target_loop = wait + loop_offset
 
-			#@ Step 4 - Wait until target loop/time or until playback ends:
-			while player_node.audio_player.stream:
+			#@ Step 5 - Wait until target loop/time or until playback ends:
+			while player_node in active_media_players:
+				if not player_node.audio_player.playing:
+					break
 				if player_node.loop_target > 0 and player_node.loops_played >= player_node.loop_target:
 					break
 				if player_node.loops_played > target_loop:
@@ -5491,6 +5715,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				return "Continue"
 
 			player_node.visible = true
+			player_node.caller = self
 
 			#@ Step 2 - Get the video stream:
 			var stream
@@ -5570,31 +5795,47 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			active_media_players.append(player_node)
 
 			#@ Step 7 - Optional wait until time / loop:
-			if wait != -1 or time_raw != "":
-				#% Video streams don’t expose duration - track manually:
-				var fallback_max := 600.0	#/ assume max 10 min if unknown (safety net)
+			if wait > 0 or target_seconds > 0.0:
+				var fallback_max := 600.0	#/ absolute safety net if length never becomes known
 
-				#% Estimate total_seconds directly from parsed time:
-				var total_seconds = target_seconds
-				var target_loop = max(loop - 1, 0) if loop > 0 else 0
-				var offset_time = total_seconds
+				#% Try to get media length up front (returns 0.0 for some stream types):
+				var media_length: float = player_node.video_player.get_stream_length()
 
-				#% Wait until target loop/time:
+				#% Compute target from best known length:
+				var target_loop: int = wait
+				var offset_time: float = target_seconds
+				if media_length > 0.0:
+					var loop_offset = int(target_seconds / media_length)
+					offset_time = target_seconds - (loop_offset * media_length)
+					target_loop = wait + loop_offset
+
+				var prev_loops: int = player_node.loops_played
+				var prev_pos: float = 0.0
+
 				while player_node in active_media_players:
-					#% Stop waiting if it’s stopped:
-					if not player_node.video_player.is_playing():
-						break
+					#% Learn length at runtime from loop rollover, recompute target once known:
+					if media_length <= 0.0 and player_node.loops_played > prev_loops and prev_pos > 0.0:
+						media_length = prev_pos
+						var loop_offset = int(target_seconds / media_length)
+						offset_time = target_seconds - (loop_offset * media_length)
+						target_loop = wait + loop_offset
+					prev_loops = player_node.loops_played
+					prev_pos = max(prev_pos, player_node.video_player.stream_position) if player_node.loops_played == prev_loops else player_node.video_player.stream_position
 
-					#% Simulate loop tracking:
+					#% Loop cap - never wait past the video's own loop count:
 					if loop > 0 and player_node.loops_played >= loop:
 						break
 
-					#% Check elapsed time manually:
+					#% Passed the target playback entirely:
+					if player_node.loops_played > target_loop:
+						break
+
+					#% Reached the timestamp within the target playback:
 					if player_node.loops_played == target_loop and player_node.video_player.stream_position >= offset_time:
 						break
 
-					#% Emergency cutoff (in case duration unknown):
-					if player_node.video_player.stream_position > fallback_max:
+					#% Emergency cutoff (length never learned, no rollover ever observed):
+					if media_length <= 0.0 and player_node.video_player.stream_position > fallback_max:
 						break
 
 					await get_tree().process_frame
@@ -5699,26 +5940,43 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			elif typeof(time_raw) in [TYPE_FLOAT, TYPE_INT]:
 				target_seconds = float(time_raw)
 
-			#@ Step 3 - Compute loop carryover:
-			var media_length: float = stream.get_length()
-			if media_length <= 0.0:
-				media_length = 1.0
+			#@ Step 3 - No dialogue pause if neither Wait nor Time is set:
+			if wait <= 0 and target_seconds <= 0.0:
+				return "Continue"
 
-			var total_seconds = target_seconds
-			var loop_offset = int(total_seconds / media_length)
-			var offset_time = total_seconds - (loop_offset * media_length)
-			var target_loop = loop_offset
-			if wait > 0:
-				target_loop += int(wait)
+			#% Try to get media length up front:
+			var media_length: float = player_node.video_player.get_stream_length()
+
+			var target_loop: int = wait
+			var offset_time: float = target_seconds
+			if media_length > 0.0:
+				var loop_offset = int(target_seconds / media_length)
+				offset_time = target_seconds - (loop_offset * media_length)
+				target_loop = wait + loop_offset
+
+			var prev_loops: int = player_node.loops_played
+			var prev_pos: float = 0.0
 
 			#@ Step 4 - Wait until target loop/time or until playback ends:
-			while player_node.video_player.stream:
+			while player_node in active_media_players:
+				#% Learn length at runtime from loop rollover, recompute target once known:
+				if media_length <= 0.0 and player_node.loops_played > prev_loops and prev_pos > 0.0:
+					media_length = prev_pos
+					var loop_offset = int(target_seconds / media_length)
+					offset_time = target_seconds - (loop_offset * media_length)
+					target_loop = wait + loop_offset
+				prev_loops = player_node.loops_played
+				prev_pos = max(prev_pos, player_node.video_player.stream_position) if player_node.loops_played == prev_loops else player_node.video_player.stream_position
+
 				if player_node.loop_target > 0 and player_node.loops_played >= player_node.loop_target:
 					break
 				if player_node.loops_played > target_loop:
 					break
 				if player_node.loops_played == target_loop and player_node.video_player.stream_position >= offset_time:
 					break
+				if media_length <= 0.0 and player_node.video_player.stream_position > 600.0:
+					break
+
 				await get_tree().process_frame
 
 			#@ Step 5 - Overlay z_index restoration:
@@ -6292,7 +6550,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				return "Continue"
 
 			var refs_raw: Variant	= command_value.get("Actors", "")
-			var use_default: bool	= int(resolve_value(command_value.get("Default", 0)))
+			var default_val: int = int(resolve_value(command_value.get("Default", "0")))
 
 			#@ Step 1 - Convert to array (handles string or array input):
 			var refs_array: Array = []
@@ -6321,7 +6579,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			#@ Step 3 - Stop animations for the resulting actor list:
 			var bust_scene = get_node(ui_elements_paths["busts_path"])
 			bust_scene.caller = self
-			bust_scene.stop_bust_animation(refs_array, use_default)
+			bust_scene.stop_bust_animation(refs_array, default_val)
 
 			return "Continue"
 
@@ -6707,9 +6965,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		#region - Cutscene Commands
 		#* §CS_Scene - Instantiate a scene as a child of one or more target nodes:
 		"§cs_scene":
-			var path_1: Variant			= resolve_value(command_value.get("Path 1", ""))
-			var targets_raw: Variant	= resolve_value(command_value.get("Targets", ""))
-			var scene_raw: Variant		= resolve_value(command_value.get("Scene", ""))
+			var path_1: Variant         = resolve_value(command_value.get("Path 1", ""))
+			var targets_raw: Variant    = resolve_value(command_value.get("Targets", ""))
+			var scene_raw: Variant      = resolve_value(command_value.get("Scene", ""))
+			var new_name: Variant       = resolve_value(command_value.get("Name", ""))
 
 			#@ Step 1 - Parse target list (comma-separated or array):
 			var targets: Array = []
@@ -6725,24 +6984,46 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				printerr("§CSScene: No Targets provided.")
 				return "Continue"
 
-			#@ Step 2 - Load scene:
-			var scene_path: String = str(scene_raw).strip_edges()
-			if scene_path == "":
+			#@ Step 2 - Parse scene list (comma-separated or single):
+			var scene_paths: Array = []
+			if scene_raw is String:
+				for part in scene_raw.split(",", false):
+					var s = part.strip_edges()
+					if s != "":
+						scene_paths.append(s)
+			elif scene_raw is Array:
+				scene_paths = scene_raw.duplicate()
+
+			if scene_paths.is_empty():
 				printerr("§CSScene: Missing Scene path.")
 				return "Continue"
 
-			var packed_scene: PackedScene = load(scene_path)
-			if packed_scene == null:
-				printerr("§CSScene: Failed to load scene at → ", scene_path)
+			#@ Step 3 - Load all scenes:
+			var packed_scenes: Array = []
+			for scene_path in scene_paths:
+				var packed_scene: PackedScene = load(scene_path)
+				if packed_scene == null:
+					printerr("§CSScene: Failed to load scene at → ", scene_path)
+					continue
+				packed_scenes.append(packed_scene)
+
+			if packed_scenes.is_empty():
+				printerr("§CSScene: No valid scenes loaded.")
 				return "Continue"
 
-			#@ Step 3 - Locate Path 1 container:
+			#@ Step 4 - Parse name list (comma-separated or single):
+			var new_names: Array = []
+			if str(new_name).strip_edges() != "":
+				for part in str(new_name).split(",", false):
+					new_names.append(part.strip_edges())
+
+			#@ Step 5 - Locate Path 1 container:
 			var container = get_node_or_null(cs_locations.get(path_1, ""))
 			if not container:
 				printerr("§CSScene: Invalid Path 1 → ", path_1)
 				return "Continue"
 
-			#@ Step 4 - Instantiate scene for each target:
+			#@ Step 6 - Instantiate scenes for each target:
 			for target_name in targets:
 				#% Resolve role alias if needed:
 				if typeof(target_name) == TYPE_STRING and target_name.begins_with(candy_de.role_symbol):
@@ -6758,9 +7039,13 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					printerr("§CSScene: Could not find parent node at ", path_1, "/", target_name)
 					continue
 
-				#@ Step 5 - Instantiate and attach:
-				var instance: Node = packed_scene.instantiate()
-				parent.add_child(instance)
+				#@ Step 7 - Instantiate and attach each scene:
+				for i in packed_scenes.size():
+					var instance: Node = packed_scenes[i].instantiate()
+					#% Assign name if one exists for this index:
+					if i < new_names.size() and new_names[i] != "":
+						instance.name = new_names[i]
+					parent.add_child(instance)
 
 			return "Continue"
 
@@ -7037,7 +7322,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			return "Continue"
 
 
-		#* §CS_Anim - Play one or more animations on one or more nodes with Loop/Wait/Time and Play logic:
+		#* §CS_Anim - Play one or more animations on one or more nodes:
 		"§cs_anim":
 			var path_1: Variant			= resolve_value(command_value.get("Path 1", ""))
 			var path_2: Variant			= resolve_value(command_value.get("Path 2", ""))
@@ -7046,11 +7331,9 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var loop_raw: Variant		= resolve_value(command_value.get("Loop", "1"))
 			var wait_raw: Variant		= resolve_value(command_value.get("Wait", "0"))
 			var time_raw: Variant		= resolve_value(command_value.get("Time", "0"))
-			var play_raw: Variant		= resolve_value(command_value.get("Play", "1"))
 
 			var loop: int = int(loop_raw)
 			var wait: int = int(wait_raw)
-			var play: int = int(play_raw)
 
 			#@ Step 1 - Parse Time value (HH:MM:SS.xx or f=frames):
 			var time_target: float = 0.0
@@ -7140,10 +7423,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				data["elapsed_time"] = 0.0
 				data["duration"] = 0.0
 				data["anim_name"] = anim_name
-				data["paused"] = (play == 0)
+				data["paused"] = (loop == 0)
 
-				#@ Step 8 - Handle Play = 0 case:
-				if play == 0:
+				#@ Step 8 - Handle Loop = 0 case (stop on first frame):
+				if loop == 0:
 					if anim_node is AnimationPlayer:
 						anim_node.stop()
 						anim_node.seek(0.0, true)
@@ -7165,11 +7448,13 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							anim_node.play(anim_name)
 							await anim_node.animation_finished
 							data["loops_played"] += 1
-							if loop == 0 or data["loops_played"] < loop:
-								continue
-							else:
+							if loop == -1:
+								continue    #/ Infinite loop
+							elif loop > 0 and data["loops_played"] >= loop:
 								anim_node.stop()
 								return
+							else:
+								continue
 					_anim_loop.call_deferred()
 
 				elif anim_node is AnimationTree:
@@ -7181,7 +7466,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					anim_node.active = true
 					playback.travel(anim_name)
 
-					var duration: float = 1.0	#/ Unknown duration fallback
+					var duration: float = 1.0
 					data["duration"] = duration
 
 					var _tree_loop := func():
@@ -7194,7 +7479,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 								break
 							if playback.get_current_node() != anim_name:
 								data["loops_played"] += 1
-								if loop == 0 or data["loops_played"] < loop:
+								if loop == -1 or loop == 0 or data["loops_played"] < loop:
 									playback.travel(anim_name)
 								else:
 									break
@@ -7218,19 +7503,25 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							continue
 
 						var d = cs_loop_data[path_2]
-						d["elapsed_time"] += get_process_delta_time()
-
-						var duration: float = float(d.get("duration", 0.0))
 						var loop_target: int = int(d.get("loop_target", 0))
 						var loops_played: int = int(d.get("loops_played", 0))
-						var resume_at: float = (max(wait, 0) * duration) + max(time_target, 0.0)
 
-						if loop_target > 0 and loops_played < loop_target:
+						#% Don't wait if finite animation finished:
+						if loop_target > 0 and loops_played >= loop_target:
+							continue
+
+						#% If Wait is set, wait for that many loops to complete:
+						if wait > 0 and loops_played < wait:
 							all_done = false
 							break
-						elif d["elapsed_time"] < resume_at:
-							all_done = false
-							break
+
+						#% If only Time is set, fall back to elapsed time:
+						if time_target > 0.0:
+							d["elapsed_time"] += get_process_delta_time()
+							if d["elapsed_time"] < time_target:
+								all_done = false
+								break
+
 					if all_done:
 						break
 					await get_tree().process_frame
@@ -7326,23 +7617,26 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						continue
 
 					var data = cs_loop_data[path_2]
-					data["elapsed_time"] += get_process_delta_time()
-
 					var loop_target: int = int(data.get("loop_target", 0))
 					var loops_played: int = int(data.get("loops_played", 0))
-					var elapsed: float = float(data.get("elapsed_time", 0.0))
-					var duration: float = float(data.get("duration", 0.0))
-					var resume_at: float = (max(wait_target, 0) * duration) + max(time_target, 0.0)
 
-					#% Skip if nothing to wait for:
-					if loop_target == 0 and wait_target == -1 and time_target <= 0.0:
+					#% Don't wait if animation finished:
+					if loop_target > 0 and loops_played >= loop_target:
 						done_nodes.append(node)
 						continue
 
-					#% Finished required loops/time:
-					if elapsed >= resume_at or (loop_target > 0 and loops_played >= loop_target):
-						done_nodes.append(node)
+					#% If Wait is set, wait for that many loops to complete:
+					if wait_target > 0 and loops_played < wait_target:
 						continue
+
+					#% If only Time is set, fall back to elapsed time:
+					if time_target > 0.0:
+						data["elapsed_time"] += get_process_delta_time()
+						if float(data.get("elapsed_time", 0.0)) < time_target:
+							continue
+
+					#% Nothing to wait for - continue immediately:
+					done_nodes.append(node)
 
 				await get_tree().process_frame
 
@@ -7354,9 +7648,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var path_1: Variant			= resolve_value(command_value.get("Path 1", ""))
 			var path_2: Variant			= resolve_value(command_value.get("Path 2", ""))
 			var targets_raw: Variant	= resolve_value(command_value.get("Targets", ""))
-			var reset_raw: Variant		= resolve_value(command_value.get("Default", "0"))
-
-			var reset_to_first := int(reset_raw) == 1
+			var default_val: int		= int(resolve_value(command_value.get("Default", "0")))
 
 			#@ Step 1 - Parse Targets list:
 			var targets: Array = []
@@ -7403,17 +7695,28 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 				#@ Step 5 - Stop animation based on type:
 				if anim_node is AnimationPlayer:
-					anim_node.stop()
-					if reset_to_first:
-						anim_node.seek(0.0, true)
+					if default_val == 0:
+						#% Stop on current frame:
+						anim_node.stop(false)
+					elif default_val == -1:
+						#% Stop on last frame:
+						var anim = anim_node.current_animation
+						if anim != "":
+							var length = anim_node.get_animation(anim).length
+							anim_node.stop(false)
+							anim_node.seek(length, true)
+						else:
+							anim_node.stop(false)
+					else:
+						#% Stop on specific frame:
+						anim_node.stop(false)
+						anim_node.seek(default_val / 30.0, true)
 
 				elif anim_node is AnimationTree:
-					if reset_to_first:
-						var playback: AnimationNodeStateMachinePlayback = anim_node.get("parameters/playback")
-						if playback and playback.has_method("travel"):
-							playback.travel("Idle")
+					var playback: AnimationNodeStateMachinePlayback = anim_node.get("parameters/playback")
+					if default_val == -1 and playback:
+						playback.travel("Idle")
 					anim_node.active = false
-
 				else:
 					printerr("§CSAnimStop: Unsupported animation node → ", anim_node)
 					continue
@@ -7436,11 +7739,9 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var loop_raw: Variant		= resolve_value(command_value.get("Loop", "1"))
 			var wait_raw: Variant		= resolve_value(command_value.get("Wait", "0"))
 			var time_raw: Variant		= resolve_value(command_value.get("Time", "0"))
-			var play_raw: Variant		= resolve_value(command_value.get("Play", "1"))
 
 			var loop: int = int(loop_raw)
 			var wait: int = int(wait_raw)
-			var play: int = int(play_raw)
 
 			#@ Step 1 - Parse Time (HH:MM:SS.xx or f=frames):
 			var time_target: float = 0.0
@@ -7523,21 +7824,29 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					continue
 
 				#@ Step 6 - Determine resource path:
-				var folder = candy_de.sprite_folder.path_join(target_name)
-				var file_name := file_ref if file_ref != "" else "Default"
+				#% Empty File = remove current sprite/texture:
+				if file_ref == "":
+					if sprite_node is Sprite2D or sprite_node is Sprite3D:
+						sprite_node.texture = null
+						sprite_node.visible = false
+					elif sprite_node is AnimatedSprite2D or sprite_node is AnimatedSprite3D:
+						sprite_node.stop()
+						sprite_node.sprite_frames = null
+						sprite_node.visible = false
+					continue
 
+				var folder = candy_de.sprite_folder.path_join(target_name)
+				var file_name := file_ref
 				if file_name.find(".") == -1:
 					if sprite_node is Sprite2D or sprite_node is Sprite3D:
 						file_name += candy_de.default_sprite_extension
 					elif sprite_node is AnimatedSprite2D or sprite_node is AnimatedSprite3D:
 						file_name += candy_de.default_animated_sprite_extension
-
 				var file_path: String
 				if sprite_node is AnimatedSprite2D or sprite_node is AnimatedSprite3D:
 					file_path = folder.path_join("Sprite_Frames").path_join(file_name)
 				else:
 					file_path = folder.path_join(file_name)
-
 				if not ResourceLoader.exists(file_path):
 					printerr("§CSSprite: Missing resource → ", file_path)
 					continue
@@ -7553,7 +7862,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					"time_target": time_target,
 					"elapsed_time": 0.0,
 					"duration": 0.0,
-					"paused": (play == 0)
+					"paused": (loop == 0)
 				}
 
 				var data = cs_loop_data[path_2]
@@ -7598,7 +7907,11 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					duration = total_frames / candy_de.cs_sprite_fps
 					data["duration"] = duration
 
-					if play == 0 or total_frames <= 1:
+					#% Stop on first frame if Loop = 0:
+					if loop == 0 or total_frames <= 1:
+						continue
+
+					if total_frames <= 1:
 						continue
 
 					var new_timer = Timer.new()
@@ -7615,7 +7928,9 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							if next_frame >= total_frames:
 								data["loops_played"] += 1
 								next_frame = 0
-								if loop > 0 and data["loops_played"] >= loop:
+								if loop == -1:
+									pass    #/ Infinite loop
+								elif loop > 0 and data["loops_played"] >= loop:
 									new_timer.stop()
 									new_timer.queue_free()
 									return
@@ -7643,7 +7958,8 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					duration = frames.get_frame_count(anim) / candy_de.cs_sprite_fps
 					data["duration"] = duration
 
-					if play == 0:
+					#% Stop on first frame if Loop = 0:
+					if loop == 0:
 						sprite_node.frame = 0
 						sprite_node.stop()
 						continue
@@ -7653,11 +7969,13 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							sprite_node.play(anim)
 							await sprite_node.animation_finished
 							data["loops_played"] += 1
-							if loop == 0 or data["loops_played"] < loop:
-								continue
-							else:
+							if loop == -1:
+								continue    #/ Infinite loop
+							elif loop > 0 and data["loops_played"] >= loop:
 								sprite_node.stop()
 								return
+							else:
+								continue
 					_anim_loop.call_deferred()
 
 				else:
@@ -7678,19 +7996,25 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							continue
 						var d = cs_loop_data[path_2]
 
-						d["elapsed_time"] += get_process_delta_time()
-
-						var duration: float = float(d.get("duration", 0.0))
 						var loop_target: int = int(d.get("loop_target", 0))
 						var loops_played: int = int(d.get("loops_played", 0))
-						var resume_at: float = (max(wait, 0) * duration) + max(time_target, 0.0)
 
-						if loop_target > 0 and loops_played < loop_target:
+						#% Don't wait if finite animation finished:
+						if loop_target > 0 and loops_played >= loop_target:
+							continue
+
+						#% If Wait is set, wait for that many loops to complete:
+						if wait > 0 and loops_played < wait:
 							all_done = false
 							break
-						elif d["elapsed_time"] < resume_at:
-							all_done = false
-							break
+
+						#% If only Time is set, fall back to elapsed time:
+						if time_target > 0.0:
+							d["elapsed_time"] += get_process_delta_time()
+							if d["elapsed_time"] < time_target:
+								all_done = false
+								break
+
 					if all_done:
 						break
 					await get_tree().process_frame
@@ -7787,28 +8111,27 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 					var cs_loop_data: Dictionary = node.get_meta("cs_loop_data")
 					var d = cs_loop_data[path_2]
-					d["elapsed_time"] += get_process_delta_time()
 
-					var duration: float = float(d.get("duration", 0.0))
 					var loop_target: int = int(d.get("loop_target", 0))
 					var loops_played: int = int(d.get("loops_played", 0))
-					var elapsed: float = float(d.get("elapsed_time", 0.0))
-					var resume_at: float = (max(wait_target, 0) * duration) + max(time_target, 0.0)
 
-					#% Case 1: nothing to wait for:
-					if loop_target == 0 and wait_target == -1 and time_target <= 0.0:
-						done_nodes.append(node)
-						continue
-
-					#% Case 2: target time reached:
-					if elapsed >= resume_at:
-						done_nodes.append(node)
-						continue
-
-					#% Case 3: finished all loops:
+					#% If animation has a finite loop target and it's done, don't wait further:
 					if loop_target > 0 and loops_played >= loop_target:
 						done_nodes.append(node)
 						continue
+
+					#% If Wait is set, wait for that many loops to complete:
+					if wait_target > 0 and loops_played < wait_target:
+						continue
+
+					#% If Time is set, check elapsed time (after Wait loops are satisfied):
+					if time_target > 0.0:
+						d["elapsed_time"] += get_process_delta_time()
+						if d["elapsed_time"] < time_target:
+							continue
+
+					#% Nothing left to wait for:
+					done_nodes.append(node)
 
 				await get_tree().process_frame
 
@@ -7820,9 +8143,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var path_1: Variant			= resolve_value(command_value.get("Path 1", ""))
 			var path_2: Variant			= resolve_value(command_value.get("Path 2", ""))
 			var targets_raw: Variant	= resolve_value(command_value.get("Targets", ""))
-			var default_raw: Variant	= resolve_value(command_value.get("Default", "1"))
-
-			var reset_to_first: bool = int(default_raw) == 1
+			var default_val: int = int(resolve_value(command_value.get("Default", "0")))
 
 			#@ Step 1 - Parse target list:
 			var targets: Array = []
@@ -7883,15 +8204,26 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				#@ Step 5 - Stop playback depending on node type:
 				if sprite_node is AnimatedSprite2D or sprite_node is AnimatedSprite3D:
 					sprite_node.stop()
-					if reset_to_first:
-						sprite_node.frame = 0
+					if default_val == 0:
+						pass    # Keep current frame
+					elif default_val == -1:
+						sprite_node.frame = sprite_node.sprite_frames.get_frame_count(sprite_node.animation) - 1
+					else:
+						sprite_node.frame = clamp(default_val - 1, 0, sprite_node.sprite_frames.get_frame_count(sprite_node.animation) - 1)
+
 				elif sprite_node is Sprite2D or sprite_node is Sprite3D:
 					var timer := sprite_node.get_node_or_null("CSSpriteTimer")
 					if timer:
 						timer.stop()
 						timer.queue_free()
-					if reset_to_first and "frame" in sprite_node:
-						sprite_node.frame = 0
+					if default_val == 0:
+						pass    # Keep current frame
+					elif default_val == -1:
+						if "frame" in sprite_node:
+							sprite_node.frame = sprite_node.hframes * sprite_node.vframes - 1
+					else:
+						if "frame" in sprite_node:
+							sprite_node.frame = clamp(default_val - 1, 0, sprite_node.hframes * sprite_node.vframes - 1)
 				else:
 					printerr("§CSSpriteStop: Unsupported node type → ", sprite_node)
 					continue
@@ -7899,7 +8231,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				#@ Step 6 - Clean cs_loop_data metadata:
 				if target_node.has_meta("cs_loop_data"):
 					var cs_loop_data: Dictionary = target_node.get_meta("cs_loop_data")
-					cs_loop_data.erase(path_2)		#/ remove entry completely for clean restart
+					cs_loop_data.erase(path_2)		#/ Remove entry completely for clean restart
 
 			return "Continue"
 
@@ -8323,7 +8655,7 @@ func load_scripted_dialogue(file_name: String) -> void:
 func start_dialogue(conversation, start_block, start_line):
 	#& Multi-dialogue prevention:
 	#! Running dialogues on the same instance at the same time should normally not be done.
-	#@ Prevent starting multiple dialogues on the same engine instance:	
+	#@ Prevent starting multiple dialogues on the same engine instance:
 	if dialogue_running == true:
 		printerr("CANNOT START DIALOGUE: Another dialogue is still running in " + str(self))
 		return
@@ -8332,13 +8664,14 @@ func start_dialogue(conversation, start_block, start_line):
 	#% In case the previous dialogue_running prevention check failed:
 	dialogue_suspended = false
 	killswitch = true
-	
+
 	#@ Cleanup previous dialogue:
 	#% In a case a previous dialogue didn't end properly.
 	greenlight = true
 	nesting_depth = 0
 	choice_lists.clear()
 	choice_list_data.clear()
+	if_array.clear()
 	var choice_lists_path = get_node_or_null(ui_elements_paths["choices_path"])
 	if choice_lists_path:
 		for child in choice_lists_path.get_children():
@@ -8390,6 +8723,7 @@ func run_dialogue(current_conversation, current_block, line_index, source, main)
 	print(current_conversation)
 	print(current_block)
 	print(line_index)
+
 	#@ Step 0 - Update progress trackers, check killswitch and dialogue suspension:
 	#% Update progress trackers:
 	conversation_tracker = current_conversation
@@ -8417,13 +8751,21 @@ func run_dialogue(current_conversation, current_block, line_index, source, main)
 
 	#@ Step 2 - Resolve LM reference if line_index is a string:
 	if typeof(line_index) == TYPE_STRING:
-		var target_index := 0
-		for i in range(text_array.size()):
-			var ld = text_array[i]
-			if ld.has("§LM") and str(ld["§LM"]) == line_index:
-				target_index = i
-				break
-		line_index = target_index
+		if line_index.is_valid_int():
+			#% Treat entirely numeric string as a line index, not a line mark:
+			line_index = int(line_index)
+		else:
+			var target_index := 0
+			var lm_found := false
+			for i in range(text_array.size()):
+				var ld = text_array[i]
+				if ld.has("§LM") and str(ld["§LM"]) == line_index:
+					target_index = i
+					lm_found = true
+					break
+			if not lm_found:
+				push_warning("Candy DE: Line Mark '" + line_index + "' not found in " + current_conversation + " > " + current_block + ". Defaulting to line 0.")
+			line_index = target_index
 
 	#@ Step 3 - Loop through all lines in sequence:
 	var index = line_index
@@ -8601,10 +8943,10 @@ func process_lines(current_conversation, current_block, line_index, source, main
 				#% Detect numeric pattern like (n):
 				var numeric_regex := RegEx.new()
 				numeric_regex.compile(r"^\((\d+)\)")
-				var match := numeric_regex.search(disposition_cond)
-				if match:
-					match_count = int(match.get_string(1))
-					disposition_cond = disposition_cond.substr(match.get_end(0)).strip_edges()
+				var match_num := numeric_regex.search(disposition_cond)
+				if match_num:
+					match_count = int(match_num.get_string(1))
+					disposition_cond = disposition_cond.substr(match_num.get_end(0)).strip_edges()
 
 				#% Clean up prefix and detect flags:
 				is_negated = prefix.find("!") != -1
@@ -8669,89 +9011,235 @@ func process_lines(current_conversation, current_block, line_index, source, main
 
 				#@ Step 3F - Skip line if condition fails:
 				if not passes:
+					if mp_count_dispositions:
+						#@ Step 9 - Decrement media pauses for skipped line:
+						for mp in active_media_players:
+							if mp.pause_count > 0:
+								if mp.pause_mode == "speech":
+									mp.pause_count -= 1
+								elif mp.pause_mode == "all":
+									mp.pause_count -= 1
+							if mp.pause_count == 0:
+								mp.unpause()
+						for mp in active_media_players:
+							if mp.pause_re_wait == true:
+								while mp in active_media_players:
+									await get_tree().process_frame
 					continue
 
-			#@ Step 4 - Variant selection:
-			var chosen_variant: String = use_language	#/ Start from the language
+			#@ Step 4A - Variant selection:
+			var chosen_variant: String = use_language
 			var variants: Array = speech_data.get("Variants", [])
 
-			#? You may add more variant options here - e.g. moral alignment, character class, etc.
-			#? The order doesn't matter as long as it matches the tag order in your variant names, except Random should be last.
-			#?
-			#? Tags are optional. If variants don't exist for a tag, the tag is ignored.
-			#? In other words, the engine can never end up trying to display a variant that doesn't exist.
-			#?
-			#? If adding your own criteria, the logic should be:
-			#? 	1) check if a variant matching chosen_variant + tag' exists;
-			#? 	2) if so, append tag to chosen_variant.
+			#% Build set of known tag values for built-in tags:
+			var active_tags: Dictionary = {}
 
-			#@ Player gender variant:
-			if player_gender_variants:
-				var gender_tag = str(player_gender)
-				var test_variant = chosen_variant + "_P:" + gender_tag		#/ "_P:M", "_P:F", or any other gender value you choose
-				#% Check if variant exists (any form):
-				for entry in variants:
-					if entry.has(test_variant):
-						chosen_variant = test_variant
-						print("Variant - player gender: " + str(chosen_variant))
-						break
+			#% Player tags - look up current_player in actors dictionary:
+			if "current_player" in candy_de:	#! This check will be removed in Candy DE 1.2
+				var current_player = candy_de.current_player
+				if current_player != "" and candy_de.actors.has(current_player):
+					for tag_key in player_tags.keys():
+						#% Skip disabled tags:
+						if tag_key in disabled_tags:
+							continue
+						var actor_attr: String = player_tags[tag_key]
+						if candy_de.actors[current_player].has(actor_attr):
+							active_tags[tag_key] = str(candy_de.actors[current_player][actor_attr])
+			else:
+				printerr("Unable to check Player tags: 'var current_player' is missing from Candy_Database.gd. Please see the 'Variants & Translations' guide.")
 
-			#@ Speaker gender variant:
-			if speaker_gender_variants and candy_de.actors.has(speaker_ref) and candy_de.actors[speaker_ref].has("Gender"):
-				var speaker_gender = str(candy_de.actors[speaker_ref]["Gender"])
-				var test_variant = chosen_variant + "_S:" + speaker_gender	#/ "_S:M", "_S:F", or any other gender value you choose
-				for entry in variants:
-					if entry.has(test_variant):
-						chosen_variant = test_variant
-						print("Variant - speaker gender: " + str(chosen_variant))
-						break
+			#% Speaker tags - look up the current speaker in actors dictionary:
+			if candy_de.actors.has(speaker_ref):
+				for tag_key in speaker_tags.keys():
+					#% Skip disabled tags:
+					if tag_key in disabled_tags:
+						continue
+					var actor_attr: String = speaker_tags[tag_key]
+					if candy_de.actors[speaker_ref].has(actor_attr):
+						active_tags[tag_key] = str(candy_de.actors[speaker_ref][actor_attr])
 
-			#@ Random variant (always last step):
-			#? Looks for variant names ending in "_#int" but will also include chosen_variant without "_#int" if it exists.
-			var chosen_text := ""
-			var text_direction := ""
-			var pool: Array = []
-			var pool_names: Array = []	#/ Array for variant names
-			var pool_directions: Array = []
+			#TODO: Add any additional custom tag logic you want to support
+
+			#@ Step 4B - Parse and filter variants:
+			#? A variant passes if:
+			#?   - Its base language matches use_language
+			#?   - All its tags are present in active_tags and their values match
+			#?   - It is not a numbered sub-variant (_#int)
+			#! Unknown tags (not handled by any of the logic above) cause the variant to fail!
+			var passing_variants: Array = []
 
 			for entry in variants:
 				for variant_name in entry.keys():
+					#% Discard variants with no text early:
+					if entry[variant_name].get("Text", "") == "":
+						continue
+
+					var parts = variant_name.split("_", false)
+					if parts.is_empty():
+						continue
+
+					#% First part must match base language:
+					if parts[0] != use_language:
+						continue
+
+					#% Parse tags:
+					var all_pass := true
+					var is_numbered := false
+					for i in range(1, parts.size()):
+						var part = parts[i]
+						#% Skip numbered sub-variants - handled later:
+						if part.begins_with("\u0023") and part.substr(1).is_valid_int():
+							is_numbered = true
+							break
+						var colon_idx = part.find(":")
+						if colon_idx == -1:
+							all_pass = false
+							break
+						var tag_key = part.substr(0, colon_idx)
+						var tag_val = part.substr(colon_idx + 1)
+						#% Check if tag auto-passes:
+						if tag_key in passed_tags:
+							continue
+						#% Unknown tags fail — tag must be present in active_tags and match its value:
+						if not active_tags.has(tag_key) or active_tags[tag_key] != tag_val:
+							all_pass = false
+							break
+
+					if is_numbered or not all_pass:
+						continue
+
+					passing_variants.append({
+						"name": variant_name,
+						"tags": {},
+						"entry": entry
+					})
+
+					#% Re-parse tags into the dict for subset comparison:
+					var v = passing_variants.back()
+					for i in range(1, parts.size()):
+						var part = parts[i]
+						var colon_idx = part.find(":")
+						if colon_idx != -1:
+							v["tags"][part.substr(0, colon_idx)] = part.substr(colon_idx + 1)
+
+			#@ Step 4C - Discard variants whose tags are a strict subset of another passing variant's tags:
+			var filtered_variants: Array = []
+			for i in range(passing_variants.size()):
+				var v = passing_variants[i]
+				var is_subset := false
+				for j in range(passing_variants.size()):
+					if i == j:
+						continue
+					var other = passing_variants[j]
+					if v["tags"].size() >= other["tags"].size():
+						continue
+					var all_in_other := true
+					for tag_key in v["tags"].keys():
+						if not other["tags"].has(tag_key) or other["tags"][tag_key] != v["tags"][tag_key]:
+							all_in_other = false
+							break
+					if all_in_other:
+						is_subset = true
+						break
+				if not is_subset:
+					filtered_variants.append(v)
+
+			#@ Step 4D - If no variants passed, fall back to base language:
+			if filtered_variants.is_empty():
+				for entry in variants:
+					if entry.has(use_language):
+						filtered_variants.append({ "name": use_language, "tags": {}, "entry": entry })
+						break
+
+			#@ Step 4E - Build weighted pool from filtered variants:
+			var variant_pool: Array = []
+			for v in filtered_variants:
+				var variant_name: String = v["name"]
+				var v_entry = v["entry"]
+				if v_entry == null or not v_entry.has(variant_name):
+					continue
+				var weight := 1
+				var raw_weight = v_entry[variant_name].get("Weight", "1")
+				if typeof(raw_weight) == TYPE_STRING and raw_weight.strip_edges().is_valid_int():
+					weight = max(1, int(raw_weight.strip_edges()))
+				for _i in range(weight):
+					variant_pool.append(v)
+
+			#% Pick one variant at random from the pool (or deterministically):
+			var chosen_v = null
+			if variant_pool.size() > 0:
+				if random_variants:
+					chosen_v = variant_pool[randi() % variant_pool.size()]
+				else:
+					chosen_v = variant_pool[0]
+
+			#@ Step 4F - Now build the text pool from the chosen variant, including numbered sub-variants:
+			var chosen_text := ""
+			var text_direction := ""
+			var pool: Array = []
+			var pool_names: Array = []
+			var pool_directions: Array = []
+
+			if chosen_v != null:
+				var base_name: String = chosen_v["name"]
+				var base_entry = chosen_v["entry"]
+
+				#% Add the exact variant:
+				if base_entry.has(base_name):
 					var weight := 1
-					var raw_weight = entry[variant_name].get("Weight", "1")
+					var raw_weight = base_entry[base_name].get("Weight", "1")
 					if typeof(raw_weight) == TYPE_STRING and raw_weight.strip_edges().is_valid_int():
 						weight = max(1, int(raw_weight.strip_edges()))
+					for _i in range(weight):
+						pool.append(base_entry[base_name].get("Text", ""))
+						pool_names.append(base_name)
+						pool_directions.append(base_entry[base_name].get("Direction", ""))
 
-					#% Always add the exact variant if it exists:
-					if variant_name == chosen_variant:
-						for _i in range(weight):
-							pool.append(entry[variant_name].get("Text", ""))
-							pool_names.append(variant_name)
-							pool_directions.append(entry[variant_name].get("Direction", ""))
+				#% Add numbered sub-variants if randomization enabled:
+				if random_variants:
+					for entry in variants:
+						for sub_name in entry.keys():
+							if sub_name.begins_with(base_name + "_%s" % "\u0023") and \
+							sub_name.substr(base_name.length() + 2).is_valid_int():
+								var weight := 1
+								var raw_weight = entry[sub_name].get("Weight", "1")
+								if typeof(raw_weight) == TYPE_STRING and raw_weight.strip_edges().is_valid_int():
+									weight = max(1, int(raw_weight.strip_edges()))
+								for _i in range(weight):
+									pool.append(entry[sub_name].get("Text", ""))
+									pool_names.append(sub_name)
+									pool_directions.append(entry[sub_name].get("Direction", ""))
 
-					#% Add numbered sub-variants only if randomization is enabled:
-					elif random_variants and \
-					variant_name.begins_with(chosen_variant + "_%s" % "\u0023") and \
-					variant_name.substr(chosen_variant.length() + 2).is_valid_int():
-						for _i in range(weight):
-							pool.append(entry[variant_name].get("Text", ""))
-							pool_names.append(variant_name)
-							pool_directions.append(entry[variant_name].get("Direction", ""))
-
-			#% Select variant:
+			#% Select from text pool:
 			if pool.size() > 0:
 				if random_variants:
-					var index := randi() % pool.size()		#/ Random pick if multiple options
+					var index := randi() % pool.size()
 					chosen_text = pool[index]
 					chosen_variant = pool_names[index]
 					text_direction = pool_directions[index]
 					print("Variant - random: " + str(chosen_variant))
 				else:
-					chosen_text = pool[0]					#/ Deterministic: use first found
+					chosen_text = pool[0]
 					chosen_variant = pool_names[0]
 					text_direction = pool_directions[0]
 
-			#% Skip line if no variant matches:
+			#@ Step 4G - Skip line if no variant matches:
 			if chosen_text == "":
+				#@ Step 9 - Decrement media pauses for skipped lines:
+				#? Optional Step 9 logic to count lines towards §Media_Pause commands.
+				if mp_count_variants:
+					for mp in active_media_players:
+						if mp.pause_count > 0:
+							if mp.pause_mode == "speech":
+								mp.pause_count -= 1
+							elif mp.pause_mode == "all":
+								mp.pause_count -= 1
+						if mp.pause_count == 0:
+							mp.unpause()
+					for mp in active_media_players:
+						if mp.pause_re_wait == true:
+							while mp in active_media_players:
+								await get_tree().process_frame
 				continue
 
 			var line_str = chosen_text
@@ -8796,9 +9284,9 @@ func process_lines(current_conversation, current_block, line_index, source, main
 						var actor_name = var_name
 						var key_path: Array = []
 
-						var match = regex.search(var_name)
-						if match:
-							actor_name = match.get_string(1).strip_edges()
+						var match_var = regex.search(var_name)
+						if match_var:
+							actor_name = match_var.get_string(1).strip_edges()
 
 							#% Find all keys inside brackets: e.g. Alice["Age"]["Subkey"]:
 							var key_regex = RegEx.new()
@@ -9287,7 +9775,7 @@ func process_lines(current_conversation, current_block, line_index, source, main
 		#% Notify the user:
 		push_warning("process_lines() ended with feedback = '" + feedback + "'. This should never happen: defaulting to 'Continue' as an assumption. May cause errors. Good luck.")
 		#% Piss the user off so they actually report this if "Continue" was wrong:
-		push_warning("Also, make sure you include this in your complaint or we can't help you, Karen --- LINE DATA: " + line_data)
+		push_warning("Also, make sure you include this in your complaint or we can't help you, Karen --- LINE DATA: " + str(line_data))
 	return feedback
 
 
@@ -9359,27 +9847,36 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 	var style = DialogueModes.keys()[dialogue_mode]
 
-	print(style)
+	#print(style)
 
-	#@ Alternate to VN_Bubbles:
-	if style == "Bubbles" and vn_mode == true:
+	#@ Speech Bubbles:
+	#% Check if speaker has bubble force:
+	if candy_de.actors.has(speaker_ref) and candy_de.actors[speaker_ref].has("BubblesOverride"):
+		if candy_de.actors[speaker_ref]["BubblesOverride"] == 1:
+			style = "Bubbles"
+
+	#% Check if line has bubble force:
+	if force_bubble == "1":
+		style = "Bubbles"
+
+	#% Alternate to VN_Bubbles:
+	var bust_scene = get_node_or_null(ui_elements_paths["busts_path"])
+	if style == "Bubbles" and vn_mode == true and bust_scene != null:
 		style = "VN_Bubbles"
-		print(style)
+		#print(style)
 
-	#@ Pre-resolve bust bubble node if using VN_Bubbles:
+	#% Pre-resolve bust bubble node if using VN_Bubbles:
 	var vn_bubble_node = null
 	var vn_bubble_text_node = null
 	var bust_node = null
-
-	if style == "VN_Bubbles":
+	if style == "VN_Bubbles" and bust_scene != null:
 		#% Check that a bust exists for this speaker:
-		var bust_scene = get_node_or_null(ui_elements_paths["busts_path"])
 		var busts_container = bust_scene.busts_container
 		if bust_positions.has(speaker_ref):
 			var bust_slot = bust_positions[speaker_ref]["pos"]
 			bust_node = busts_container.get_node_or_null(bust_slot)
 			if bust_node != null and bust_node.has_node("SpeechBubble"):
-				vn_bubble_node = bust_node.get_node("SpeechBubble")
+				vn_bubble_node = bust_node.get_node(bust_scene.speech_bubbles_name)
 				#% Get Bubble's text node:
 				vn_bubble_text_node = vn_bubble_node.label
 			else:
@@ -9389,21 +9886,21 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			#% Speaker not registered in bust_positions → switch to Exempt mode:
 			style = DialogueModes.keys()[bubble_exempt_mode]
 
-	#@ If speech bubble mode, check that the line and speaker aren't exempt, and that the speaker has an actor node in the scene:
+	#% If speech bubble mode, check that the line and speaker aren't exempt, and that the speaker has an actor node in the scene:
 	var speaker_node
-	if style == "Bubbles" or style == "VN_Bubbles":
-		#% Check if speaker is bubble exempt/force:
-		if candy_de.actors.has(speaker_ref) and candy_de.actors[speaker_ref].has("BubblesOverride"):
+	if style == "Bubbles" or (style == "VN_Bubbles" and bust_scene != null):
+		#% Check if speaker is bubble exempt:
+		if candy_de.actors.has(speaker_ref) and candy_de.actors[speaker_ref].has("BubblesOverride") and force_bubble != "1":
 			if candy_de.actors[speaker_ref]["BubblesOverride"] == -1:
 				style = DialogueModes.keys()[bubble_exempt_mode]
-			elif candy_de.actors[speaker_ref]["BubblesOverride"] == 1:
-				style = "Bubbles"
 
-		#% Check if line is bubble exempt/force:
+		#% Check if line is bubble exempt:
 		elif force_bubble == "-1":
 			style = DialogueModes.keys()[bubble_exempt_mode]
-		elif force_bubble == "1":
-			style = "Bubbles"
+
+	#% If VN_Bubbles mode but no VN scene is loaded, always switch to exempt mode:
+	if style == "VN_Bubbles" and bust_scene == null:
+		style = DialogueModes.keys()[bubble_exempt_mode]
 
 	if style == "Bubbles":
 		#% Check the speaker node is present:
@@ -9413,10 +9910,10 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			speaker_node = get_node_or_null(str(bubbles_npc_path.path_join(speaker_ref)))
 
 		#% Default to alternative style:
-		if speaker_node == null:
+		if speaker_node == null or speaker_node.get("internal_node_dict") == null or not speaker_node.internal_node_dict.has("Speech_Bubble") or speaker_node.internal_node_dict["Speech_Bubble"] == null:
 			style = DialogueModes.keys()[bubble_exempt_mode]
 
-	print(style)
+	#print(style)
 
 	#@ Clear previous dialogue:
 	#? This allows dialogue to persist after a line (e.g. while player makes a choice),
@@ -9631,7 +10128,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			#% 1. Instant writing (no typewriter):
 			if writing_speed <= 0:
 				dialogue_text_node.text = bbcode_text
-				await wait_for_player_advance()
+				await wait_for_player_advance(voice_player, false)
 				if vn_mode == true and bust_positions.has(speaker_ref):
 					get_node(ui_elements_paths["busts_path"]).end_highlight_speaker(speaker_ref, style)
 				dialogue_history.append({
@@ -9689,18 +10186,18 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 					#@ 1. Skip/Slow/Skip:
 					#% 1A. Speed writing:
-					if InputMap.has_action("input_speed_dialogue") and Input.is_action_just_pressed(input_speed_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					if InputMap.has_action(input_speed_dialogue) and Input.is_action_pressed(input_speed_dialogue) and input_enabled == true:
+						if continue_fast_speed < 0:
 							pass
-						elif continue_skip_speed == 0:
+						elif continue_fast_speed == 0:
 							dialogue_text_node.visible_characters = -1
 							break
 						else:
-							effective_speed = continue_skip_speed
+							effective_speed = continue_fast_speed
 
 					#% 1B. Slow writing:
-					elif InputMap.has_action("input_slow_dialogue") and Input.is_action_just_pressed(input_slow_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					elif InputMap.has_action(input_slow_dialogue) and Input.is_action_pressed(input_slow_dialogue) and input_enabled == true:
+						if continue_slow_speed < 0:
 							pass
 						elif continue_slow_speed == 0:
 							dialogue_text_node.visible_characters = -1
@@ -9709,9 +10206,13 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_slow_speed
 
 					#% 1C. Skip writing:
-					elif InputMap.has_action("input_skip_dialogue") and Input.is_action_just_pressed(input_skip_dialogue) and input_enabled == true:
+					elif InputMap.has_action(input_skip_dialogue) and Input.is_action_pressed(input_skip_dialogue) and input_enabled == true:
 						dialogue_text_node.visible_characters = -1
 						break
+
+					#% 1D. Return to default speed:
+					else:
+						effective_speed = writing_speed
 
 					#@ 2. Time progression:
 					var now := Time.get_ticks_msec() / 1000.0
@@ -9736,7 +10237,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			if portrait_node.has_method("x_write_finished"):
 				await portrait_node.x_write_finished()
 
-			await wait_for_player_advance()
+			await wait_for_player_advance(voice_player, false)
 
 			#@ VN Mode:
 			if vn_mode == true and bust_positions.has(speaker_ref):
@@ -9772,12 +10273,14 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			var npc_path_node = get_node_or_null(bubbles_npc_path)
 			if npc_path_node:
 				for actor in npc_path_node.get_children():
-					actor.internal_node_dict["Speech_Bubble"].clear()
+					if actor.get("internal_node_dict") != null and actor.internal_node_dict.has("Speech_Bubble") and actor.internal_node_dict["Speech_Bubble"] != null:
+						actor.internal_node_dict["Speech_Bubble"].clear()
 
 			var player_path_node = get_node_or_null(bubbles_player_path)
 			if player_path_node:
 				for actor in player_path_node.get_children():
-					actor.internal_node_dict["Speech_Bubble"].clear()
+					if actor.get("internal_node_dict") != null and actor.internal_node_dict.has("Speech_Bubble") and actor.internal_node_dict["Speech_Bubble"] != null:
+						actor.internal_node_dict["Speech_Bubble"].clear()
 
 			#@ Get bubble nodes:
 			var bubble_node = speaker_node.internal_node_dict["Speech_Bubble"]
@@ -9943,18 +10446,18 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 					#@ 1. Skip/Slow/Skip:
 					#% 1A. Speed writing:
-					if InputMap.has_action("input_speed_dialogue") and Input.is_action_just_pressed(input_speed_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					if InputMap.has_action(input_speed_dialogue) and Input.is_action_pressed(input_speed_dialogue) and input_enabled == true:
+						if continue_fast_speed < 0:
 							pass
-						elif continue_skip_speed == 0:
+						elif continue_fast_speed == 0:
 							bubble_text_node.visible_characters = -1
 							break
 						else:
-							effective_speed = continue_skip_speed
+							effective_speed = continue_fast_speed
 
 					#% 1B. Slow writing:
-					elif InputMap.has_action("input_slow_dialogue") and Input.is_action_just_pressed(input_slow_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					elif InputMap.has_action(input_slow_dialogue) and Input.is_action_pressed(input_slow_dialogue) and input_enabled == true:
+						if continue_slow_speed < 0:
 							pass
 						elif continue_slow_speed == 0:
 							bubble_text_node.visible_characters = -1
@@ -9963,9 +10466,13 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_slow_speed
 
 					#% 1C. Skip writing:
-					elif InputMap.has_action("input_skip_dialogue") and Input.is_action_just_pressed(input_skip_dialogue) and input_enabled == true:
+					elif InputMap.has_action(input_skip_dialogue) and Input.is_action_pressed(input_skip_dialogue) and input_enabled == true:
 						bubble_text_node.visible_characters = -1
 						break
+
+					#% 1D. Return to default speed:
+					else:
+						effective_speed = writing_speed
 
 					#@ 2. Time progression:
 					var now := Time.get_ticks_msec() / 1000.0
@@ -9987,7 +10494,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			if bubble_node.has_method("x_write_finished"):
 				await bubble_node.x_write_finished()
 
-			await wait_for_player_advance()
+			await wait_for_player_advance(voice_player, false)
 
 			#@ VN Mode:
 			if vn_mode == true and bust_positions.has(speaker_ref):
@@ -10189,18 +10696,18 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 					#@ 1. Skip/Slow/Skip:
 					#% 1A. Speed writing:
-					if InputMap.has_action("input_speed_dialogue") and Input.is_action_just_pressed(input_speed_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					if InputMap.has_action(input_speed_dialogue) and Input.is_action_pressed(input_speed_dialogue) and input_enabled == true:
+						if continue_fast_speed < 0:
 							pass
-						elif continue_skip_speed == 0:
+						elif continue_fast_speed == 0:
 							vn_bubble_text_node.visible_characters = -1
 							break
 						else:
-							effective_speed = continue_skip_speed
+							effective_speed = continue_fast_speed
 
 					#% 1B. Slow writing:
-					elif InputMap.has_action("input_slow_dialogue") and Input.is_action_just_pressed(input_slow_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					elif InputMap.has_action(input_slow_dialogue) and Input.is_action_pressed(input_slow_dialogue) and input_enabled == true:
+						if continue_slow_speed < 0:
 							pass
 						elif continue_slow_speed == 0:
 							vn_bubble_text_node.visible_characters = -1
@@ -10209,9 +10716,13 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_slow_speed
 
 					#% 1C. Skip writing:
-					elif InputMap.has_action("input_skip_dialogue") and Input.is_action_just_pressed(input_skip_dialogue) and input_enabled == true:
+					elif InputMap.has_action(input_skip_dialogue) and Input.is_action_pressed(input_skip_dialogue) and input_enabled == true:
 						vn_bubble_text_node.visible_characters = -1
 						break
+
+					#% 1D. Return to default speed:
+					else:
+						effective_speed = writing_speed
 
 					#@ 2. Time progression:
 					var now := Time.get_ticks_msec() / 1000.0
@@ -10233,7 +10744,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			if vn_bubble_node.has_method("x_write_finished"):
 				await vn_bubble_node.x_write_finished()
 
-			await wait_for_player_advance()
+			await wait_for_player_advance(voice_player, false)
 
 			#@ VN Mode:
 			if vn_mode == true and bust_positions.has(speaker_ref):
@@ -10432,18 +10943,18 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 					#@ 1. Skip/Slow/Skip:
 					#% 1A. Speed writing:
-					if InputMap.has_action("input_speed_dialogue") and Input.is_action_just_pressed(input_speed_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					if InputMap.has_action(input_speed_dialogue) and Input.is_action_pressed(input_speed_dialogue) and input_enabled == true:
+						if continue_fast_speed < 0:
 							pass
-						elif continue_skip_speed == 0:
+						elif continue_fast_speed == 0:
 							bark_text_node.visible_characters = -1
 							break
 						else:
-							effective_speed = continue_skip_speed
+							effective_speed = continue_fast_speed
 
 					#% 1B. Slow writing:
-					elif InputMap.has_action("input_slow_dialogue") and Input.is_action_just_pressed(input_slow_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					elif InputMap.has_action(input_slow_dialogue) and Input.is_action_pressed(input_slow_dialogue) and input_enabled == true:
+						if continue_slow_speed < 0:
 							pass
 						elif continue_slow_speed == 0:
 							bark_text_node.visible_characters = -1
@@ -10452,9 +10963,13 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_slow_speed
 
 					#% 1C. Skip writing:
-					elif InputMap.has_action("input_skip_dialogue") and Input.is_action_just_pressed(input_skip_dialogue) and input_enabled == true:
+					elif InputMap.has_action(input_skip_dialogue) and Input.is_action_pressed(input_skip_dialogue) and input_enabled == true:
 						bark_text_node.visible_characters = -1
 						break
+
+					#% 1D. Return to default speed:
+					else:
+						effective_speed = writing_speed
 
 					#@ 2. Time progression:
 					var now := Time.get_ticks_msec() / 1000.0
@@ -10476,7 +10991,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			if bark_node.has_method("x_write_finished"):
 				await bark_node.x_write_finished()
 
-			await wait_for_player_advance()
+			await wait_for_player_advance(voice_player, false)
 
 			#@ VN Mode:
 			if vn_mode == true and bust_positions.has(speaker_ref):
@@ -10639,7 +11154,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 				#% 1. Actor-specific color:
 				if candy_de.actors.has(speaker_ref):
-					if candy_de.actors[speaker_ref].has("SubtitleSpeakerColor") and candy_de.actors[speaker_ref]["Subtitle Speaker Color"] != null:
+					if candy_de.actors[speaker_ref].has("SubtitleSpeakerColor") and candy_de.actors[speaker_ref]["SubtitleSpeakerColor"] != null:
 						col = candy_de.actors[speaker_ref]["SubtitleSpeakerColor"]
 						has_speaker_override = true
 						print("Override text color with actor color.")
@@ -10688,7 +11203,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			#% 1. Instant writing (no typewriter):
 			if writing_speed <= 0:
 				subtitle_text_node.text = bbcode_text
-				await wait_for_player_advance()
+				await wait_for_player_advance(voice_player, false)
 				if vn_mode == true and bust_positions.has(speaker_ref):
 					get_node(ui_elements_paths["busts_path"]).end_highlight_speaker(speaker_ref, style)
 				dialogue_history.append({
@@ -10749,18 +11264,18 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 					#@ 1. Skip/Slow/Skip:
 					#% 1A. Speed writing:
-					if InputMap.has_action("input_speed_dialogue") and Input.is_action_just_pressed(input_speed_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					if InputMap.has_action(input_speed_dialogue) and Input.is_action_pressed(input_speed_dialogue) and input_enabled == true:
+						if continue_fast_speed < 0:
 							pass
-						elif continue_skip_speed == 0:
+						elif continue_fast_speed == 0:
 							subtitle_text_node.visible_characters = -1
 							break
 						else:
-							effective_speed = continue_skip_speed
+							effective_speed = continue_fast_speed
 
 					#% 1B. Slow writing:
-					elif InputMap.has_action("input_slow_dialogue") and Input.is_action_just_pressed(input_slow_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					elif InputMap.has_action(input_slow_dialogue) and Input.is_action_pressed(input_slow_dialogue) and input_enabled == true:
+						if continue_slow_speed < 0:
 							pass
 						elif continue_slow_speed == 0:
 							subtitle_text_node.visible_characters = -1
@@ -10769,9 +11284,13 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_slow_speed
 
 					#% 1C. Skip writing:
-					elif InputMap.has_action("input_skip_dialogue") and Input.is_action_just_pressed(input_skip_dialogue) and input_enabled == true:
+					elif InputMap.has_action(input_skip_dialogue) and Input.is_action_pressed(input_skip_dialogue) and input_enabled == true:
 						subtitle_text_node.visible_characters = -1
 						break
+
+					#% 1D. Return to default speed:
+					else:
+						effective_speed = writing_speed
 
 					#@ 2. Time progression:
 					var now := Time.get_ticks_msec() / 1000.0
@@ -10793,7 +11312,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			if subtitle_node.has_method("x_write_finished"):
 				await subtitle_node.x_write_finished()
 
-			await wait_for_player_advance()
+			await wait_for_player_advance(voice_player, false)
 
 			#@ VN Mode:
 			if vn_mode == true and bust_positions.has(speaker_ref):
@@ -10992,7 +11511,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			if writing_speed <= 0:
 				#% Append rather than replace:
 				chat_text_node.append_text(dialogue_text + "\n")
-				await wait_for_player_advance()
+				await wait_for_player_advance(voice_player, false)
 				if vn_mode == true and bust_positions.has(speaker_ref):
 					get_node(ui_elements_paths["busts_path"]).end_highlight_speaker(speaker_ref, style)
 				dialogue_history.append({
@@ -11055,18 +11574,18 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 					#@ 1. Skip/Slow/Speed:
 					#% 1A. Speed writing:
-					if InputMap.has_action("input_speed_dialogue") and Input.is_action_just_pressed(input_speed_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					if InputMap.has_action(input_speed_dialogue) and Input.is_action_pressed(input_speed_dialogue) and input_enabled == true:
+						if continue_fast_speed < 0:
 							pass
-						elif continue_skip_speed == 0:
+						elif continue_fast_speed == 0:
 							chat_text_node.visible_characters = -1
 							break
 						else:
-							effective_speed = continue_skip_speed
+							effective_speed = continue_fast_speed
 
 					#% 1B. Slow writing:
-					elif InputMap.has_action("input_slow_dialogue") and Input.is_action_just_pressed(input_slow_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					elif InputMap.has_action(input_slow_dialogue) and Input.is_action_pressed(input_slow_dialogue) and input_enabled == true:
+						if continue_slow_speed < 0:
 							pass
 						elif continue_slow_speed == 0:
 							chat_text_node.visible_characters = -1
@@ -11075,9 +11594,13 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_slow_speed
 
 					#% 1C. Skip writing:
-					elif InputMap.has_action("input_skip_dialogue") and Input.is_action_just_pressed(input_skip_dialogue) and input_enabled == true:
+					elif InputMap.has_action(input_skip_dialogue) and Input.is_action_pressed(input_skip_dialogue) and input_enabled == true:
 						chat_text_node.visible_characters = -1
 						break
+
+					#% 1D. Return to default speed:
+					else:
+						effective_speed = writing_speed
 
 					#@ 2. Time progression:
 					var now := Time.get_ticks_msec() / 1000.0
@@ -11100,7 +11623,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			if chat_node.has_method("x_write_finished"):
 				await chat_node.x_write_finished()
 
-			await wait_for_player_advance()
+			await wait_for_player_advance(voice_player, false)
 
 			#@ VN Mode:
 			if vn_mode == true and bust_positions.has(speaker_ref):
@@ -11203,7 +11726,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 				await voice_player.playback_starting()
 				voice_player.play()
 				await voice_player.playback_started()
-				await wait_for_player_advance()
+				await wait_for_player_advance(voice_player, false)
 
 			#@ VN Mode:
 			if vn_mode == true and bust_positions.has(speaker_ref):
@@ -11242,18 +11765,29 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 #?######################
 #region
 #* Wait for player input or auto-read timeout to advance dialogue:
-func wait_for_player_advance(voice_player = null) -> void:
+func wait_for_player_advance(voice_player, command) -> void:
 	print("Waiting for player advance.")
 
-	#@ Wait for advance key to be released before accepting input:
-	while Input.is_action_pressed(input_advance_dialogue):
+	#^ Wait for advance key to be released before accepting input:
+	while Input.is_action_pressed(input_advance_dialogue) or Input.is_action_pressed(input_player_advance):
 		await get_tree().process_frame
 
+	#^ Command mode: wait only for manual input, no auto-advance or voice checks:
+	if command == true:
+		while true:
+			await get_tree().process_frame
+			if dialogue_suspended == true:
+				continue
+			if Input.is_action_just_pressed(input_player_advance) and input_enabled == true:
+				break
+		await get_tree().process_frame
+		return
+
+	#^ Spoken Line mode:
 	var timer := 0.0
 	var auto_enabled = auto_advance > -1
 	var wait_time := float(auto_advance)
 
-	#@ Advance:
 	while true:
 		await get_tree().process_frame
 
@@ -11274,7 +11808,7 @@ func wait_for_player_advance(voice_player = null) -> void:
 				break		#/ Player manually advances even if timer not finished
 
 		#@ Auto-read advance:
-		#% Only if timer done *and* (voice finished or no player)
+		#% Only if timer done and voice finished or no player:
 		if auto_enabled and timer >= wait_time:
 			var voice_done = (voice_player == null or not voice_player.playing)
 			if voice_done:
@@ -11309,8 +11843,14 @@ func end_dialogue():
 		#% Stop any media:
 		for path in media_players_locations:
 			var media_player = get_node_or_null(media_players_locations[path])
-			if media_player is AudioStreamPlayer or media_player is AudioStreamPlayer2D or media_player is AudioStreamPlayer3D or  media_player is VideoStreamPlayer:
+			if media_player.has_method("stop"):
 				media_player.stop()
+
+			if "stream" in media_player:
+				media_player.stream = null
+
+			if "visible" in media_player:
+				media_player.visible = false
 
 		#% Reset choice list data:
 		choice_lists.clear()
@@ -11320,6 +11860,9 @@ func end_dialogue():
 			for child in choice_lists_path.get_children():
 				child.queue_free()
 		await get_tree().process_frame
+
+		#% Reset if_array:
+		if_array.clear()
 
 		#. Hook call:
 		if candy_de.has_method("x_dialogue_end"):
@@ -12632,7 +13175,7 @@ func calculate_variable_value(decoded: Dictionary, value: Variant, op: String) -
 
 		#@ FALLBACK:
 		_:
-			push_error("Unknown operator in Set Command: " + op)
+			push_error("Unknown operator: " + op)
 			return current
 
 
@@ -13124,10 +13667,12 @@ func apply_lexicon_tags(text: String, lexicon: Dictionary, chosen_variant: Strin
 		if clickable:
 			var meta_dict = {
 				"keyword": word,
-				"keyword_data": keyword_click_data,
+				"keyword_click_data": keyword_click_data,
 				"keyword_variant": variant_key,
 			}
-			start_tags += "[url=%s]" % JSON.stringify(meta_dict)
+			var json_str = JSON.stringify(meta_dict)
+			var encoded = Marshalls.variant_to_base64(json_str)
+			start_tags += "[url=%s]" % encoded
 			end_tags = "[/url]" + end_tags
 
 		#@ Tooltip wrapper:

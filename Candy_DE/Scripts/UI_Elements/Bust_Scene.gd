@@ -14,8 +14,12 @@
 extends Node
 
 
-@onready var busts_container = get_node("Busts_Control")
-@onready var highlight_player_1 = get_node("HighlightPlayer_1")	#/ Add more AnimationPlayers for multiple simultaneous highlight animations
+## Required
+@export var busts_container: Node
+## Optional: only for "Animation_1" speaker highlight effect.
+@export var highlight_player_1: Node						#/ Add more AnimationPlayers for multiple simultaneous highlight animations
+## The name (or path) of speech bubbles inside bust nodes.
+@export var speech_bubbles_name: String = "SpeechBubble"
 
 @export var default_image_extension = ".png"				#/ TextureRect, NinePatchRect, TextureButton
 @export var default_sprite_extension = ".png"				#/ Sprite2D, Sprite3D
@@ -48,10 +52,25 @@ extends Node
 #? If not empty (""), overriddes the general settings.
 #? Can be overridden by the actors dictionary settings.
 #% Write the name of the animations to play.
+#% ["Method", "Value"]
+#% Method: "Animation", "Tween" or custom method (Tween and custom require custom code)
+#% Value: Animation name
 #+ The animation must exist in the bust node's child animation player.
+## ["Method", "Value"][br]
+## Method: "Animation", "Tween" or custom method (Tween and custom require custom code)[br]
+## Value: Animation name
 @export var vn_join_effect = ["", ""]
+## ["Method", "Value"][br]
+## Method: "Animation", "Tween" or custom method (Tween and custom require custom code)[br]
+## Value: Animation name
 @export var vn_move_from_effect = ["", ""]
+## ["Method", "Value"][br]
+## Method: "Animation", "Tween" or custom method (Tween and custom require custom code)[br]
+## Value: Animation name
 @export var vn_move_to_effect = ["", ""]
+## ["Method", "Value"][br]
+## Method: "Animation", "Tween" or custom method (Tween and custom require custom code)[br]
+## Value: Animation name
 @export var vn_leave_effect = ["", ""]
 
 #^ Speaker highlight:
@@ -103,7 +122,8 @@ func highlight_speaker(speaker_ref, dialogue_mode):
 	var speaker_bust_ref = caller.bust_positions[speaker_ref]["pos"]
 	var speaker_bust = busts_container.get_node(speaker_bust_ref)
 	match dialogue_mode:
-		"Box":
+		#TODO: Split different dialogue modes into different match cases, if different highlight behavior is desired.
+		"Box", "Bubbles", "VN_Bubbles", "Subtitles", "Chat", "Voice":
 			if speaker_highlight["NameTag"] == true:
 				#% Show NameTag:
 				speaker_bust.get_node("NameTag").visible = true
@@ -139,25 +159,14 @@ func highlight_speaker(speaker_ref, dialogue_mode):
 			if speaker_highlight["Billboard"] == true and "billboard" in speaker_bust:
 				speaker_bust.billboard = billboard_on
 
-		"Bubbles", "VN_Bubbles":	#/ Candy DE defaults from "Bubbles" to "VN_Bubbles" in VN mode.
-			pass
-
-		"Subtitles":
-			pass
-
-		"Chat":
-			pass
-
-		"Voice":
-			pass
-
 
 #* Undo speaker bust highlighting when dialogue line finishes:
 func end_highlight_speaker(speaker_ref, dialogue_mode):
 	var speaker_bust_ref = caller.bust_positions[speaker_ref]["pos"]
 	var speaker_bust = busts_container.get_node(speaker_bust_ref)
 	match dialogue_mode:
-		"Box":
+		#TODO: Split different dialogue modes into different match cases, if different highlight behavior is desired.
+		"Box", "Bubbles", "VN_Bubbles", "Subtitles", "Chat", "Voice":
 			if speaker_highlight["NameTag"] == true:
 				speaker_bust.get_node("NameTag").visible = false
 				speaker_bust.get_node("NameTag").text = ""
@@ -180,22 +189,10 @@ func end_highlight_speaker(speaker_ref, dialogue_mode):
 
 			if speaker_highlight["Animation_1"] == true:
 				highlight_player_1.stop()
+				highlight_player_1.play("RESET")
 
 			if speaker_highlight["Billboard"] == true and "billboard" in speaker_bust:
 				speaker_bust.billboard = billboard_off
-
-		"Bubbles", "VN_Bubbles":	#/ Candy DE defaults from Bubbles to VN_Bubbles in VN mode.
-			pass
-
-		"Subtitles":
-			pass
-
-		"Chat":
-			pass
-
-		"Voice":
-			pass
-
 
 
 #& Bust Display Logic:
@@ -459,6 +456,7 @@ func set_bust(actor: String, bust_ref: String, file_ref: String, anim_name: Stri
 		bust_node.vframes = vframes
 		bust_node.frame = 0
 		bust_node.visible = true
+		data["missing"] = missing
 
 		await _on_play_jml("Join", actor, bust_node, null)
 
@@ -606,6 +604,9 @@ func move_bust(actor: String, old_bust: String, new_bust: String) -> void:
 
 	var data = bust_node_data[actor]
 
+	#@ Make new node invisible
+	bust_node_new.visible = false
+
 	#@ Preserve current animation name if applicable:
 	if (bust_node_old is AnimatedSprite2D or bust_node_old is AnimatedSprite3D) and bust_node_old.animation != "":
 		data["current_anim"] = bust_node_old.animation
@@ -616,6 +617,7 @@ func move_bust(actor: String, old_bust: String, new_bust: String) -> void:
 		bust_node_new.hframes = bust_node_old.hframes
 		bust_node_new.vframes = bust_node_old.vframes
 		bust_node_new.frame = bust_node_old.frame
+		_scale_bust_to_size(bust_node_new, new_bust)
 
 	elif bust_node_old is AnimatedSprite2D or bust_node_old is AnimatedSprite3D:
 		bust_node_new.sprite_frames = bust_node_old.sprite_frames
@@ -679,17 +681,50 @@ func move_bust(actor: String, old_bust: String, new_bust: String) -> void:
 
 	await _on_play_jml("Move_From", actor, bust_node_new, bust_node_old)
 	clear_old_bust_nodes(bust_node_old)
-	bust_node_new.visible = true
 	await _on_play_jml("Move_To", actor, bust_node_new, bust_node_old)
+	bust_node_new.visible = true
 
 	#@ Continue playback if it was active:
 	if not data.get("paused", false):
+		#% AnimatedSprite node:
 		if bust_node_new is AnimatedSprite2D or bust_node_new is AnimatedSprite3D:
 			var anim_name = data.get("current_anim", "")
 			if anim_name != "" and bust_node_new.sprite_frames and bust_node_new.sprite_frames.has_animation(anim_name):
 				bust_node_new.play(anim_name)
 			else:
 				bust_node_new.play()
+
+		#% Sprite Node:
+		elif (bust_node_new is Sprite2D or bust_node_new is Sprite3D) and not data.get("paused", false):
+			var missing = data.get("missing", 0)
+			var total_frames = max(bust_node_new.hframes * bust_node_new.vframes - missing, 1)
+			var loop = data.get("loop_target", -1)
+			var anim_fps = sprite_fps
+
+			var new_timer = Timer.new()
+			new_timer.name = "SpriteAnimTimer"
+			new_timer.wait_time = 1.0 / anim_fps
+			new_timer.autostart = true
+			bust_node_new.add_child(new_timer)
+
+			var _animate := func():
+				while true:
+					await new_timer.timeout
+					data["elapsed_time"] += 1.0 / anim_fps
+					var next_frame = bust_node_new.frame + 1
+					if next_frame >= total_frames:
+						data["loops_played"] += 1
+						next_frame = 0
+						if loop == -1:
+							pass
+						elif loop > 0 and data["loops_played"] >= loop:
+							new_timer.stop()
+							new_timer.queue_free()
+							return
+					bust_node_new.frame = next_frame
+			_animate.call_deferred()
+
+		#% VideoStreamPlayer node:
 		elif bust_node_new is VideoStreamPlayer:
 			bust_node_new.play()
 
@@ -735,7 +770,7 @@ func clear_old_bust_nodes(bust_node_old: Node) -> void:
 
 
 #* Stop bust animations for one or more actors:
-func stop_bust_animation(actors: Array, default: int) -> void:
+func stop_bust_animation(actors: Array, default_val: int) -> void:
 	#@ Step 1 - Resolve which actors to process:
 	var actors_to_stop: Array = []
 
@@ -769,26 +804,36 @@ func stop_bust_animation(actors: Array, default: int) -> void:
 
 		#@ Step 3 - Handle each node type:
 		if bust_node is AnimatedSprite2D or bust_node is AnimatedSprite3D:
-			#% Pause current animation:
 			bust_node.stop()
-			if default == 1:
-				bust_node.frame = 0    #/ rewind to first frame
+			if default_val == 0:
+				pass    #% Keep current frame
+			elif default_val == -1:
+				bust_node.frame = bust_node.sprite_frames.get_frame_count(bust_node.animation) - 1
+			else:
+				bust_node.frame = clamp(default_val - 1, 0, bust_node.sprite_frames.get_frame_count(bust_node.animation) - 1)
 			bust_node.visible = true
 
 		elif bust_node is Sprite2D or bust_node is Sprite3D:
-			#% Pause frame sheet animation:
-			if default == 1:
-				bust_node.frame = 0
+			if default_val == 0:
+				pass    #% Keep current frame
+			elif default_val == -1:
+				bust_node.frame = bust_node.hframes * bust_node.vframes - 1
+			else:
+				bust_node.frame = clamp(default_val - 1, 0, bust_node.hframes * bust_node.vframes - 1)
 			bust_node.visible = true
 
 		elif bust_node is VideoStreamPlayer:
 			bust_node.stop()
-			if default == 1:
-				bust_node.stream_position = 0.0
+			if default_val == 0:
+				pass    #% Keep current position
+			elif default_val == -1:
+				pass    #% No reliable way to seek to last frame in VideoStreamPlayer
+			else:
+				bust_node.stream_position = float(default_val) / 30.0
 			bust_node.visible = true
 
 		elif bust_node is TextureRect or bust_node is NinePatchRect or bust_node is TextureButton:
-			if default == 1 and bust_node_data.has(actor) and bust_node_data[actor].has("first_frame"):
+			if default_val != 0 and bust_node_data.has(actor) and bust_node_data[actor].has("first_frame"):
 				bust_node.texture = bust_node_data[actor]["first_frame"]
 			bust_node.visible = true
 
@@ -799,12 +844,14 @@ func stop_bust_animation(actors: Array, default: int) -> void:
 		if bust_node_data.has(actor):
 			var data = bust_node_data[actor]
 			data["paused"] = true
-			if  default == 1:
+			if default_val == 0:
+				pass    #% Preserve elapsed_time and loops_played
+			elif default_val == -1:
 				data["elapsed_time"] = 0.0
 				data["loops_played"] = 0
-			if default == 0:
-				data.get("elapsed_time", 0.0)
-				data.get("loops_played", 0)
+			else:
+				data["elapsed_time"] = 0.0
+				data["loops_played"] = 0
 
 		#@ Step 5 - Remove from active animation tracking (optional):
 		for i in range(caller.active_bust_animations.size() - 1, -1, -1):
@@ -936,7 +983,7 @@ func _on_play_jml(event: String, actor: String, bust_node_new: Node, bust_node_o
 	match event:
 		"Join":
 			if candy_de.actors.has(actor) and candy_de.actors[actor].has("VNJoinEffect"):
-				jml_method = candy_de.actors[actor]["VNJoin Effect"][0]
+				jml_method = candy_de.actors[actor]["VNJoinEffect"][0]
 				jml_value = candy_de.actors[actor]["VNJoinEffect"][1]
 			if jml_method == "":
 				jml_method = vn_join_effect[0]
@@ -990,6 +1037,8 @@ func _on_play_jml(event: String, actor: String, bust_node_new: Node, bust_node_o
 				"Join", "Move_To":
 					var jml_player = bust_node_new.get_node("JML")
 					jml_player.play(jml_value)
+					await get_tree().process_frame
+					bust_node_new.visible = true
 					await jml_player.animation_finished
 
 				"Move_From", "Leave":
@@ -1041,7 +1090,7 @@ func play_bust_effects(actors: Array, library: String, effects: Array, loop_targ
 			printerr("play_bust_effects: Bust node not found: ", bust_ref)
 			continue
 
-		var lib_path = candy_de.busts_folder.path_join(actor).path_join("Animation_Libraries").path_join(library)
+		var lib_path = candy_de.busts_folder.path_join("Animation_Libraries").path_join(library)
 		if not lib_path.ends_with(".tres") and not lib_path.ends_with(".res"):
 			lib_path = lib_path + default_effect_extension
 		if not ResourceLoader.exists(lib_path):
@@ -1087,8 +1136,8 @@ func _play_single_bust_effect(bust_node: Node, actor: String, anim_lib: Animatio
 			#% Skip reserved JML player:
 			if child.name == jml_player_name:
 				continue
-			#% Use a free player:
-			if not child.is_playing():
+			#% Use a free, unclaimed player:
+			if not child.is_playing() and not child.get_meta("bust_effect_claimed", false):
 				player = child
 				break
 
@@ -1097,6 +1146,8 @@ func _play_single_bust_effect(bust_node: Node, actor: String, anim_lib: Animatio
 		player = AnimationPlayer.new()
 		player.root_node = ".."
 		bust_node.add_child(player)
+
+	player.set_meta("bust_effect_claimed", true)   #/ Claim immediately, before deferred playback
 
 	#@ Step 2 - Register animation library:
 	if not player.has_animation_library(library):
@@ -1125,6 +1176,9 @@ func _play_single_bust_effect(bust_node: Node, actor: String, anim_lib: Animatio
 	var resume_at = (max(wait_target, 0) * anim.length) + max(time_target, 0.0)
 
 	#@ Step 4 - Launch asynchronous coroutine:
+	var _release := func():
+		player.set_meta("bust_effect_claimed", false)
+
 	var _run_effect := func():
 		var loops_played := 0
 
@@ -1137,6 +1191,7 @@ func _play_single_bust_effect(bust_node: Node, actor: String, anim_lib: Animatio
 				effect_data["loops_played"] = loops_played
 				if loop_target > 0 and loops_played >= loop_target:
 					player.seek(anim.length, true)
+					_release.call()
 					return
 				player.play(library + "/" + effect_name)
 			return
@@ -1155,6 +1210,7 @@ func _play_single_bust_effect(bust_node: Node, actor: String, anim_lib: Animatio
 					while true:
 						if loop_target > 0 and bg_loops >= loop_target:
 							player.seek(anim.length, true)
+							_release.call()
 							return
 						player.play(library + "/" + effect_name)
 						await player.animation_finished
@@ -1164,6 +1220,7 @@ func _play_single_bust_effect(bust_node: Node, actor: String, anim_lib: Animatio
 
 			if loop_target > 0 and loops_played >= loop_target:
 				player.seek(anim.length, true)
+				_release.call()
 				return
 
 	_run_effect.call_deferred()
@@ -1216,6 +1273,7 @@ func stop_bust_effects(actors: Array, effects: Array) -> void:
 			#% No specific effects → stop everything:
 			if effects.is_empty():
 				child.stop()
+				child.set_meta("bust_effect_claimed", false)
 				continue
 
 			#% Selective stop by effect name:
@@ -1224,6 +1282,7 @@ func stop_bust_effects(actors: Array, effects: Array) -> void:
 					var full_name = (lib_name + "/" + e) if lib_name != "" else e
 					if child.has_animation(full_name) and child.is_playing() and child.current_animation == full_name:
 						child.stop()
+						child.set_meta("bust_effect_claimed", false)
 						break
 
 		#@ Step 4 - Clean runtime effect data:

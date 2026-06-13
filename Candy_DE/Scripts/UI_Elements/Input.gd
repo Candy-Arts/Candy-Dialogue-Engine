@@ -14,12 +14,16 @@
 extends Control
 
 
-@onready var input_line_path = get_node("VBox/Input")
-
-@onready var input_instructions_node = get_node("VBox/Instructions")
-@onready var input_error_node = get_node("VBox/Error")
-@onready var input_cancel_button = get_node("VBox/HBox/Cancel")
-@onready var input_confirm_button = get_node("VBox/HBox/Confirm")
+## Required
+@export var input_line_path: Node
+## Required
+@export var input_instructions_node: Node
+## Required
+@export var input_error_node: Node
+## Required
+@export var input_cancel_button: Node
+## Required
+@export var input_confirm_button: Node
 
 @export var default_z = 90
 
@@ -262,7 +266,7 @@ func check_input():
 			error_2 = candy_de.input_error_messages[raw_error_2][language]
 
 		input_valid = false
-		input_error_node.text = "[color=red]" + error_1 + char_min + error_2 + "[/color]"
+		input_error_node.text = "[color=red]" + error_1 + str(char_min) + error_2 + "[/color]"
 		return false
 	if char_max > -1 and text.length() > char_max:
 		var raw_error_1 = "Maximum "
@@ -275,7 +279,7 @@ func check_input():
 			error_2 = candy_de.input_error_messages[raw_error_2][language]
 
 		input_valid = false
-		input_error_node.text = "[color=red]" + error_1 + char_max + error_2 + "[/color]"
+		input_error_node.text = "[color=red]" + error_1 + str(char_max) + error_2 + "[/color]"
 		return false
 
 	#@ Word count limits
@@ -290,7 +294,7 @@ func check_input():
 			error_2 = candy_de.input_error_messages[raw_error_2][language]
 
 		input_valid = false
-		input_error_node.text = "[color=red]" + error_1 + word_min + error_2 + "[/color]"
+		input_error_node.text = "[color=red]" + error_1 + str(word_min) + error_2 + "[/color]"
 		return false
 	if word_max > -1 and words.size() > word_max:
 		var raw_error_1 = "Maximum "
@@ -303,7 +307,7 @@ func check_input():
 			error_2 = candy_de.input_error_messages[raw_error_2][language]
 
 		input_valid = false
-		input_error_node.text = "[color=red]" + error_1 + word_max + error_2 + "[/color]"
+		input_error_node.text = "[color=red]" + error_1 + str(word_max) + error_2 + "[/color]"
 		return false
 
 	#@ Whitelist / Blacklist logic

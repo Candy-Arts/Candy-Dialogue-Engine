@@ -12,8 +12,15 @@
 
 extends Node
 
-@onready var choice_label = get_node("Button")
-@onready var choice_tooltip = get_node("Button")
+## The node that displays the label for the choice.
+## Required
+@export var choice_label: Node
+## The node that displays the tooltip for the choice.
+## Required
+@export var choice_tooltip: Node
+## The node that selects the choice when interacted (e.g. the actual button node to click).
+## Required
+@export var choice_button: Node
 
 var caller: Node
 
@@ -107,4 +114,5 @@ func _toggle_invisible():
 #* Called when choice is selected:
 func _choice_selected():
 	if choice_active == 1:
+		choice_button.release_focus()	#/ Release focus to avoid re-clicking if Dialogue_Advance is a key that triggers button
 		caller.choice_list_event.emit(parent_menu.nesting_depth, "Choice", category_name, choice_name, self)

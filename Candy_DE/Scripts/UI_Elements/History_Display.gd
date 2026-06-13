@@ -14,7 +14,8 @@
 extends PanelContainer
 
 
-@onready var log_node = get_node("MarginContainer/VBox/Log")
+## Required: Displays history text
+@export var log_node: Node
 
 @export var default_z = 100
 
@@ -22,7 +23,6 @@ var caller: Node
 
 func _ready() -> void:
 	self.z_index = default_z
-
 
 func show_history() -> void:
 	self.visible = true

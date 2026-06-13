@@ -4,13 +4,17 @@
 [ext_resource type="Texture2D" uid="uid://btxwc3hg7h5t5" path="res://Candy_DE/UI Resources/PortraitFG1.png" id="2_17p3o"]
 [ext_resource type="Script" uid="uid://card71e6dx5pt" path="res://Candy_DE/Scripts/Media_Players/Portrait_Player.gd" id="2_xlpv3"]
 
-[node name="Portrait" type="PanelContainer" unique_id=1607682418]
+[node name="Portrait" type="PanelContainer" unique_id=1607682418 node_paths=PackedStringArray("portrait_node", "portrait_bg", "portrait_fg", "portrait_effect_player")]
 z_index = 100
 offset_left = 320.0
 offset_top = 816.0
 offset_right = 576.0
 offset_bottom = 1072.0
 script = ExtResource("1_taje0")
+portrait_node = NodePath("Image")
+portrait_bg = NodePath("BG")
+portrait_fg = NodePath("FG")
+portrait_effect_player = NodePath("PortraitEffectPlayer")
 
 [node name="BG" type="TextureRect" parent="." unique_id=1279505593]
 layout_mode = 2

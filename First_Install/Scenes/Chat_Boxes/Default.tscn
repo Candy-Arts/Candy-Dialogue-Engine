@@ -14,13 +14,14 @@ corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 corner_detail = 5
 
-[node name="ChatBox" type="PanelContainer" unique_id=610702452]
+[node name="ChatBox" type="PanelContainer" unique_id=610702452 node_paths=PackedStringArray("dialogue_node")]
 offset_left = 8.0
 offset_top = 816.0
 offset_right = 456.0
 offset_bottom = 1072.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_03ioi")
 script = ExtResource("1_odi5k")
+dialogue_node = NodePath("Text")
 
 [node name="Text" type="RichTextLabel" parent="." unique_id=1012184801]
 layout_mode = 2

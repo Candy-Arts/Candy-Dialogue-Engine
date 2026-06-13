@@ -13,7 +13,8 @@
 
 extends AudioStreamPlayer3D
 
-@onready var audio_player = self
+## Required
+@export var audio_player = self
 
 var pause_count = 0
 var pause_mode = "speech"
@@ -30,6 +31,7 @@ var loops_played: int = 0        #/ completed loops
 var caller: Node
 
 
+
 func _on_finished() -> void:
 	loops_played += 1
 
@@ -40,7 +42,7 @@ func _on_finished() -> void:
 
 	#@ Playback done:
 	audio_player.stop()
-	stream = null
+	audio_player.stream = null
 
 	#@ Release dialogue block if needed:
 	if wait_target == -1 or loops_played >= wait_target:

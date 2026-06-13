@@ -15,9 +15,12 @@ extends Node3D
 
 #^ Required Node Paths:
 #? If you use your own custom node hierarchy, update these appropriately.
-@onready var label: RichTextLabel = get_node("SubViewport/Text")	#/ The node that displays text. [REQUIRED BY THE ENGINE]
-@onready var sprite: Sprite3D = get_node("Sprite3D")				#/ The Sprite3D node. [Unused]
-@onready var viewport: SubViewport = get_node("SubViewport") 		#/ The viewport. [Required by this script]
+## Required
+@export var label: RichTextLabel
+## Required
+@export var sprite: Sprite3D
+## Required
+@export var viewport: SubViewport
 
 #^ Performance/Behavior Settings:
 @export var y_offset = 0.0
@@ -30,7 +33,7 @@ extends Node3D
 ## Default colors to use for spoken text and speaker names.
 @export_group("Default Colors")
 @export var enable_text_color: bool = true
-@export var text_color = Color(1, 1, 1)					#/ Default override color - Custom spoken text color.
+@export var text_color = Color(0, 0, 0)					#/ Default override color - Custom spoken text color.
 
 @export var default_z = 100
 
@@ -45,7 +48,10 @@ func _ready():
 	#% Only used if the Lexicon is used in dialogues.
 	if label is RichTextLabel:
 		var callable = func(meta):
-			candy_de._on_lexicon_clicked(meta, caller, self)  #/ Pass 'caller' as extra argument
+			var json_str = Marshalls.base64_to_variant(str(meta))
+			var data = JSON.parse_string(json_str)
+			if data is Dictionary:
+				candy_de._on_lexicon_clicked(data, caller, self)
 		if not label.is_connected("meta_clicked", callable):
 			label.connect("meta_clicked", callable)
 
@@ -53,8 +59,11 @@ func _ready():
 func show_text(spoken_text):
 	self.visible = false	#/ Hide the speech bubble to prevent visual glitches while the function runs
 
+	#% Set text color:
+	label.add_theme_color_override("default_color", override_color)
+
 	#% Reset max_width:
-	label.size.x = max_width
+	label.size.x = max_width + text_width_margin
 
 	#% Reset height (avoids extra empty lines):
 	label.size.y = 0

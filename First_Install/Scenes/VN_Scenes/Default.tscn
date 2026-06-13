@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://djfctensjx1pr" path="res://Candy_DE/Scripts/UI_Elements/Bust_Scene.gd" id="1_rd1yg"]
 [ext_resource type="PackedScene" uid="uid://drrfg0krvk72m" path="res://First_Install/Scenes/Speech_Bubbles_2D/Default.tscn" id="2_4owtt"]
 
-[node name="Busts" type="Control" unique_id=348557497]
+[node name="Busts" type="Control" unique_id=348557497 node_paths=PackedStringArray("busts_container", "highlight_player_1")]
 editor_description = "Bust nodes can be:
 - Added or removed freely
 - Be changed to any node type (e.g. Sprite2D)
@@ -19,6 +19,8 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_rd1yg")
+busts_container = NodePath("Busts_Control")
+highlight_player_1 = NodePath("HighlightPlayer_1")
 
 [node name="Busts_Control" type="Control" parent="." unique_id=1720304424]
 layout_mode = 1

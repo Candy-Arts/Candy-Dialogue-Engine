@@ -140,14 +140,15 @@ layout_mode = 3
 anchors_preset = 0
 mouse_filter = 2
 
-[node name="ImagePlayer" parent="MediaPlayers" unique_id=44489275 instance=ExtResource("8_ckpvn")]
+[node name="ImagePlayer" parent="MediaPlayers" unique_id=44489275 node_paths=PackedStringArray("image_player") instance=ExtResource("8_ckpvn")]
 layout_mode = 1
 offset_left = 896.0
 offset_top = 476.0
 offset_right = 1024.0
 offset_bottom = 604.0
+image_player = NodePath(".")
 
-[node name="SplashPlayer" type="TextureRect" parent="MediaPlayers" unique_id=1804735031]
+[node name="SplashPlayer" type="TextureRect" parent="MediaPlayers" unique_id=1804735031 node_paths=PackedStringArray("image_player")]
 editor_description = "Momentarily displays images screen-wide."
 visible = false
 z_index = 120
@@ -156,11 +157,12 @@ offset_right = 1920.0
 offset_bottom = 1080.0
 mouse_filter = 2
 script = ExtResource("9_d2q2q")
+image_player = NodePath(".")
 metadata/_edit_lock_ = true
 
 [node name="Timer" type="Timer" parent="MediaPlayers/SplashPlayer" unique_id=18358199]
 
-[node name="VideoPlayer" type="VideoStreamPlayer" parent="MediaPlayers" unique_id=1917247360]
+[node name="VideoPlayer" type="VideoStreamPlayer" parent="MediaPlayers" unique_id=1917247360 node_paths=PackedStringArray("video_player")]
 editor_description = "Plays video files"
 visible = false
 z_index = 120
@@ -168,6 +170,7 @@ layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
 script = ExtResource("10_4cvgk")
+video_player = NodePath(".")
 
 [node name="ScreenEffects" type="ColorRect" parent="MediaPlayers" unique_id=1231476332]
 editor_description = "Displays various visual effects - e.g. fade to black, flashes, etc."
@@ -185,21 +188,25 @@ root_node = NodePath("../..")
 libraries/ = SubResource("AnimationLibrary_p21q5")
 script = ExtResource("11_4ysxm")
 
-[node name="SoundPlayer" type="AudioStreamPlayer" parent="MediaPlayers" unique_id=456038637]
+[node name="SoundPlayer" type="AudioStreamPlayer" parent="MediaPlayers" unique_id=456038637 node_paths=PackedStringArray("audio_player")]
 editor_description = "Plays sounds."
 script = ExtResource("12_n78o4")
+audio_player = NodePath(".")
 
-[node name="AmbientPlayer" type="AudioStreamPlayer" parent="MediaPlayers" unique_id=419091499]
+[node name="AmbientPlayer" type="AudioStreamPlayer" parent="MediaPlayers" unique_id=419091499 node_paths=PackedStringArray("audio_player")]
 editor_description = "Plays ambient sounds."
 script = ExtResource("12_n78o4")
+audio_player = NodePath(".")
 
-[node name="MusicPlayer" type="AudioStreamPlayer" parent="MediaPlayers" unique_id=364136369]
+[node name="MusicPlayer" type="AudioStreamPlayer" parent="MediaPlayers" unique_id=364136369 node_paths=PackedStringArray("audio_player")]
 editor_description = "Plays music."
 script = ExtResource("12_n78o4")
+audio_player = NodePath(".")
 
-[node name="SpeechPlayer" type="AudioStreamPlayer" parent="MediaPlayers" unique_id=1051417244]
+[node name="SpeechPlayer" type="AudioStreamPlayer" parent="MediaPlayers" unique_id=1051417244 node_paths=PackedStringArray("audio_player")]
 editor_description = "Plays speech inside dialogue lines."
 script = ExtResource("12_n78o4")
+audio_player = NodePath(".")
 
 [connection signal="timeout" from="MediaPlayers/SplashPlayer/Timer" to="MediaPlayers/SplashPlayer" method="_on_timer_timeout"]
 [connection signal="finished" from="MediaPlayers/VideoPlayer" to="MediaPlayers/VideoPlayer" method="_on_finished"]

@@ -178,6 +178,12 @@ var roles = {
 var player_refs = ["Player", "player"]
 
 
+#^ Player data:
+#? Which entry in the actors dictionary represents the player's data.
+#? Used by variants based on player properties (e.g. player gender).
+var current_player = "Player"
+
+
 #^ Actor Data:
 #? Contains important personalized data for each actor, which Candy DE may require depending on the features you use.
 #! Never prefix actor references and dispositions with the data symbols in Candy_Properties.gd
@@ -210,11 +216,11 @@ var actors = {
 	},
 	"Alice": {
 		"ShortName": "Alice",
-		"DisplayName": "Alice Turner",
+		"DisplayName": "Alice",
 		"SpeakerBBCode": ["", ""],
 		"Gender": "F",
 		"Age": 18,
-		"Disposition": "",
+		"Disposition": "Like",
 		"PortraitOverride": 0,
 		"BubblesOverride": 0,
 		"VNJoinEffect": ["", ""],
@@ -231,10 +237,6 @@ var actors = {
 		"ChatTextColor": null,
 		"ChatSpeakerColor": null,
 		"BarkTextColor": null,
-	},
-	"John": {
-		"DisplayName": "John",
-		"Gender": "M",
 	},
 	"construction_worker": {
 		"DisplayName": "Construction Worker",

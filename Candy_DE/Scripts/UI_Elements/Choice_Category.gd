@@ -12,7 +12,12 @@
 
 extends Node
 
-@onready var button_list = get_node("Scroll/List")
+## REQUIRED: Parent for choice buttons.
+@export var button_list: Node
+## OPTIONAL: Node for displaying the category title.
+@export var title_node: Node
+## OPTIONAL: Node for displaying the category prompt.
+@export var prompt_node: Node
 
 var caller: Node
 
@@ -36,11 +41,9 @@ func _ready() -> void:
 	_set_category_title()
 	_set_category_prompt()
 
-
 #* Display the caregory's title:
 func _set_category_title():
 	var language = candy_de.language
-	var title_node = get_node_or_null("title_node") #TODO: replace with the actual path to the node that displays the title
 	
 	if title_node != null:
 		if candy_de.choice_category_titles.has(category_title) and candy_de.choice_category_titles[category_title].has(language):
@@ -54,7 +57,6 @@ func _set_category_title():
 #* Display a prompt for the category:
 func _set_category_prompt():
 	var language = candy_de.language
-	var prompt_node = get_node_or_null("prompt_node") #TODO: replace with the actual path to the node that displays the prompt
 	
 	if prompt_node != null:
 		if candy_de.choice_category_prompts.has(category_prompt) and candy_de.choice_category_prompts[category_prompt].has(language):

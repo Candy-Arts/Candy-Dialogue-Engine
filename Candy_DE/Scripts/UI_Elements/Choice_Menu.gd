@@ -12,9 +12,17 @@
 
 extends Node
 
-@onready var category_list = get_node("Categories")
-@onready var timer_list = get_node("Timers")
-
+## REQUIRED: Parent for category scenes.
+@export var category_list: Node
+## REQUIRED: Parent for choice timers.
+@export var timer_list: Node
+## OPTIONAL: Shield for blocking clicks and masking the menu when choice is selected or timer expires.
+@export var shield: Node
+## OPTIONAL: Node for displaying the menu title.
+@export var title_node: Node
+## OPTIONAL: Node for displaying the menu prompt.
+@export var prompt_node: Node
+## Set to true if the menu should not be hidden by nested choice lists.
 @export var never_hide = false
 
 var caller: Node
@@ -41,7 +49,6 @@ func _ready() -> void:
 #* Display the list's general title:
 func _set_general_title():
 	var language = candy_de.language
-	var title_node = get_node_or_null("title_node") #TODO: replace with the actual path to the node that displays the title
 	
 	if title_node != null:
 		if candy_de.choice_menu_titles.has(title) and candy_de.choice_menu_titles[title].has(language):
@@ -55,7 +62,6 @@ func _set_general_title():
 #* Display the general prompt for the list:
 func _set_general_prompt():
 	var language = candy_de.language
-	var prompt_node = get_node_or_null("prompt_node") #TODO: replace with the actual path to the node that displays the prompt
 	
 	if prompt_node != null:
 		if candy_de.choice_menu_prompts.has(prompt) and candy_de.choice_menu_prompts[prompt].has(language):
@@ -72,16 +78,18 @@ func _on_timer_timeout(timer_name):
 
 
 #* Deactivate this menu when bridging:
-#? Used for hiding the menu when a choice or timer opens another choice menu.
-#TODO: Not called automatically: call must be setup in code or in dialogue script.
+#% Used for hiding the menu when a choice or timer opens another choice menu.
+#% Called automatically by the §Choice_List command.
+#+ Can also be called in your code or dialogues, as needed.
 func deactivate():
-	self.visible = false
+	if never_hide == false:
+		self.visible = false
 	#TODO: Edit function for desired behavior.
 
 
 #* Reactivate this menu when returning from a bridge:
-#? Used for showing the menu again when returning to the same nesting depth.
-#? Called automatically by §Bridge, after returning, if the nesting depth matches.
+#% Used for showing the menu again when returning to the same nesting depth.
+#% Called automatically by §Bridge, after returning, if the nesting depth matches.
 #+ Can also be called manually, in order to re-display sooner.
 #+ e.g. menu is at depth 1, descendent is at depth 4 → call manually to reactivate at depth 3,
 #+ or wait for automatic call upon return to depth 1.

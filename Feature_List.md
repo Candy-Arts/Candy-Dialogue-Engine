@@ -180,7 +180,7 @@
   - Display/animate sprites.
   - Play visual effects on sprites with AnimationPlayer.
   - Pause or stop sprite animations, in sync with dialogue.
-- Adapts to any porject's node tree.
+- Adapts to any project's node tree.
 - Customizable dialogue commands to fulfill all your requirements.
 - Works in both 2D and 3D.
 - Ideal for scripting live cutscenes in sync with dialogue.
@@ -219,7 +219,7 @@
   - No crashes if translation was forgotten for a Line.
 - Parallel dialogues can use different languages. 
 - Modular variant resolution based on speaker or player gender.
-  - Cleanly handle non-existant or non-applicable variants.
+  - Cleanly handle non-existent or non-applicable variants.
   - Supports any values: 'Male', 'Female', 'M', 'F', 'X', 'Y', 'Z', etc.
   - Code can be expanded to add any arbitrary criteria: class, faction, moral alignment, etc.
 - Randomized variants with weights (selection probabilities).
@@ -271,8 +271,8 @@
 ### Modding
 - Dialogues can be used as a modding layer:
   - Design your game to load and run player-created dialogue files in different engine instances.
-  - Player-made dialogues can call functions, read and modify variables, use conditions, etc. to essential mod any part of your game.
-- Can be implement with little effort, with only surface additions (no deep code changes).
+  - Player-made dialogues can call functions, read and modify variables, use conditions, etc. to essentialy mod any part of your game.
+- Can be implemented with little effort, with only surface additions (no deep code changes).
 - Works with any game:
   - Works with games not specifically designed for modding.
   - Works even in games that don't use Candy Dialogue Engine for their normal dialogues.

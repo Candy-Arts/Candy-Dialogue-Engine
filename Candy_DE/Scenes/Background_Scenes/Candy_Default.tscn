@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dcltr8lstms8v" path="res://Candy_DE/Scripts/UI_Elements/Backgrounds.gd" id="1_0mbsa"]
 
-[node name="Control" type="Control" unique_id=269811214]
+[node name="Control" type="Control" unique_id=269811214 node_paths=PackedStringArray("bg_container")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -10,6 +10,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_0mbsa")
+bg_container = NodePath("BG_Control")
 
 [node name="BG_Control" type="Control" parent="." unique_id=1521241245]
 anchors_preset = 0
