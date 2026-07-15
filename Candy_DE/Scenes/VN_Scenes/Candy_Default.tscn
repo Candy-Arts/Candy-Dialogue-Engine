@@ -1,0 +1,148 @@
+[gd_scene format=3 uid="uid://cac6bst1ivxkm"]
+
+[ext_resource type="Script" uid="uid://djfctensjx1pr" path="res://Candy_DE/Scripts/UI_Elements/Bust_Scene.gd" id="1_jql7t"]
+[ext_resource type="PackedScene" uid="uid://da7rpjjud3ps7" path="res://Candy_DE/Scenes/Speech_Bubbles_2D/Candy_Default.tscn" id="1_we2rs"]
+
+[node name="Busts" type="Control" unique_id=231794324 node_paths=PackedStringArray("busts_container", "highlight_player_1")]
+editor_description = "Bust nodes can be:
+- Added or removed freely
+- Be changed to any node type (e.g. Sprite2D)
+- Be named anything you want.
+- Be resized or moved anywhere.
+- Or almost anything else."
+z_index = -100
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_jql7t")
+busts_container = NodePath("Busts_Control")
+highlight_player_1 = NodePath("HighlightPlayer_1")
+
+[node name="Busts_Control" type="Control" parent="." unique_id=1375404461]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="1" type="TextureButton" parent="Busts_Control" unique_id=170467103]
+z_index = -10
+layout_mode = 0
+offset_left = -320.0
+offset_top = 64.0
+offset_right = 704.0
+offset_bottom = 1144.0
+
+[node name="SpeechBubble" parent="Busts_Control/1" unique_id=457446021 instance=ExtResource("1_we2rs")]
+
+[node name="JML" type="AnimationPlayer" parent="Busts_Control/1" unique_id=1601864100]
+
+[node name="2" type="TextureButton" parent="Busts_Control" unique_id=79495717]
+z_index = -10
+layout_mode = 0
+offset_left = -136.0
+offset_top = 48.0
+offset_right = 888.0
+offset_bottom = 1128.0
+
+[node name="SpeechBubble" parent="Busts_Control/2" unique_id=1316840496 instance=ExtResource("1_we2rs")]
+
+[node name="JML" type="AnimationPlayer" parent="Busts_Control/2" unique_id=567545401]
+
+[node name="3" type="TextureButton" parent="Busts_Control" unique_id=2095235237]
+z_index = -12
+layout_mode = 0
+offset_left = 64.0
+offset_top = 32.0
+offset_right = 1088.0
+offset_bottom = 1112.0
+
+[node name="SpeechBubble" parent="Busts_Control/3" unique_id=765369991 instance=ExtResource("1_we2rs")]
+
+[node name="JML" type="AnimationPlayer" parent="Busts_Control/3" unique_id=809715844]
+
+[node name="4" type="TextureButton" parent="Busts_Control" unique_id=945955933]
+z_index = -13
+layout_mode = 0
+offset_left = 256.0
+offset_top = 16.0
+offset_right = 1280.0
+offset_bottom = 1096.0
+
+[node name="SpeechBubble" parent="Busts_Control/4" unique_id=1884776616 instance=ExtResource("1_we2rs")]
+
+[node name="JML" type="AnimationPlayer" parent="Busts_Control/4" unique_id=420789841]
+
+[node name="5" type="TextureButton" parent="Busts_Control" unique_id=1284963729]
+z_index = -14
+layout_mode = 0
+offset_left = 448.0
+offset_right = 1472.0
+offset_bottom = 1080.0
+
+[node name="SpeechBubble" parent="Busts_Control/5" unique_id=1389900126 instance=ExtResource("1_we2rs")]
+
+[node name="JML" type="AnimationPlayer" parent="Busts_Control/5" unique_id=1921858549]
+
+[node name="6" type="TextureButton" parent="Busts_Control" unique_id=204793384]
+z_index = -13
+layout_mode = 0
+offset_left = 640.0
+offset_top = 16.0
+offset_right = 1664.0
+offset_bottom = 1096.0
+
+[node name="SpeechBubble" parent="Busts_Control/6" unique_id=1508855816 instance=ExtResource("1_we2rs")]
+
+[node name="JML" type="AnimationPlayer" parent="Busts_Control/6" unique_id=1013645176]
+
+[node name="7" type="TextureButton" parent="Busts_Control" unique_id=1436162126]
+z_index = -12
+layout_mode = 0
+offset_left = 832.0
+offset_top = 32.0
+offset_right = 1856.0
+offset_bottom = 1112.0
+
+[node name="SpeechBubble" parent="Busts_Control/7" unique_id=741355496 instance=ExtResource("1_we2rs")]
+
+[node name="JML" type="AnimationPlayer" parent="Busts_Control/7" unique_id=992923511]
+
+[node name="ColorRect" type="ColorRect" parent="Busts_Control/7" unique_id=416036359]
+layout_mode = 0
+offset_top = -120.0
+offset_right = 1024.0
+offset_bottom = 1120.0
+color = Color(1, 1, 1, 0)
+
+[node name="8" type="TextureButton" parent="Busts_Control" unique_id=1852403980]
+z_index = -11
+layout_mode = 0
+offset_left = 1024.0
+offset_top = 48.0
+offset_right = 2048.0
+offset_bottom = 1128.0
+
+[node name="SpeechBubble" parent="Busts_Control/8" unique_id=1576511083 instance=ExtResource("1_we2rs")]
+
+[node name="JML" type="AnimationPlayer" parent="Busts_Control/8" unique_id=907784386]
+
+[node name="9" type="TextureButton" parent="Busts_Control" unique_id=714298742]
+z_index = -10
+layout_mode = 0
+offset_left = 1216.0
+offset_top = 64.0
+offset_right = 2240.0
+offset_bottom = 1144.0
+
+[node name="SpeechBubble" parent="Busts_Control/9" unique_id=1707867060 instance=ExtResource("1_we2rs")]
+
+[node name="JML" type="AnimationPlayer" parent="Busts_Control/9" unique_id=1069581697]
+
+[node name="HighlightPlayer_1" type="AnimationPlayer" parent="." unique_id=1321017891]

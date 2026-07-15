@@ -1,0 +1,45 @@
+[gd_scene format=3 uid="uid://ce3q0wx4pu8w2"]
+
+[ext_resource type="Script" uid="uid://bfb45h7i5pqd0" path="res://Candy_DE/Scripts/Actor_Nodes/Speech_Bubble_3D.gd" id="1_8miak"]
+[ext_resource type="Texture2D" uid="uid://bhkr0a80wckto" path="res://Candy_DE/UI Resources/SpeechBubble.png" id="2_tlcda"]
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_cbast"]
+viewport_path = NodePath("SubViewport")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_2co6p"]
+texture = ExtResource("2_tlcda")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[node name="SpeechBubble" type="Node3D" unique_id=1106928248 node_paths=PackedStringArray("label", "sprite", "viewport")]
+visible = false
+script = ExtResource("1_8miak")
+label = NodePath("SubViewport/Text")
+sprite = NodePath("Sprite3D")
+viewport = NodePath("SubViewport")
+
+[node name="Sprite3D" type="Sprite3D" parent="." unique_id=1805537853]
+billboard = 1
+render_priority = 9
+texture = SubResource("ViewportTexture_cbast")
+
+[node name="SubViewport" type="SubViewport" parent="." unique_id=1350385980]
+disable_3d = true
+transparent_bg = true
+size = Vector2i(64, 40)
+
+[node name="Text" type="RichTextLabel" parent="SubViewport" unique_id=1300343309]
+offset_right = 11.0
+offset_bottom = 33.0
+theme_override_colors/default_color = Color(0, 0, 0, 1)
+theme_override_styles/normal = SubResource("StyleBoxTexture_2co6p")
+theme_override_styles/focus = SubResource("StyleBoxTexture_2co6p")
+bbcode_enabled = true
+text = "Text"
+fit_content = true
+scroll_active = false
+horizontal_alignment = 1
+meta_underlined = false
+hint_underlined = false

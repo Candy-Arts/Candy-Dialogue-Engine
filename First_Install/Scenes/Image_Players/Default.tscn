@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://cdbh1d23afgsf"]
+
+[ext_resource type="Script" uid="uid://dy3qf72gubkkd" path="res://Candy_DE/Scripts/Media_Players/Image_Player.gd" id="1_pw25o"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_5rqxr"]
+
+[node name="ImagePlayer" type="TextureRect" unique_id=1390150888 node_paths=PackedStringArray("image_player")]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -64.0
+offset_top = -64.0
+offset_right = 64.0
+offset_bottom = 64.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("PlaceholderTexture2D_5rqxr")
+script = ExtResource("1_pw25o")
+image_player = NodePath(".")
+
+[node name="Timer" type="Timer" parent="." unique_id=1627071476]
+
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

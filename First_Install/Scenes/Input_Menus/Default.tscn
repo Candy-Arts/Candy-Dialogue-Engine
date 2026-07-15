@@ -1,0 +1,76 @@
+[gd_scene format=3 uid="uid://bx06ncvx6frh5"]
+
+[ext_resource type="Script" uid="uid://4lmrr2nivgv5" path="res://Candy_DE/Scripts/UI_Elements/Input.gd" id="1_bdknn"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ycgf0"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0.4117647, 0.654902, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[node name="Input" type="PanelContainer" unique_id=981204395 node_paths=PackedStringArray("input_line_path", "input_instructions_node", "input_error_node", "input_cancel_button", "input_confirm_button")]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -256.0
+offset_top = -68.0
+offset_right = 256.0
+offset_bottom = 76.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ycgf0")
+script = ExtResource("1_bdknn")
+input_line_path = NodePath("VBox/Input")
+input_instructions_node = NodePath("VBox/Instructions")
+input_error_node = NodePath("VBox/Error")
+input_cancel_button = NodePath("VBox/HBox/Cancel")
+input_confirm_button = NodePath("VBox/HBox/Confirm")
+
+[node name="VBox" type="VBoxContainer" parent="." unique_id=1244852593]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Instructions" type="RichTextLabel" parent="VBox" unique_id=27781881]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+bbcode_enabled = true
+text = "Input Instructions
+"
+fit_content = true
+
+[node name="Input" type="LineEdit" parent="VBox" unique_id=759009873]
+layout_mode = 2
+placeholder_text = "Player Input"
+
+[node name="Error" type="RichTextLabel" parent="VBox" unique_id=1713142943]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+theme_override_colors/default_color = Color(1, 0, 0, 1)
+bbcode_enabled = true
+text = "Error Message"
+
+[node name="HBox" type="HBoxContainer" parent="VBox" unique_id=1808605573]
+layout_mode = 2
+theme_override_constants/separation = 128
+alignment = 1
+
+[node name="Cancel" type="Button" parent="VBox/HBox" unique_id=1839601211]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Cancel"
+
+[node name="Confirm" type="Button" parent="VBox/HBox" unique_id=1668391138]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Confirm"
+
+[connection signal="pressed" from="VBox/HBox/Cancel" to="." method="cancel"]
+[connection signal="pressed" from="VBox/HBox/Confirm" to="." method="submit"]

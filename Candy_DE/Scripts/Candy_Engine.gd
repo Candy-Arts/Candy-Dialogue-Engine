@@ -52,6 +52,7 @@ var running_dialogue = {}
 # "UI" is assigned to Candy UI by default. For future-proofing purposes, we recommend not assigning "UI" to any other instances.[br]
 # "Bark" is assigned to NPC bark engine instances. You can assign that value to custom instances also used for NPC barks.
 @export var engine_mode: String = ""
+@export var engine_language: String = ""
 
 @export_group("Dialogue Display")
 #& DIALOGUE DISPLAY
@@ -244,14 +245,15 @@ enum TtsModes {Off, Simple, Advanced}
 @export var bubble_exempt_mode: DialogueModes = DialogueModes.Box
 
 
+#& WRITING:
 @export_group("Writing")
 #^ Writing speed:
 #? The speed at which spoken text is written on screen (typewriter effect).
 #+ Value represents characters written per second
 #% 0 = instant display
-## Typewriter effect speed.
+## Typewriter effect speed.[br][br]
+## Set to 0 to disable.
 @export var writing_speed: int = 30
-
 
 #^ Manual speed:
 #? Change the spoken text writing speed with the Dialogue_Advance input.
@@ -263,7 +265,7 @@ enum TtsModes {Off, Simple, Advanced}
 #% -1 = instant display
 #% -2 = can't skip
 ## Typewriter speed when input_speed_dialogue is pressed.
-@export var continue_skip_speed: int = 60
+@export var continue_fast_speed: int = 60
 ## Typewriter speed when input_slow_dialogue is pressed.
 @export var continue_slow_speed: int = 15
 
@@ -288,13 +290,15 @@ enum TtsModes {Off, Simple, Advanced}
 #? Prevents the player from skipping voice playback, even if the line has finished writing.
 #% true = prevent skipping voice
 #% false = allow skipping voice
-## Prevent manual advance until voice playback has finished.
+## Prevent manual and auto advance until voice playback has finished.
 @export var await_voice_playback: bool = false
 
+
+#& CHOICES
 @export_group("Choice Menus")
 #^ Hide choice lists by default:
 ## If false, nested choice menus never hide older menus automatically.
-@export var hide_choice_lists = true
+@export var hide_choice_lists: bool = true
 
 
 #& VN MODE
@@ -321,13 +325,13 @@ enum TtsModes {Off, Simple, Advanced}
 #% Write the name of the animations to play.
 #+ The animation must exist in the bust node's child animation player.
 ## Default JML effect when an actor joins (§VN_Bust command).
-@export var vn_join_effect = ["", ""]
+@export var vn_join_effect: Array[String] = ["", ""]
 ## Default JML effect when an actor moves from a bust node (§VN_Move command).
-@export var vn_move_from_effect = ["", ""]
+@export var vn_move_from_effect: Array[String] = ["", ""]
 ## Default JML effect when an actor moves to a bust node (§VN_Move command).
-@export var vn_move_to_effect = ["", ""]
+@export var vn_move_to_effect: Array[String] = ["", ""]
 ## Default JML effect when an actor leaves (§VN_Remove command).
-@export var vn_leave_effect = ["", ""]
+@export var vn_leave_effect: Array[String] = ["", ""]
 
 
 #& BACKGROUNDS
@@ -360,6 +364,25 @@ enum TtsModes {Off, Simple, Advanced}
 @export var lexicon_bark_mode: bool = true
 
 
+#& MEDIA
+@export_group("Media")
+#^ Count lines skipped by dispositions towards §Media_Pause commands:
+## Count skipped lines towards §Media_Pause decrementation.[br][br]
+## When a disposition check fails, the line is skipped.
+## This option determines if skipped lines should still decrement the line count for §Media_Pause commands.[br][br]
+## 'true' will ensure consistent line count whether dispositions fail or pass.[br]
+## 'false' will make media resume based on the number of lines that actually displayed on screen.[br][br]
+## Tip: for more fine-tuned behavior, consider using a variable reference for line count inside §Media_Pause commands.
+@export var mp_count_dispositions: bool = false
+#^ Count lines skipped by variants towards §Media_Pause commands:
+## Count skipped lines towards §Media_Pause decrementation.[br][br]
+## If no suitable variant is found for a line, the line is skipped.
+## This option determines if skipped lines should still decrement the line count for §Media_Pause commands.[br][br]
+## 'true' will ensure consistent line count across languages and variant tags.[br]
+## 'false' will make media resume based on the number of lines that actually displayed on screen.[br][br]
+## Tip: for more fine-tuned behavior, consider using a variable reference for line count inside §Media_Pause commands.
+@export var mp_count_variants: bool = false
+
 #& HISTORY LOG
 #^ History log:
 #? Enable or disable saving of dialogue history.
@@ -369,9 +392,6 @@ enum TtsModes {Off, Simple, Advanced}
 ## Log dialogue history.[br]
 ## Enable recommended, even if you don't expect to use the log.
 @export var write_dialogue_history: bool = true
-
-
-
 
 
 #& LLM (AI-GENERATED SPEECH)
@@ -395,7 +415,10 @@ enum MouseModes {None = -1, Visible, Hidden, Captured, Confined, Confined_Hidden
 @export var mouse_mode_start: MouseModes = MouseModes.None		#/ Mouse Mode when dialogue starts
 ## Set Mouse Mode when dialogue ends.[br]
 ## Set to "NONE" to disable.
-@export var mouse_mode_end: MouseModes = MouseModes.None			#/ Mouse Mode when dialogue exits
+@export var mouse_mode_end: MouseModes = MouseModes.None		#/ Mouse Mode when dialogue exits
+## Default Mouse Mode for §Choice_List commands.
+## Set to "NONE" to disable.
+@export var mouse_mode_choice: MouseModes = MouseModes.None		#/ Default Mouse Mode for §Choice_List
 
 
 #& VARIANTS
@@ -403,14 +426,28 @@ enum MouseModes {None = -1, Visible, Hidden, Captured, Confined, Confined_Hidden
 #? Automatically switch to special variants based on gender,
 #? or randomly select among multiple variations of a same variant.
 @export_group("Variants")
-## Use variants based on player's gender.
-@export var player_gender_variants: bool = false	#/ Select variants based on player_gender
-## Player's gender, as used by gendered variants. Can be modified at runtime as appropriate.
-@export var player_gender: String = ""				#/ Gender of the player character. Update dynamically if player character/gender changes during the game
-## Use variants based on speaker's gender.
-@export var speaker_gender_variants: bool = false	#/ Select variants based on speaker gender as specified in actors dictionary
 ## Use random variants.
 @export var random_variants: bool = true			#/ Select random variants if they exist
+## Custom variant tags for player attributes.[br][br]
+## Attribute values are read from the actors dictionary and based on current_player in Candy_Database.gd.[br][br]
+## DO NOT use spaces or underscores '_' inside tags![br]
+## DO NOT name tags in player_tags the same as tags in speaker_tags!
+@export var player_tags: Dictionary[String, String] = {
+	"P": "Gender"
+}
+## Custom variant tags for speaker attributes.[br][br]
+## Attribute values are read from the actors dictionary.[br][br]
+## DO NOT use spaces or underscores '_' inside tags!
+## DO NOT name tags in speaker_tags the same as tags in player_tags!
+@export var speaker_tags: Dictionary[String, String] = {
+	"S": "Gender",
+}
+## Tags that automatically pass regardless of their value.
+## These tags will never prevent a variant from being selected.
+@export var passed_tags: Array[String] = []
+## Disabled tags.[br]
+## Variants that feature any of these tags will never be selected.
+@export var disabled_tags: Array[String] = []
 
 
 #& DIALOGUE SUSPEND
@@ -419,7 +456,7 @@ enum MouseModes {None = -1, Visible, Hidden, Captured, Confined, Confined_Hidden
 #? Effectively pauses dialogue if true.
 ## Suspend dialogue by default if 'true'.[br]
 ## Dialogue suspension requires that you write code to toggle this value.
-@export var dialogue_suspended = false
+@export var dialogue_suspended: bool = false
 
 #^ Suspend dialogue elements:
 #? Set to false for things you don't want to be paused when dialogue_suspended = true.
@@ -469,15 +506,16 @@ enum MouseModes {None = -1, Visible, Hidden, Captured, Confined, Confined_Hidden
 @export var input_enabled: bool = true
 
 #? Input required to make dialogue advance manually:
-## Name of the input for manually advancing to the next line
-@export var input_advance_dialogue = "Dialogue_Advance"		#/ Advance to next line
+## Name of the input for manually advancing to the next line (Spoken Lines)
+@export var input_advance_dialogue: String = "Dialogue_Advance"		#/ Advance to next line (Spoken Lines)
 ## Name of the input for speeding up the typewriter.
-@export var input_speed_dialogue = "Dialogue_Speed"			#/ Speed up writing
+@export var input_speed_dialogue: String = "Dialogue_Speed"			#/ Speed up writing
 ## Name of the input for slowing down the typewriter.
-@export var input_slow_dialogue = "Dialogue_Slow"			#/ Slow down writing
+@export var input_slow_dialogue: String = "Dialogue_Slow"			#/ Slow down writing
 ## Name of the input for skipping the typewriter (instant text display).
-@export var input_skip_dialogue = "Dialogue_Skip"			#/ Skip writing
-
+@export var input_skip_dialogue: String = "Dialogue_Skip"			#/ Skip writing
+## Name of the input for manually advancing to the next line (§Player_Advance command)
+@export var input_player_advance: String = "Dialogue_Advance"		#/ Advance to next line (§Player_Advance command)
 
 
 #endregion
@@ -498,7 +536,7 @@ enum MouseModes {None = -1, Visible, Hidden, Captured, Confined, Confined_Hidden
 ## Edit paths or remove keys to match your dialogue UI scene;[br]
 ## Add keys/UI Elements as needed for your custom commands or custom dialogue modes.[br]
 ## NOTE: Media players are added to media_and effect players_locations.
-@export var ui_elements_paths = {
+@export var ui_elements_paths: Dictionary[String, String] = {
 	"backgrounds_path" = "Backgrounds",
 	"busts_path" = "Busts",
 	"dialogue_box_path" = "DialogueBox",
@@ -516,7 +554,7 @@ enum MouseModes {None = -1, Visible, Hidden, Captured, Confined, Confined_Hidden
 ## Paths to media and effect players used by various commands.[br]
 ## Edit paths or remove keys to match your dialogue UI scene, or add keys for your custom media/effect players.[br]
 ## WARNING: Do not rename the "Voice" key (changing its path is OK).
-@export var media_players_locations = {
+@export var media_players_locations: Dictionary[String, String] = {
 	"Voice": "VoicePlayer",									#/ For Spoken Line voice files
 															#/ Don't change "Voice" key name: referenced in various functions for voiced dialogue
 	"PEffect": "Portrait/PortraitEffectPlayer",				#/ AnimationPlayer for portrait effects
@@ -535,15 +573,15 @@ enum MouseModes {None = -1, Visible, Hidden, Captured, Confined, Confined_Hidden
 #? If actor nodes change paths during the course of your game, update dynamicaly.
 #? E.g. make your game update these paths during combat, exploration, cutscenes, etc.
 ## Paths to NPC nodes for "Bubbles" dialogue mode.
-@export var bubbles_npc_path = "/root/Game/Actors"		#/ Path to NPC actor nodes, for speech bubbles.
+@export var bubbles_npc_path: String = "/root/Game/Actors"		#/ Path to NPC actor nodes, for speech bubbles.
 ## Paths to player nodes for "Bubbles" dialogue mode.
-@export var bubbles_player_path = "/root/Game/Actors"	#/ Path to Player actor node, for speech bubbles.
+@export var bubbles_player_path: String = "/root/Game/Actors"	#/ Path to Player actor node, for speech bubbles.
 
 
 #^ Cutscene Commands paths:
 #TODO: Edit paths to fit your game structure, add path keys as needed.
 ## Paths to nodes used by Cutscene (§CS_) commands:
-@export var cs_locations = {
+@export var cs_locations: Dictionary[String, String] = {
 		"Player": "/root/Game/Actors",
 		"Actors": "/root/Game/Actors",
 		"Vehicles": "",
@@ -571,6 +609,9 @@ enum MouseModes {None = -1, Visible, Hidden, Captured, Confined, Confined_Hidden
 
 #^ Dialogue running:
 var dialogue_running = false
+
+#^ Language to use:
+var use_language = ""
 
 #^ Dialogue progression tracking variables:
 var conversation_tracker = ""
@@ -703,7 +744,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var func_name: String 		= command_value.get("Function", "")
 			var args_raw: Variant 		= command_value.get("Arguments", "")
 			var store_var: String		= command_value.get("Variable", "").strip_edges()
-			var await_call: Variant 	= resolve_value(command_value.get("Await", true))
+			var await_call: Variant 	= resolve_value(command_value.get("Await", "1"))
 
 			#% Validate:
 			if func_name == "":
@@ -715,6 +756,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				func_name = resolve_value(candy_de.node_symbol + func_name.substr(1))
 			elif func_name.begins_with(candy_de.super_vardict_symbol):
 				func_name = resolve_value(candy_de.vardict_symbol + func_name.substr(1))
+			elif func_name.begins_with("sv_res://"):
+				func_name = "v_res://" + resolve_value(func_name.substr("sv_res://".length()))
+			elif func_name.begins_with("sv_user://"):
+				func_name = "v_user://" + resolve_value(func_name.substr("sv_user://".length()))
 
 			if typeof(args_raw) == TYPE_STRING:
 				if args_raw.begins_with(candy_de.super_singleton_symbol):
@@ -723,6 +768,21 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
 				elif args_raw.begins_with(candy_de.super_vardict_symbol):
 					args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
+				elif args_raw.begins_with("sv_res://"):
+					args_raw = "v_res://" + resolve_value(args_raw.substr("sv_res://".length()))
+				elif args_raw.begins_with("sv_user://"):
+					args_raw = "v_user://" + resolve_value(args_raw.substr("sv_user://".length()))
+
+			if store_var.begins_with(candy_de.super_singleton_symbol):
+				store_var = resolve_value(candy_de.singleton_symbol + store_var.substr(1))
+			elif store_var.begins_with(candy_de.super_node_symbol):
+				store_var = resolve_value(candy_de.node_symbol + store_var.substr(1))
+			elif store_var.begins_with(candy_de.super_vardict_symbol):
+				store_var = resolve_value(candy_de.vardict_symbol + store_var.substr(1))
+			elif store_var.begins_with("sv_res://"):
+				store_var = "v_res://" + resolve_value(store_var.substr("sv_res://".length()))
+			elif store_var.begins_with("sv_user://"):
+				store_var = "v_user://" + resolve_value(store_var.substr("sv_user://".length()))
 
 			#@ Step 1 - Prepare arguments:
 			var args: Array = []
@@ -771,7 +831,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 					#% Call the method if found:
 					if target and target.has_method(method):
-						if await_call == true:
+						if await_call == "1":
 							result_2 = await target.callv(method, args)
 						else:
 							result_2 = target.callv(method, args)
@@ -789,7 +849,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					var method = path_and_func[1]
 					var node = get_node_or_null(path)
 					if node and node.has_method(method):
-						if await_call == true:
+						if await_call == "1":
 							result_2 = await node.callv(method, args)
 						else:
 							result_2 = node.callv(method, args)
@@ -797,16 +857,19 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			#% Local call (within the current script):
 			else:
 				if has_method(func_name):
-					if await_call == true:
+					if await_call == "1":
 						result_2 = await callv(func_name, args)
 					else:
 						result_2 = callv(func_name, args)
 
 			#% Store the returned value:
 			if store_var != "":
-				var decoded = decode_variable_name(store_var)
-				if decoded["base"] != null:
-					set_variable_value(decoded, result_2)
+				if store_var.begins_with("v_res://") or store_var.begins_with("v_user://"):
+					_set_file_variable(store_var, result_2)
+				else:
+					var decoded = decode_variable_name(store_var)
+					if decoded["base"] != null:
+						set_variable_value(decoded, result_2)
 
 			return "Continue"
 
@@ -826,6 +889,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				signal_name = resolve_value(candy_de.node_symbol + signal_name.substr(1))
 			elif signal_name.begins_with(candy_de.super_vardict_symbol):
 				signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
+			elif signal_name.begins_with("sv_res://"):
+				signal_name = "v_res://" + resolve_value(signal_name.substr("sv_res://".length()))
+			elif signal_name.begins_with("sv_user://"):
+				signal_name = "v_user://" + resolve_value(signal_name.substr("sv_user://".length()))
 
 			if typeof(args_raw) == TYPE_STRING:
 				if args_raw.begins_with(candy_de.super_singleton_symbol):
@@ -834,6 +901,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
 				elif args_raw.begins_with(candy_de.super_vardict_symbol):
 					args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
+				elif args_raw.begins_with("sv_res://"):
+					args_raw = "v_res://" + resolve_value(args_raw.substr("sv_res://".length()))
+				elif args_raw.begins_with("sv_user://"):
+					args_raw = "v_user://" + resolve_value(args_raw.substr("sv_user://".length()))
 
 			#@ Step 1 - Prepare arguments:
 			var args: Array = []
@@ -908,8 +979,8 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 		#* §Await - await on a signal:
 		"§await":
-			var signal_name: String		= command_value.get("Signal", "")
-			var store_var: String		= command_value.get("Variable", "").strip_edges()
+			var signal_name: String     = command_value.get("Signal", "")
+			var store_var: String       = command_value.get("Variable", "").strip_edges()
 
 			#% Validate:
 			if signal_name == "":
@@ -922,10 +993,13 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				signal_name = resolve_value(candy_de.node_symbol + signal_name.substr(1))
 			elif signal_name.begins_with(candy_de.super_vardict_symbol):
 				signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
+			elif signal_name.begins_with("sv_res://"):
+				signal_name = "v_res://" + resolve_value(signal_name.substr("sv_res://".length()))
+			elif signal_name.begins_with("sv_user://"):
+				signal_name = "v_user://" + resolve_value(signal_name.substr("sv_user://".length()))
 
 			#@ Step 1 - Expect format: "target.signal_name"
 			var signal_parts := signal_name.split(".", false)
-
 			if signal_parts.size() != 2:
 				printerr("§Await: Invalid signal format → ", signal_name)
 				return "Continue"
@@ -935,7 +1009,6 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 			#@ Step 2 - Resolve signal target:
 			var signal_target: Object = null
-
 			if path_str.begins_with(candy_de.singleton_symbol) or path_str.begins_with(candy_de.node_symbol) or path_str.begins_with(candy_de.vardict_symbol):
 				var decoded = decode_variable_name(path_str)
 				signal_target = get_variable_value(decoded)
@@ -962,15 +1035,25 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 			#@ Step 5 - Store signal arguments if requested:
 			if store_var != "":
-				var decoded = decode_variable_name(store_var)
-				if decoded["base"] != null:
-					#% Store single value directly, array if multiple, null if none:
-					if args.size() == 0:
-						set_variable_value(decoded, null)
-					elif args.size() == 1:
-						set_variable_value(decoded, args[0])
-					else:
-						set_variable_value(decoded, args)
+				var store_value
+				if args.size() == 0:
+					store_value = null
+				elif args.size() == 1:
+					store_value = args[0]
+				else:
+					store_value = args
+
+				if store_var.begins_with("v_res://") or store_var.begins_with("v_user://"):
+					_set_file_variable(store_var, store_value)
+				else:
+					var decoded = decode_variable_name(store_var)
+					if decoded["base"] != null:
+						if args.size() == 0:
+							set_variable_value(decoded, null)
+						elif args.size() == 1:
+							set_variable_value(decoded, args[0])
+						else:
+							set_variable_value(decoded, args)
 
 			print("[DEBUG] §Await completed → ", sig_str)
 
@@ -998,6 +1081,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				lhs_var = resolve_value(candy_de.node_symbol + lhs_var.substr(1))
 			elif lhs_var.begins_with(candy_de.super_vardict_symbol):
 				lhs_var = resolve_value(candy_de.vardict_symbol + lhs_var.substr(1))
+			elif lhs_var.begins_with("sv_res://"):
+				lhs_var = "v_res://" + resolve_value(lhs_var.substr("sv_res://".length()))
+			elif lhs_var.begins_with("sv_user://"):
+				lhs_var = "v_user://" + resolve_value(lhs_var.substr("sv_user://".length()))
 
 			if expr_line.begins_with(candy_de.super_singleton_symbol):
 				expr_line = resolve_value(candy_de.singleton_symbol + expr_line.substr(1))
@@ -1005,20 +1092,18 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				expr_line = resolve_value(candy_de.node_symbol + expr_line.substr(1))
 			elif expr_line.begins_with(candy_de.super_vardict_symbol):
 				expr_line = resolve_value(candy_de.vardict_symbol + expr_line.substr(1))
-
-			#@ Decode LHS variable reference:
-			var decoded = decode_variable_name(lhs_var)
-			if decoded.is_empty() or decoded["base"] == null:
-				printerr("§Set: invalid variable reference → ", lhs_var)
-				return "Continue"
+			elif expr_line.begins_with("sv_res://"):
+				expr_line = "v_res://" + resolve_value(expr_line.substr("sv_res://".length()))
+			elif expr_line.begins_with("sv_user://"):
+				expr_line = "v_user://" + resolve_value(expr_line.substr("sv_user://".length()))
 
 			#@ Determine RHS value:
 			var rhs_value
+			#% Literal string → strip quotes:
 			if (expr_line.begins_with("'") and expr_line.ends_with("'")) or (expr_line.begins_with("\"") and expr_line.ends_with("\"")):
-				#% Literal string → strip quotes:
 				rhs_value = expr_line.substr(1, expr_line.length() - 2)
+			#% Replace variable symbols with actual values:
 			else:
-				#% Replace variable symbols with actual values:
 				var replaced_expr = _replace_with_values(expr_line)
 				replaced_expr = replaced_expr.replace("'", "\"")	#/ Make quotes safe for Expression
 				var expression = Expression.new()
@@ -1030,14 +1115,21 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					printerr("§Set: runtime error → ", replaced_expr)
 					return "Continue"
 
-			#@ Apply operator:
-			var final_value = calculate_variable_value(decoded, rhs_value, operator)
+			#@ Check if LHS is a file variable reference:
+			if lhs_var.begins_with("v_res://") or lhs_var.begins_with("v_user://"):
+				_set_file_variable(lhs_var, rhs_value, operator)
+				return "Continue"
 
-			#@ Assign value:
-			set_variable_value(decoded, final_value)
-
-			print("[DEBUG] §Set →", lhs_var, operator, expr_line, "=", final_value)
-			return "Continue"
+			#@ Decode LHS variable reference (non-file):
+			else:
+				var decoded = decode_variable_name(lhs_var)
+				if decoded.is_empty() or decoded["base"] == null:
+					printerr("§Set: invalid variable reference → ", lhs_var)
+					return "Continue"
+				var final_value = calculate_variable_value(decoded, rhs_value, operator)
+				set_variable_value(decoded, final_value)
+				print("[DEBUG] §Set →", lhs_var, operator, expr_line, "=", final_value)
+				return "Continue"
 
 
 		#* §Flag - Modify entries in the candy_de.flags dictionary:
@@ -1056,6 +1148,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				expr_line = resolve_value(candy_de.node_symbol + expr_line.substr(1))
 			elif expr_line.begins_with(candy_de.super_vardict_symbol):
 				expr_line = resolve_value(candy_de.vardict_symbol + expr_line.substr(1))
+			elif expr_line.begins_with("sv_res://"):
+				expr_line = "v_res://" + resolve_value(expr_line.substr("sv_res://".length()))
+			elif expr_line.begins_with("sv_user://"):
+				expr_line = "v_user://" + resolve_value(expr_line.substr("sv_user://".length()))
 
 			#@ Decode reference directly into candy_de.flags[flag_expr]:
 			var decoded = {
@@ -1087,6 +1183,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			#@ Assign value:
 			candy_de.flags[flag_expr] = final_value
 
+			#. Hook:
+			if candy_de.has_method("x_flag_changed"):
+				candy_de.x_flag_changed(self, flag_expr, final_value)
+
 			print("[DEBUG] §Flag →", flag_expr, operator, expr_line, "=", final_value)
 			return "Continue"
 
@@ -1096,7 +1196,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var actor_ref: String	= resolve_value(command_value.get("Reference", ""))
 			var new_name: String	= resolve_value(command_value.get("Name", ""))
 			var table_raw: String	= command_value.get("Table", "£candy_de.display_names")
-			var key_raw: String		= resolve_value(command_value.get("Actor_Key", "Display Name"))		#/ Ensures compatibility
+			var key_raw: String		= resolve_value(command_value.get("Actor_Key", "DisplayName"))		#/ Ensures compatibility
 
 			#@ Step 1 - Resolve super symbols at the start:
 			if table_raw.begins_with(candy_de.super_singleton_symbol):
@@ -1105,13 +1205,17 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				table_raw = resolve_value(candy_de.node_symbol + table_raw.substr(1))
 			elif table_raw.begins_with(candy_de.super_vardict_symbol):
 				table_raw = resolve_value(candy_de.vardict_symbol + table_raw.substr(1))
+			elif table_raw.begins_with("sv_res://"):
+				table_raw = "v_res://" + resolve_value(table_raw.substr("sv_res://".length()))
+			elif table_raw.begins_with("sv_user://"):
+				table_raw = "v_user://" + resolve_value(table_raw.substr("sv_user://".length()))
 
 			#@ Step 2 - Resolve Actor_Key if empty:
 			if key_raw == "":
-				key_raw = "Display Name"
+				key_raw = "DisplayName"
 
 			#@ Step 3 - Resolve Table if empty:
-			if key_raw == "Display Name" and table_raw == "":
+			if key_raw == "DisplayName" and table_raw == "":
 				table_raw = "display_names"
 
 			#@ Step 4 - Translate the name (translate() handles table resolution internally):
@@ -1138,14 +1242,19 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 		#* §Role - Change or assign a role mapping in candy_de.roles:
 		"§role":
-			var role_key: String	= resolve_value(command_value.get("Role", ""))
-			var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
+			var raw_role: String = str(command_value.get("Role", ""))
+			var actor_ref: String = str(resolve_value(command_value.get("Reference", "")))
 
-			#@ Step 1 - Resolve actor role if needed:
+			#@ Step 1 - Resolve Role variable reference:
+			var role_key = raw_role
+			if not raw_role.begins_with(candy_de.role_symbol):
+				role_key = str(resolve_value(raw_role))
+
+			#@ Step 2 - Resolve empty actor reference:
 			if actor_ref == "":
 				print_debug("§Role: [CAUTION] A Role Reference is provided for assignment, but has no Actor assigned. Target Role will be cleared.")
 
-			#@ Step 2 - Assign to candy_de.roles:
+			#@ Step 3 - Assign to candy_de.roles:
 			candy_de.roles[role_key] = actor_ref
 
 			return "Continue"
@@ -1166,6 +1275,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				data_str = resolve_value(candy_de.node_symbol + data_str.substr(1))
 			elif data_str.begins_with(candy_de.super_vardict_symbol):
 				data_str = resolve_value(candy_de.vardict_symbol + data_str.substr(1))
+			elif data_str.begins_with("sv_res://"):
+				data_str = "v_res://" + resolve_value(data_str.substr("sv_res://".length()))
+			elif data_str.begins_with("sv_user://"):
+				data_str = "v_user://" + resolve_value(data_str.substr("sv_user://".length()))
 
 			if data_str.is_empty():
 				printerr("§Export: missing Data parameter.")
@@ -1231,6 +1344,35 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 			#@ Export data depending on format:
 			match export_format:
+				"dialogue", ".dialogue": 	#% Export a dialogue dictionary to a .txt file readable by Candy DC and Candy DE:
+											#% The Data field should be a variable reference to a dialogue dictionary:
+					if export_dict.size() != 1:
+						printerr("§Export dialogue: Data field must contain exactly one variable reference to a dialogue dictionary.")
+						return "Continue"
+					var dialogue_data = export_dict.values()[0]
+					if typeof(dialogue_data) != TYPE_DICTIONARY:
+						printerr("§Export dialogue: The referenced variable must be a Dictionary.")
+						return "Continue"
+					var wrapper := {
+						"Meta": {
+							"Exported By": "Candy Dialogue Engine",
+							"Dialogue Version": "1.1.0",
+						},
+						"Dialogue": dialogue_data,
+					}
+					#% Use .txt as the actual file extension since that's what loaders expect:
+					var actual_path = export_folder.path_join(file_name + ".txt")
+					var f = FileAccess.open(actual_path, FileAccess.WRITE)
+					if f == null:
+						printerr("§Export dialogue: Failed to open file for writing → %s" % actual_path)
+						return "Continue"
+					var ascii_hash := "\u0023"
+					f.store_string(ascii_hash + " Exported By: Candy Dialogue Engine\n")
+					f.store_string(ascii_hash + " Dialogue Version: 1.1.0\n\n")
+					f.store_string(var_to_str(wrapper))
+					f.close()
+					print("[DEBUG] §Export dialogue: Wrote dialogue to %s" % actual_path)
+
 				"json", ".json":
 					var serialized := {}
 					for k in export_dict.keys():
@@ -1271,7 +1413,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					file.close()
 					print("[DEBUG] §Export: Wrote %d entries (compressed) to %s" % [export_dict.size(), full_path])
 
-				"b64", "base64":
+				"b64", "base64", ".b64", ".base64":
 					var encoded = Marshalls.variant_to_base64(export_dict)
 					var file = FileAccess.open(full_path, FileAccess.WRITE)
 					file.store_string(encoded)
@@ -1308,6 +1450,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				dict_ref = resolve_value(candy_de.node_symbol + dict_ref.substr(1))
 			elif dict_ref.begins_with(candy_de.super_vardict_symbol):
 				dict_ref = resolve_value(candy_de.vardict_symbol + dict_ref.substr(1))
+			elif dict_ref.begins_with("sv_res://"):
+				dict_ref = "v_res://" + resolve_value(dict_ref.substr("sv_res://".length()))
+			elif dict_ref.begins_with("sv_user://"):
+				dict_ref = "v_user://" + resolve_value(dict_ref.substr("sv_user://".length()))
 
 			#@ Determine folder:
 			var import_folder = candy_de.export_folder
@@ -1336,6 +1482,50 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			#@ Decode depending on format:
 			var imported_data := {}
 			match import_format:
+				"dialogue", ".dialogue":	#% Import a dialogue .txt file, same logic as load_scripted_dialogue:
+											#% Use .txt as actual extension:
+					var actual_path = import_folder.path_join(file_name + ".txt")
+					if not FileAccess.file_exists(actual_path):
+						printerr("§Import dialogue: File not found → %s" % actual_path)
+						return "Continue"
+					var f = FileAccess.open(actual_path, FileAccess.READ)
+					if f == null:
+						printerr("§Import dialogue: Failed to open file → %s" % actual_path)
+						return "Continue"
+					var text_data := f.get_as_text()
+					f.close()
+					#% Strip comment lines:
+					var stripped := []
+					for line in text_data.split("\n"):
+						if not line.strip_edges().begins_with("\u0023"):
+							stripped.append(line)
+					text_data = "\n".join(stripped)
+					#% Normalize:
+					text_data = text_data.replace("<null>", "null").replace("<Null>", "null")
+					var regex_trailing := RegEx.new()
+					regex_trailing.compile(",(\\s*[}\\]])")
+					text_data = regex_trailing.sub(text_data, "$1", true)
+					text_data = text_data.strip_edges()
+					if text_data.ends_with(","):
+						text_data = text_data.substr(0, text_data.length() - 1)
+					#% Parse:
+					var expr := Expression.new()
+					if expr.parse(text_data) != OK:
+						printerr("§Import dialogue: Failed to parse → %s" % actual_path)
+						return "Continue"
+					var result = expr.execute()
+					if expr.has_execute_failed() or typeof(result) != TYPE_DICTIONARY:
+						printerr("§Import dialogue: Failed to evaluate → %s" % actual_path)
+						return "Continue"
+					#% Unwrap if needed:
+					var dialogue_data: Dictionary
+					if result.has("Dialogue"):
+						dialogue_data = result["Dialogue"]
+					else:
+						dialogue_data = result
+					#% Write to target:
+					imported_data = dialogue_data
+
 				"json", ".json":
 					var parsed = JSON.parse_string(content)
 					if typeof(parsed) == TYPE_DICTIONARY:
@@ -1407,7 +1597,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					imported_data = f.get_var()
 					f.close()
 
-				"b64", "base64":
+				"b64", "base64", ".b64", ".base64":
 					imported_data = Marshalls.base64_to_variant(content)
 
 				"tres", "res", ".tres", ".res":
@@ -1425,17 +1615,22 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					printerr("§Import: Unknown format '%s'." % import_format)
 					return "Continue"
 
+			#@ Abort if format = 'dialogue' but no dictionary provided:
+			if import_format == "dialogue" and dict_ref.strip_edges() == "":
+				printerr("§Import dialogue: A Dictionary reference must be provided.")
+				return "Continue"
+
 			#@ Handle target dictionary:
 			if dict_ref.strip_edges() != "":
 				var target_dict = resolve_value(dict_ref)
 				if typeof(target_dict) != TYPE_DICTIONARY:
 					printerr("§Import: Target reference is not a dictionary → %s" % dict_ref)
 					return "Continue"
-
 				for k in imported_data.keys():
 					target_dict[k] = imported_data[k]
+				#% Write back explicitly to ensure the change persists even if target_dict is a copy:
+				set_variable_value(decode_variable_name(dict_ref), target_dict)
 				print("[DEBUG] §Import: Copied %d entries into %s" % [imported_data.size(), dict_ref])
-
 			else:
 				for path_key in imported_data.keys():
 					var value = imported_data[path_key]
@@ -1458,312 +1653,80 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		#region - Condition Commands
 		#* §If - Conditional branch:
 		"§if":
-			var condition_expr: String		= str(command_value.get("Condition", ""))
-			var result: String				= resolve_value(str(command_value.get("Type", "Transition")))
-			var transition_type: String		= resolve_value(str(command_value.get("Transition", "Bridge")))
-			var convo: String				= resolve_value(str(command_value.get("Conversation", "")).strip_edges())
-			var block: String				= resolve_value(str(command_value.get("Block", "")).strip_edges())
-			var line_ref: String			= resolve_value(str(command_value.get("Line", "")).strip_edges())
+			var condition_expr: String = str(command_value.get("Condition", "")).strip_edges()
+			var cmd_type: String = resolve_value(str(command_value.get("Type", ""))).strip_edges()
 
 			if condition_expr == "":
 				return "Continue"
 
-			#@ Handle super-symbols at start
+			#@ Handle super-symbols at start:
 			if condition_expr.begins_with(candy_de.super_singleton_symbol):
 				condition_expr = resolve_value(candy_de.singleton_symbol + condition_expr.substr(1))
 			elif condition_expr.begins_with(candy_de.super_node_symbol):
 				condition_expr = resolve_value(candy_de.node_symbol + condition_expr.substr(1))
 			elif condition_expr.begins_with(candy_de.super_vardict_symbol):
 				condition_expr = resolve_value(candy_de.vardict_symbol + condition_expr.substr(1))
+			elif condition_expr.begins_with("sv_res://"):
+				condition_expr = "v_res://" + resolve_value(condition_expr.substr("sv_res://".length()))
+			elif condition_expr.begins_with("sv_user://"):
+				condition_expr = "v_user://" + resolve_value(condition_expr.substr("sv_user://".length()))
 
-			#@ Replace Candy variable references in the condition
+			#@ Replace Candy variable references in the condition:
 			var expr_line = _replace_with_values(condition_expr)
-			expr_line = expr_line.replace("'", "\"")	#/ Make quotes safe for Expression
+			expr_line = expr_line.replace("'", "\"")
+			print("[DEBUG] condition_expr: ", condition_expr)
+			print("[DEBUG] expr_line after replace: ", expr_line)
 
-			#@ Evaluate the condition
+			#@ Pad if_array to match depth index:
+			while if_array.size() < nesting_depth:
+				if_array.append(0)
+
+			#@ Evaluate the condition:
 			var expression = Expression.new()
 			if expression.parse(expr_line) != OK:
 				printerr("§If: failed to parse → ", expr_line)
+				if if_array.size() > nesting_depth:
+					if_array.remove_at(nesting_depth)
 				if_array.insert(nesting_depth, 0)
 				return "Continue"
 
 			var cond_result = expression.execute()
 			if expression.has_execute_failed():
 				printerr("§If: runtime error → ", expr_line)
+				if if_array.size() > nesting_depth:
+					if_array.remove_at(nesting_depth)
 				if_array.insert(nesting_depth, 0)
 				return "Continue"
 
-			#% Remove any existing chain at this depth
+			#@ Remove any existing chain at this depth:
 			if if_array.size() > nesting_depth:
 				if_array.remove_at(nesting_depth)
 
-			#% Create new open chain (0 = false, 1 = true)
+			#@ Create new open chain (0 = false, 1 = true):
 			if_array.insert(nesting_depth, 1 if cond_result else 0)
 			print("[DEBUG] §If chain at depth %d → if_array=%s" % [nesting_depth, str(if_array)])
+
 			if cond_result:
-				print("[DEBUG] §If condition TRUE at depth %d" % nesting_depth)
+				print("[DEBUG] §If condition TRUE at depth %d, type: %s" % [nesting_depth, cmd_type])
 
-				#% Handle depending on result type:
-				match result.to_lower():
-					"transition":
-						#% Transition logic (Bridge, Jump, etc.):
-						match transition_type.to_lower():
-							"bridge", "jump":
-								var cmd_to_run := "§Bridge" if transition_type.to_lower() == "bridge" else "§Jump"
+				var dialogue_commands: Dictionary = command_value.get("Commands", {})
+				if dialogue_commands.is_empty():
+					printerr("§If: condition TRUE but no Commands defined.")
+					return "Continue"
 
-								#% Prepare fake transition line (simulating old Text array with one command):
-								var fake_line := [
-									{
-										cmd_to_run: {
-											"Conversation": convo,
-											"Block": block,
-											"Line": line_ref,
-										}
-									}
-								]
+				#@ Build fake_line from Commands and run it:
+				var fake_line := []
+				for cmd_key in dialogue_commands.keys():
+					fake_line.append({ cmd_key: dialogue_commands[cmd_key] })
 
-								#% Run that command like a nested block:
-								nesting_depth += 1
-								var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-								nesting_depth -= 1
-								print("[DEBUG] Exiting §If body at depth %d → if_array=%s" % [nesting_depth, str(if_array)])
+				nesting_depth += 1
+				var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
+				nesting_depth -= 1
+				print("[DEBUG] Exiting §If body at depth %d → if_array=%s" % [nesting_depth, str(if_array)])
 
-								if feedback == "END":
-									return "END"
-
-							"return":
-								print("[DEBUG] §If → §Return triggered at depth %d" % nesting_depth)
-								return "Return"
-
-							"end":
-								print("[DEBUG] §If → §End triggered at depth %d" % nesting_depth)
-								end_dialogue()
-								return "END"
-
-							_:
-								print("[DEBUG] Unknown §If transition type: %s" % transition_type)
-
-					"set":
-						var lhs_var: String			= command_value.get("Variable", "")
-						var operator: String		= resolve_value(command_value.get("Operator", "="))
-						var set_expr_line: String	= command_value.get("Expression", "")
-
-						if set_expr_line.is_empty():
-							printerr("§Set: empty expression")
-							return "Continue"
-
-						if set_expr_line.begins_with(candy_de.super_singleton_symbol):
-							set_expr_line = resolve_value(candy_de.singleton_symbol + set_expr_line.substr(1))
-						elif set_expr_line.begins_with(candy_de.super_node_symbol):
-							set_expr_line = resolve_value(candy_de.node_symbol + set_expr_line.substr(1))
-						elif set_expr_line.begins_with(candy_de.super_vardict_symbol):
-							set_expr_line = resolve_value(candy_de.vardict_symbol + set_expr_line.substr(1))
-
-						var fake_line := [
-							{
-								"§Set": {
-									"Variable": lhs_var,
-									"Operator": operator,
-									"Expression": set_expr_line
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Set at depth %d" % nesting_depth)
-						return feedback
-
-					"call":
-						var func_name: String 		= command_value.get("Function", "")
-						var args_raw: Variant 		= command_value.get("Arguments", "")
-						var store_var: String		= command_value.get("Variable", "").strip_edges()
-						var await_call: Variant 	= resolve_value(command_value.get("Await", true))
-
-						if func_name.begins_with(candy_de.super_singleton_symbol):
-							func_name = resolve_value(candy_de.singleton_symbol + func_name.substr(1))
-						elif func_name.begins_with(candy_de.super_node_symbol):
-							func_name = resolve_value(candy_de.node_symbol + func_name.substr(1))
-						elif func_name.begins_with(candy_de.super_vardict_symbol):
-							func_name = resolve_value(candy_de.vardict_symbol + func_name.substr(1))
-
-						if typeof(args_raw) == TYPE_STRING:
-							if args_raw.begins_with(candy_de.super_singleton_symbol):
-								args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-							elif args_raw.begins_with(candy_de.super_node_symbol):
-								args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-							elif args_raw.begins_with(candy_de.super_vardict_symbol):
-								args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
-
-						var fake_line := [
-							{
-								"§Call": {
-									"Function": func_name,
-									"Arguments": args_raw,
-									"Variable": store_var,
-									"Await": await_call,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Call at depth %d" % nesting_depth)
-						return feedback
-
-					"emit":
-						var signal_name: String	= command_value.get("Signal", "")
-						var args_raw: Variant 	= command_value.get("Arguments", "")
-
-						#% Validate:
-						if signal_name == "":
-							return "Continue"
-
-						if signal_name.begins_with(candy_de.super_singleton_symbol):
-							signal_name = resolve_value(candy_de.singleton_symbol + signal_name.substr(1))
-						elif signal_name.begins_with(candy_de.super_node_symbol):
-							signal_name = resolve_value(candy_de.node_symbol + signal_name.substr(1))
-						elif signal_name.begins_with(candy_de.super_vardict_symbol):
-							signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
-
-						if typeof(args_raw) == TYPE_STRING:
-							if args_raw.begins_with(candy_de.super_singleton_symbol):
-								args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-							elif args_raw.begins_with(candy_de.super_node_symbol):
-								args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-							elif args_raw.begins_with(candy_de.super_vardict_symbol):
-								args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
-
-						var fake_line := [
-							{
-								"§Emit": {
-									"Signal": signal_name,
-									"Arguments": args_raw
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Emit at depth %d" % nesting_depth)
-						return feedback
-
-					"await":
-						var signal_name: String = command_value.get("Signal", "")
-						var store_var: String   = command_value.get("Variable", "").strip_edges()
-
-						if signal_name == "":
-							return "Continue"
-
-						if signal_name.begins_with(candy_de.super_singleton_symbol):
-							signal_name = resolve_value(candy_de.singleton_symbol + signal_name.substr(1))
-						elif signal_name.begins_with(candy_de.super_node_symbol):
-							signal_name = resolve_value(candy_de.node_symbol + signal_name.substr(1))
-						elif signal_name.begins_with(candy_de.super_vardict_symbol):
-							signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
-
-						var fake_line := [
-							{
-								"§Await": {
-									"Signal": signal_name,
-									"Variable": store_var,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Await at depth %d" % nesting_depth)
-						return feedback
-
-					"flag":
-						var flag_name: String		= resolve_value(command_value.get("Flag", "").strip_edges())
-						var operator: String		= resolve_value(command_value.get("Operator", "="))
-						var flag_expr_line: String	= command_value.get("Expression", "")
-
-						if flag_expr_line.begins_with(candy_de.super_singleton_symbol):
-							flag_expr_line = resolve_value(candy_de.singleton_symbol + flag_expr_line.substr(1))
-						elif flag_expr_line.begins_with(candy_de.super_node_symbol):
-							flag_expr_line = resolve_value(candy_de.node_symbol + flag_expr_line.substr(1))
-						elif flag_expr_line.begins_with(candy_de.super_vardict_symbol):
-							flag_expr_line = resolve_value(candy_de.vardict_symbol + flag_expr_line.substr(1))
-
-						var fake_line := [
-							{
-								"§Flag": {
-									"Flag": flag_name,
-									"Operator": operator,
-									"Expression": flag_expr_line,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Flag at depth %d" % nesting_depth)
-						return feedback
-
-					"name":
-						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
-						var new_name: String 	= resolve_value(command_value.get("Name", ""))
-						var table_raw: String 	= command_value.get("Table", "£candy_de.display_names")
-						var key_raw: String 	= resolve_value(command_value.get("Actor_Key", "Display Name"))
-
-						var fake_line := [
-							{
-								"§Name": {
-									"Reference": actor_ref,
-									"Name": new_name,
-									"Table": table_raw,
-									"Actor_Key": key_raw,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Name at depth %d" % nesting_depth)
-						return feedback
-
-					"disposition":
-						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
-						var new_disp: String 	= resolve_value(command_value.get("Disposition", ""))
-
-						var fake_line := [
-							{
-								"§Disposition": {
-									"Reference": actor_ref,
-									"Disposition": new_disp,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Disposition at depth %d" % nesting_depth)
-						return feedback
-
-					"role":
-						var role_key: String	= resolve_value(command_value.get("Role", ""))
-						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
-
-						var fake_line := [
-							{
-								"§Role": {
-									"Role": role_key,
-									"Reference": actor_ref,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Role at depth %d" % nesting_depth)
-						return feedback
-
-					_:
-						#% Failsafe
-						print("[DEBUG] §If condition TRUE but result type '%s' not handled yet." % result)
+				if feedback == "END":
+					return "END"
+				return feedback
 
 			else:
 				print("[DEBUG] §If condition FALSE at depth %d" % nesting_depth)
@@ -1773,12 +1736,8 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 		#* §Elif - Continue the same conditional chain:
 		"§elif":
-			var condition_expr: String		= str(command_value.get("Condition", ""))
-			var result: String				= resolve_value(str(command_value.get("Type", "Transition")))
-			var transition_type: String		= resolve_value(str(command_value.get("Transition", "Bridge")))
-			var convo: String				= resolve_value(str(command_value.get("Conversation", "")).strip_edges())
-			var block: String				= resolve_value(str(command_value.get("Block", "")).strip_edges())
-			var line_ref: String			= resolve_value(str(command_value.get("Line", "")).strip_edges())
+			var condition_expr: String = str(command_value.get("Condition", "")).strip_edges()
+			var cmd_type: String = resolve_value(str(command_value.get("Type", ""))).strip_edges()
 
 			#@ Resolve super symbols at start:
 			if condition_expr.begins_with(candy_de.super_singleton_symbol):
@@ -1787,16 +1746,24 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				condition_expr = resolve_value(candy_de.node_symbol + condition_expr.substr(1))
 			elif condition_expr.begins_with(candy_de.super_vardict_symbol):
 				condition_expr = resolve_value(candy_de.vardict_symbol + condition_expr.substr(1))
+			elif condition_expr.begins_with("sv_res://"):
+				condition_expr = "v_res://" + resolve_value(condition_expr.substr("sv_res://".length()))
+			elif condition_expr.begins_with("sv_user://"):
+				condition_expr = "v_user://" + resolve_value(condition_expr.substr("sv_user://".length()))
+
+			#@ Pad if_array to match depth index:
+			while if_array.size() < nesting_depth:
+				if_array.append(0)
 
 			#@ Skip if chain already executed at this depth:
 			if if_array.size() > nesting_depth and if_array[nesting_depth] == 1:
 				return "Continue"
 
-			#@ Replace Candy variable references in the condition
+			#@ Replace Candy variable references in the condition:
 			var expr_line = _replace_with_values(condition_expr)
-			expr_line = expr_line.replace("'", "\"")	#/ Make quotes safe for Expression
+			expr_line = expr_line.replace("'", "\"")
 
-			#@ Evaluate condition with Expression:
+			#@ Evaluate condition:
 			var expr = Expression.new()
 			if expr.parse(expr_line) != OK:
 				printerr("§Elif: failed to parse condition → ", expr_line)
@@ -1815,546 +1782,61 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 			print("[DEBUG] §Elif condition at depth %d → %s" % [nesting_depth, str(cond_result)])
 
-			#@ Handle depending on result type:
 			if cond_result:
-				match result.to_lower():
-					"transition":
-						#% Transition logic (Bridge, Jump, etc.):
-						match transition_type.to_lower():
-							"bridge", "jump":
-								var cmd_to_run := "§Bridge" if transition_type.to_lower() == "bridge" else "§Jump"
+				print("[DEBUG] §Elif condition TRUE at depth %d, type: %s" % [nesting_depth, cmd_type])
 
-								#% Build fake single-line transition command:
-								var fake_line := [
-									{
-										cmd_to_run: {
-											"Conversation": convo,
-											"Block": block,
-											"Line": line_ref,
-										}
-									}
-								]
+				var dialogue_commands: Dictionary = command_value.get("Commands", {})
+				if dialogue_commands.is_empty():
+					printerr("§Elif: condition TRUE but no Commands defined.")
+					return "Continue"
 
-								nesting_depth += 1
-								var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-								nesting_depth -= 1
-								print("[DEBUG] Exiting §Elif body at depth %d → if_array=%s" % [nesting_depth, str(if_array)])
+				var fake_line := []
+				for cmd_key in dialogue_commands.keys():
+					fake_line.append({ cmd_key: dialogue_commands[cmd_key] })
 
-								if feedback == "END":
-									return "END"
+				nesting_depth += 1
+				var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
+				nesting_depth -= 1
+				print("[DEBUG] Exiting §Elif body at depth %d → if_array=%s" % [nesting_depth, str(if_array)])
 
-							"return":
-								print("[DEBUG] §Elif → §Return triggered at depth %d" % nesting_depth)
-								return "Return"
-
-							"end":
-								print("[DEBUG] §Elif → §End triggered at depth %d" % nesting_depth)
-								end_dialogue()
-								return "END"
-
-							_:
-								print("[DEBUG] Unknown §Elif transition type: %s" % transition_type)
-
-					"set":
-						var lhs_var: String = command_value.get("Variable", "")
-						var operator: String = resolve_value(command_value.get("Operator", "="))
-						var set_expr_line: String = command_value.get("Expression", "")
-
-						if set_expr_line.is_empty():
-							printerr("§Set: empty expression")
-							return "Continue"
-
-						if set_expr_line.begins_with(candy_de.super_singleton_symbol):
-							set_expr_line = resolve_value(candy_de.singleton_symbol + set_expr_line.substr(1))
-						elif set_expr_line.begins_with(candy_de.super_node_symbol):
-							set_expr_line = resolve_value(candy_de.node_symbol + set_expr_line.substr(1))
-						elif set_expr_line.begins_with(candy_de.super_vardict_symbol):
-							set_expr_line = resolve_value(candy_de.vardict_symbol + set_expr_line.substr(1))
-
-						var fake_line := [
-							{
-								"§Set": {
-									"Variable": lhs_var,
-									"Operator": operator,
-									"Expression": set_expr_line
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Set at depth %d" % nesting_depth)
-						return feedback
-
-					"call":
-						var func_name: String 		= command_value.get("Function", "")
-						var args_raw: Variant 		= command_value.get("Arguments", "")
-						var store_var: String		= command_value.get("Variable", "").strip_edges()
-						var await_call: Variant 	= resolve_value(command_value.get("Await", true))
-
-						if func_name.begins_with(candy_de.super_singleton_symbol):
-							func_name = resolve_value(candy_de.singleton_symbol + func_name.substr(1))
-						elif func_name.begins_with(candy_de.super_node_symbol):
-							func_name = resolve_value(candy_de.node_symbol + func_name.substr(1))
-						elif func_name.begins_with(candy_de.super_vardict_symbol):
-							func_name = resolve_value(candy_de.vardict_symbol + func_name.substr(1))
-
-						if typeof(args_raw) == TYPE_STRING:
-							if args_raw.begins_with(candy_de.super_singleton_symbol):
-								args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-							elif args_raw.begins_with(candy_de.super_node_symbol):
-								args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-							elif args_raw.begins_with(candy_de.super_vardict_symbol):
-								args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
-
-						var fake_line := [
-							{
-								"§Call": {
-									"Function": func_name,
-									"Arguments": args_raw,
-									"Variable": store_var,
-									"Await": await_call,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Call at depth %d" % nesting_depth)
-						return feedback
-
-					"emit":
-						var signal_name: String	= command_value.get("Signal", "")
-						var args_raw: Variant 	= command_value.get("Arguments", "")
-
-						#% Validate:
-						if signal_name == "":
-							return "Continue"
-
-						if signal_name.begins_with(candy_de.super_singleton_symbol):
-							signal_name = resolve_value(candy_de.singleton_symbol + signal_name.substr(1))
-						elif signal_name.begins_with(candy_de.super_node_symbol):
-							signal_name = resolve_value(candy_de.node_symbol + signal_name.substr(1))
-						elif signal_name.begins_with(candy_de.super_vardict_symbol):
-							signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
-
-						if typeof(args_raw) == TYPE_STRING:
-							if args_raw.begins_with(candy_de.super_singleton_symbol):
-								args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-							elif args_raw.begins_with(candy_de.super_node_symbol):
-								args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-							elif args_raw.begins_with(candy_de.super_vardict_symbol):
-								args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
-
-						var fake_line := [
-							{
-								"§Emit": {
-									"Signal": signal_name,
-									"Arguments": args_raw
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Emit at depth %d" % nesting_depth)
-						return feedback
-
-					"await":
-						var signal_name: String = command_value.get("Signal", "")
-						var store_var: String   = command_value.get("Variable", "").strip_edges()
-
-						if signal_name == "":
-							return "Continue"
-
-						if signal_name.begins_with(candy_de.super_singleton_symbol):
-							signal_name = resolve_value(candy_de.singleton_symbol + signal_name.substr(1))
-						elif signal_name.begins_with(candy_de.super_node_symbol):
-							signal_name = resolve_value(candy_de.node_symbol + signal_name.substr(1))
-						elif signal_name.begins_with(candy_de.super_vardict_symbol):
-							signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
-
-						var fake_line := [
-							{
-								"§Await": {
-									"Signal": signal_name,
-									"Variable": store_var,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Await at depth %d" % nesting_depth)
-						return feedback
-
-					"flag":
-						var flag_name: String		= resolve_value(command_value.get("Flag", "").strip_edges())
-						var operator: String		= resolve_value(command_value.get("Operator", "="))
-						var flag_expr_line: String	= command_value.get("Expression", "")
-
-						if flag_expr_line.begins_with(candy_de.super_singleton_symbol):
-							flag_expr_line = resolve_value(candy_de.singleton_symbol + flag_expr_line.substr(1))
-						elif flag_expr_line.begins_with(candy_de.super_node_symbol):
-							flag_expr_line = resolve_value(candy_de.node_symbol + flag_expr_line.substr(1))
-						elif flag_expr_line.begins_with(candy_de.super_vardict_symbol):
-							flag_expr_line = resolve_value(candy_de.vardict_symbol + flag_expr_line.substr(1))
-
-						var fake_line := [
-							{
-								"§Flag": {
-									"Flag": flag_name,
-									"Operator": operator,
-									"Expression": flag_expr_line,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Flag at depth %d" % nesting_depth)
-						return feedback
-
-					"name":
-						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
-						var new_name: String 	= resolve_value(command_value.get("Name", ""))
-						var table_raw: String 	= command_value.get("Table", "£candy_de.display_names")
-						var key_raw: String 	= resolve_value(command_value.get("Actor_Key", "Display Name"))
-
-						var fake_line := [
-							{
-								"§Name": {
-									"Reference": actor_ref,
-									"Name": new_name,
-									"Table": table_raw,
-									"Actor_Key": key_raw,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Name at depth %d" % nesting_depth)
-						return feedback
-
-					"disposition":
-						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
-						var new_disp: String 	= resolve_value(command_value.get("Disposition", ""))
-
-						var fake_line := [
-							{
-								"§Disposition": {
-									"Reference": actor_ref,
-									"Disposition": new_disp,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Disposition at depth %d" % nesting_depth)
-						return feedback
-
-					"role":
-						var role_key: String	= resolve_value(command_value.get("Role", ""))
-						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
-
-						var fake_line := [
-							{
-								"§Role": {
-									"Role": role_key,
-									"Reference": actor_ref,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Role at depth %d" % nesting_depth)
-						return feedback
-
-					_:
-						#% Failsafe
-						print("[DEBUG] §If condition TRUE but result type '%s' not handled yet." % result)
+				if feedback == "END":
+					return "END"
+				return feedback
 
 			return "Continue"
 
 
 		#* §Else - Fallback for the chain:
 		"§else":
-			var result: String				= resolve_value(str(command_value.get("Type", "Transition")))
-			var transition_type: String		= resolve_value(str(command_value.get("Transition", "Bridge")))
-			var convo: String				= resolve_value(str(command_value.get("Conversation", "")).strip_edges())
-			var block: String				= resolve_value(str(command_value.get("Block", "")).strip_edges())
-			var line_ref: String			= resolve_value(str(command_value.get("Line", "")).strip_edges())
+			var cmd_type: String = resolve_value(str(command_value.get("Type", ""))).strip_edges()
+
+			#@ Pad if_array to match depth index:
+			while if_array.size() < nesting_depth:
+				if_array.append(0)
 
 			#@ Only run if no previous condition succeeded at this depth:
 			if if_array.size() > nesting_depth:
 				if if_array[nesting_depth] == 0:
 					if_array[nesting_depth] = 1
-					print("[DEBUG] §Else taken at depth %d" % nesting_depth)
+					print("[DEBUG] §Else taken at depth %d, type: %s" % [nesting_depth, cmd_type])
 
-					#% Handle depending on result type:
-					match result.to_lower():
-						"transition":
-							#% Transition logic (Bridge, Jump, etc.):
-							match transition_type.to_lower():
-								"bridge", "jump":
-									var cmd_to_run := "§Bridge" if transition_type.to_lower() == "bridge" else "§Jump"
+					var dialogue_commands: Dictionary = command_value.get("Commands", {})
+					if dialogue_commands.is_empty():
+						printerr("§Else: triggered but no Commands defined.")
+						return "Continue"
 
-									#% Build fake transition dictionary:
-									var fake_line := [
-										{
-											cmd_to_run: {
-												"Conversation": convo,
-												"Block": block,
-												"Line": line_ref,
-											}
-										}
-									]
+					var fake_line := []
+					for cmd_key in dialogue_commands.keys():
+						fake_line.append({ cmd_key: dialogue_commands[cmd_key] })
 
-									#@ Execute nested body
-									nesting_depth += 1
-									var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-									nesting_depth -= 1
-									print("[DEBUG] Exiting §Else body at depth %d → if_array=%s" % [nesting_depth, str(if_array)])
+					nesting_depth += 1
+					var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
+					nesting_depth -= 1
+					print("[DEBUG] Exiting §Else body at depth %d → if_array=%s" % [nesting_depth, str(if_array)])
 
-									if feedback == "END":
-										return "END"
-
-								"return":
-									print("[DEBUG] §Else → §Return triggered at depth %d" % nesting_depth)
-									return "Return"
-
-								"end":
-									print("[DEBUG] §Else → §End triggered at depth %d" % nesting_depth)
-									end_dialogue()
-									return "END"
-
-								_:
-									print("[DEBUG] Unknown §Else transition type: %s" % transition_type)
-
-						"set":
-							var lhs_var: String = command_value.get("Variable", "")
-							var operator: String = resolve_value(command_value.get("Operator", "="))
-							var set_expr_line: String = command_value.get("Expression", "")
-
-							if set_expr_line.is_empty():
-								printerr("§Set: empty expression")
-								return "Continue"
-
-							if set_expr_line.begins_with(candy_de.super_singleton_symbol):
-								set_expr_line = resolve_value(candy_de.singleton_symbol + set_expr_line.substr(1))
-							elif set_expr_line.begins_with(candy_de.super_node_symbol):
-								set_expr_line = resolve_value(candy_de.node_symbol + set_expr_line.substr(1))
-							elif set_expr_line.begins_with(candy_de.super_vardict_symbol):
-								set_expr_line = resolve_value(candy_de.vardict_symbol + set_expr_line.substr(1))
-
-							var fake_line := [
-								{
-									"§Set": {
-										"Variable": lhs_var,
-										"Operator": operator,
-										"Expression": set_expr_line
-									}
-								}
-							]
-							nesting_depth += 1
-							var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-							nesting_depth -= 1
-							print("[DEBUG] Exiting §If Set at depth %d" % nesting_depth)
-							return feedback
-
-						"call":
-							var func_name: String 		= command_value.get("Function", "")
-							var args_raw: Variant 		= command_value.get("Arguments", "")
-							var store_var: String		= command_value.get("Variable", "").strip_edges()
-							var await_call: Variant 	= resolve_value(command_value.get("Await", true))
-
-							if func_name.begins_with(candy_de.super_singleton_symbol):
-								func_name = resolve_value(candy_de.singleton_symbol + func_name.substr(1))
-							elif func_name.begins_with(candy_de.super_node_symbol):
-								func_name = resolve_value(candy_de.node_symbol + func_name.substr(1))
-							elif func_name.begins_with(candy_de.super_vardict_symbol):
-								func_name = resolve_value(candy_de.vardict_symbol + func_name.substr(1))
-
-							if typeof(args_raw) == TYPE_STRING:
-								if args_raw.begins_with(candy_de.super_singleton_symbol):
-									args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-								elif args_raw.begins_with(candy_de.super_node_symbol):
-									args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-								elif args_raw.begins_with(candy_de.super_vardict_symbol):
-									args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
-
-							var fake_line := [
-								{
-									"§Call": {
-										"Function": func_name,
-										"Arguments": args_raw,
-										"Variable": store_var,
-										"Await": await_call,
-									}
-								}
-							]
-							nesting_depth += 1
-							var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-							nesting_depth -= 1
-							print("[DEBUG] Exiting §If Call at depth %d" % nesting_depth)
-							return feedback
-
-						"emit":
-							var signal_name: String	= command_value.get("Signal", "")
-							var args_raw: Variant 	= command_value.get("Arguments", "")
-
-							#% Validate:
-							if signal_name == "":
-								return "Continue"
-
-							if signal_name.begins_with(candy_de.super_singleton_symbol):
-								signal_name = resolve_value(candy_de.singleton_symbol + signal_name.substr(1))
-							elif signal_name.begins_with(candy_de.super_node_symbol):
-								signal_name = resolve_value(candy_de.node_symbol + signal_name.substr(1))
-							elif signal_name.begins_with(candy_de.super_vardict_symbol):
-								signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
-
-							if typeof(args_raw) == TYPE_STRING:
-								if args_raw.begins_with(candy_de.super_singleton_symbol):
-									args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-								elif args_raw.begins_with(candy_de.super_node_symbol):
-									args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-								elif args_raw.begins_with(candy_de.super_vardict_symbol):
-									args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
-
-							var fake_line := [
-								{
-									"§Emit": {
-										"Signal": signal_name,
-										"Arguments": args_raw
-									}
-								}
-							]
-							nesting_depth += 1
-							var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-							nesting_depth -= 1
-							print("[DEBUG] Exiting §If Emit at depth %d" % nesting_depth)
-							return feedback
-
-						"await":
-							var signal_name: String = command_value.get("Signal", "")
-							var store_var: String   = command_value.get("Variable", "").strip_edges()
-
-							if signal_name == "":
-								return "Continue"
-
-							if signal_name.begins_with(candy_de.super_singleton_symbol):
-								signal_name = resolve_value(candy_de.singleton_symbol + signal_name.substr(1))
-							elif signal_name.begins_with(candy_de.super_node_symbol):
-								signal_name = resolve_value(candy_de.node_symbol + signal_name.substr(1))
-							elif signal_name.begins_with(candy_de.super_vardict_symbol):
-								signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
-
-							var fake_line := [
-								{
-									"§Await": {
-										"Signal": signal_name,
-										"Variable": store_var,
-									}
-								}
-							]
-							nesting_depth += 1
-							var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-							nesting_depth -= 1
-							print("[DEBUG] Exiting §If Await at depth %d" % nesting_depth)
-							return feedback
-
-						"flag":
-							var flag_name: String		= resolve_value(command_value.get("Flag", "").strip_edges())
-							var operator: String		= resolve_value(command_value.get("Operator", "="))
-							var flag_expr_line: String	= command_value.get("Expression", "")
-
-							if flag_expr_line.begins_with(candy_de.super_singleton_symbol):
-								flag_expr_line = resolve_value(candy_de.singleton_symbol + flag_expr_line.substr(1))
-							elif flag_expr_line.begins_with(candy_de.super_node_symbol):
-								flag_expr_line = resolve_value(candy_de.node_symbol + flag_expr_line.substr(1))
-							elif flag_expr_line.begins_with(candy_de.super_vardict_symbol):
-								flag_expr_line = resolve_value(candy_de.vardict_symbol + flag_expr_line.substr(1))
-
-							var fake_line := [
-								{
-									"§Flag": {
-										"Flag": flag_name,
-										"Operator": operator,
-										"Expression": flag_expr_line,
-									}
-								}
-							]
-							nesting_depth += 1
-							var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-							nesting_depth -= 1
-							print("[DEBUG] Exiting §If Flag at depth %d" % nesting_depth)
-							return feedback
-
-						"name":
-							var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
-							var new_name: String 	= resolve_value(command_value.get("Name", ""))
-							var table_raw: String 	= command_value.get("Table", "£candy_de.display_names")
-							var key_raw: String 	= resolve_value(command_value.get("Actor_Key", "Display Name"))
-
-							var fake_line := [
-								{
-									"§Name": {
-										"Reference": actor_ref,
-										"Name": new_name,
-										"Table": table_raw,
-										"Actor_Key": key_raw,
-									}
-								}
-							]
-							nesting_depth += 1
-							var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-							nesting_depth -= 1
-							print("[DEBUG] Exiting §If Name at depth %d" % nesting_depth)
-							return feedback
-
-						"disposition":
-							var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
-							var new_disp: String 	= resolve_value(command_value.get("Disposition", ""))
-
-							var fake_line := [
-								{
-									"§Disposition": {
-										"Reference": actor_ref,
-										"Disposition": new_disp,
-									}
-								}
-							]
-							nesting_depth += 1
-							var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-							nesting_depth -= 1
-							print("[DEBUG] Exiting §If Disposition at depth %d" % nesting_depth)
-							return feedback
-
-						"role":
-							var role_key: String	= resolve_value(command_value.get("Role", ""))
-							var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
-
-							var fake_line := [
-								{
-									"§Role": {
-										"Role": role_key,
-										"Reference": actor_ref,
-									}
-								}
-							]
-							nesting_depth += 1
-							var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-							nesting_depth -= 1
-							print("[DEBUG] Exiting §If Role at depth %d" % nesting_depth)
-							return feedback
-
-						_:
-							#% Failsafe
-							print("[DEBUG] §If condition TRUE but result type '%s' not handled yet." % result)
+					if feedback == "END":
+						return "END"
+					return feedback
 
 				else:
 					print("[DEBUG] §Else skipped (chain already closed) at depth %d" % nesting_depth)
@@ -2365,11 +1847,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		#* §For - Iterate over a condition-based sequence:
 		"§for":
 			var condition_expr: String = str(command_value.get("Condition", "")).strip_edges()
-			var result: String = resolve_value(str(command_value.get("Type", "Transition")))
-			var transition_type: String = resolve_value(str(command_value.get("Transition", "Bridge")))
-			var convo: String = resolve_value(str(command_value.get("Conversation", "")).strip_edges())
-			var block: String = resolve_value(str(command_value.get("Block", "")).strip_edges())
-			var line_ref: String = resolve_value(str(command_value.get("Line", "")).strip_edges())
+			var cmd_type: String = resolve_value(str(command_value.get("Type", ""))).strip_edges()
 
 			#@ Resolve super symbols:
 			if condition_expr.begins_with(candy_de.super_singleton_symbol):
@@ -2378,6 +1856,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				condition_expr = resolve_value(candy_de.node_symbol + condition_expr.substr(1))
 			elif condition_expr.begins_with(candy_de.super_vardict_symbol):
 				condition_expr = resolve_value(candy_de.vardict_symbol + condition_expr.substr(1))
+			elif condition_expr.begins_with("sv_res://"):
+				condition_expr = "v_res://" + resolve_value(condition_expr.substr("sv_res://".length()))
+			elif condition_expr.begins_with("sv_user://"):
+				condition_expr = "v_user://" + resolve_value(condition_expr.substr("sv_user://".length()))
 
 			#@ Resolve Candy references in the entire condition before parsing:
 			condition_expr = _replace_with_values(condition_expr)
@@ -2391,11 +1873,9 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var loop_var = parts[0].strip_edges()
 			var iterable_expr = parts[1].strip_edges()
 
-			#@ Step 2 - Evaluate iterable using Expression:
+			#@ Step 2 - Evaluate iterable:
 			var iterable: Array = []
-
-			#% Extract RHS of "<var> in <iterable>":
-			var rhs_text = iterable_expr.replace("'", "\"")		#/ Make quotes safe for Expression
+			var rhs_text = iterable_expr.replace("'", "\"")
 
 			#% Special case: range():
 			if rhs_text.begins_with("range("):
@@ -2444,268 +1924,23 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			if not for_.has(loop_var):
 				for_[loop_var] = null
 
-			#@ Step 4 - Helper - run the body for each iteration:
-			var run_body := func() -> Variant:
-				match result.to_lower():
-					"transition":
-						match transition_type.to_lower():
-							"bridge", "jump":
-								var cmd_to_run := "§Bridge" if transition_type.to_lower() == "bridge" else "§Jump"
-								var fake_line := [
-									{
-										cmd_to_run: {
-											"Conversation": convo,
-											"Block": block,
-											"Line": line_ref,
-										}
-									}
-								]
+			#@ Step 4 - Build fake_line from Commands:
+			var dialogue_commands: Dictionary = command_value.get("Commands", {})
+			if dialogue_commands.is_empty():
+				printerr("§For: no Commands defined.")
+				return "Continue"
 
-								nesting_depth += 1
-								var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-								nesting_depth -= 1
-								return feedback
-
-							"return":
-								print("[DEBUG] §For → §Return triggered")
-								return "Return"
-
-							"end":
-								print("[DEBUG] §For → §End triggered")
-								end_dialogue()
-								return "END"
-
-							_:
-								print("[DEBUG] Unknown §For transition type: %s" % transition_type)
-								return "Continue"
-
-					"set":
-						var lhs_var: String = command_value.get("Variable", "")
-						var operator: String = resolve_value(command_value.get("Operator", "="))
-						var set_expr_line: String = command_value.get("Expression", "")
-
-						if set_expr_line.is_empty():
-							printerr("§Set: empty expression")
-							return "Continue"
-
-						if set_expr_line.begins_with(candy_de.super_singleton_symbol):
-							set_expr_line = resolve_value(candy_de.singleton_symbol + set_expr_line.substr(1))
-						elif set_expr_line.begins_with(candy_de.super_node_symbol):
-							set_expr_line = resolve_value(candy_de.node_symbol + set_expr_line.substr(1))
-						elif set_expr_line.begins_with(candy_de.super_vardict_symbol):
-							set_expr_line = resolve_value(candy_de.vardict_symbol + set_expr_line.substr(1))
-
-						var fake_line := [
-							{
-								"§Set": {
-									"Variable": lhs_var,
-									"Operator": operator,
-									"Expression": set_expr_line
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Set at depth %d" % nesting_depth)
-						return feedback
-
-					"call":
-						var func_name: String 		= command_value.get("Function", "")
-						var args_raw: Variant 		= command_value.get("Arguments", "")
-						var store_var: String		= command_value.get("Variable", "").strip_edges()
-						var await_call: Variant 	= resolve_value(command_value.get("Await", true))
-
-						if func_name.begins_with(candy_de.super_singleton_symbol):
-							func_name = resolve_value(candy_de.singleton_symbol + func_name.substr(1))
-						elif func_name.begins_with(candy_de.super_node_symbol):
-							func_name = resolve_value(candy_de.node_symbol + func_name.substr(1))
-						elif func_name.begins_with(candy_de.super_vardict_symbol):
-							func_name = resolve_value(candy_de.vardict_symbol + func_name.substr(1))
-
-						if typeof(args_raw) == TYPE_STRING:
-							if args_raw.begins_with(candy_de.super_singleton_symbol):
-								args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-							elif args_raw.begins_with(candy_de.super_node_symbol):
-								args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-							elif args_raw.begins_with(candy_de.super_vardict_symbol):
-								args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
-
-						var fake_line := [
-							{
-								"§Call": {
-									"Function": func_name,
-									"Arguments": args_raw,
-									"Variable": store_var,
-									"Await": await_call,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Call at depth %d" % nesting_depth)
-						return feedback
-
-					"emit":
-						var signal_name: String	= command_value.get("Signal", "")
-						var args_raw: Variant 	= command_value.get("Arguments", "")
-
-						#% Validate:
-						if signal_name == "":
-							return "Continue"
-
-						if signal_name.begins_with(candy_de.super_singleton_symbol):
-							signal_name = resolve_value(candy_de.singleton_symbol + signal_name.substr(1))
-						elif signal_name.begins_with(candy_de.super_node_symbol):
-							signal_name = resolve_value(candy_de.node_symbol + signal_name.substr(1))
-						elif signal_name.begins_with(candy_de.super_vardict_symbol):
-							signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
-
-						if typeof(args_raw) == TYPE_STRING:
-							if args_raw.begins_with(candy_de.super_singleton_symbol):
-								args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-							elif args_raw.begins_with(candy_de.super_node_symbol):
-								args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-							elif args_raw.begins_with(candy_de.super_vardict_symbol):
-								args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
-
-						var fake_line := [
-							{
-								"§Emit": {
-									"Signal": signal_name,
-									"Arguments": args_raw
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Emit at depth %d" % nesting_depth)
-						return feedback
-
-					"await":
-						var signal_name: String = command_value.get("Signal", "")
-						var store_var: String   = command_value.get("Variable", "").strip_edges()
-
-						if signal_name == "":
-							return "Continue"
-
-						if signal_name.begins_with(candy_de.super_singleton_symbol):
-							signal_name = resolve_value(candy_de.singleton_symbol + signal_name.substr(1))
-						elif signal_name.begins_with(candy_de.super_node_symbol):
-							signal_name = resolve_value(candy_de.node_symbol + signal_name.substr(1))
-						elif signal_name.begins_with(candy_de.super_vardict_symbol):
-							signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
-
-						var fake_line := [
-							{
-								"§Await": {
-									"Signal": signal_name,
-									"Variable": store_var,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Await at depth %d" % nesting_depth)
-						return feedback
-
-					"flag":
-						var flag_name: String		= resolve_value(command_value.get("Flag", "").strip_edges())
-						var operator: String		= resolve_value(command_value.get("Operator", "="))
-						var flag_expr_line: String	= command_value.get("Expression", "")
-
-						if flag_expr_line.begins_with(candy_de.super_singleton_symbol):
-							flag_expr_line = resolve_value(candy_de.singleton_symbol + flag_expr_line.substr(1))
-						elif flag_expr_line.begins_with(candy_de.super_node_symbol):
-							flag_expr_line = resolve_value(candy_de.node_symbol + flag_expr_line.substr(1))
-						elif flag_expr_line.begins_with(candy_de.super_vardict_symbol):
-							flag_expr_line = resolve_value(candy_de.vardict_symbol + flag_expr_line.substr(1))
-
-						var fake_line := [
-							{
-								"§Flag": {
-									"Flag": flag_name,
-									"Operator": operator,
-									"Expression": flag_expr_line,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Flag at depth %d" % nesting_depth)
-						return feedback
-
-					"name":
-						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
-						var new_name: String 	= resolve_value(command_value.get("Name", ""))
-						var table_raw: String 	= command_value.get("Table", "£candy_de.display_names")
-						var key_raw: String 	= resolve_value(command_value.get("Actor_Key", "Display Name"))
-
-						var fake_line := [
-							{
-								"§Name": {
-									"Reference": actor_ref,
-									"Name": new_name,
-									"Table": table_raw,
-									"Actor_Key": key_raw,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Name at depth %d" % nesting_depth)
-						return feedback
-
-					"disposition":
-						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
-						var new_disp: String 	= resolve_value(command_value.get("Disposition", ""))
-
-						var fake_line := [
-							{
-								"§Disposition": {
-									"Reference": actor_ref,
-									"Disposition": new_disp,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Disposition at depth %d" % nesting_depth)
-						return feedback
-
-					"role":
-						var role_key: String	= resolve_value(command_value.get("Role", ""))
-						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
-
-						var fake_line := [
-							{
-								"§Role": {
-									"Role": role_key,
-									"Reference": actor_ref,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Role at depth %d" % nesting_depth)
-						return feedback
-
-					_:
-						#% Failsafe
-						print("[DEBUG] §If condition TRUE but result type '%s' not handled yet." % result)
-						return "Continue"
+			var fake_line := []
+			for cmd_key in dialogue_commands.keys():
+				fake_line.append({ cmd_key: dialogue_commands[cmd_key] })
 
 			#@ Step 5 - Execute loop:
 			for val in iterable:
 				for_[loop_var] = val
-				var feedback = await run_body.call()
+				print("[DEBUG] §For iteration: %s = %s, type: %s" % [loop_var, str(val), cmd_type])
+				nesting_depth += 1
+				var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
+				nesting_depth -= 1
 				if feedback == "END":
 					return "END"
 				elif feedback == "Return":
@@ -2716,13 +1951,8 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 		#* §While - repeat body while condition is true:
 		"§while":
-			var condition_expr: String		= str(command_value.get("Condition", ""))
-			var result: String				= resolve_value(str(command_value.get("Type", "Transition")))
-			var transition_type: String		= resolve_value(str(command_value.get("Transition", "Bridge")))
-			var convo: String				= resolve_value(str(command_value.get("Conversation", "")).strip_edges())
-			var block: String				= resolve_value(str(command_value.get("Block", "")).strip_edges())
-			var line_ref: String			= resolve_value(str(command_value.get("Line", "")).strip_edges())
-
+			var condition_expr: String = str(command_value.get("Condition", "")).strip_edges()
+			var cmd_type: String = resolve_value(str(command_value.get("Type", ""))).strip_edges()
 			var safety_counter := 0
 
 			#@ Resolve super symbols:
@@ -2732,275 +1962,20 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				condition_expr = resolve_value(candy_de.node_symbol + condition_expr.substr(1))
 			elif condition_expr.begins_with(candy_de.super_vardict_symbol):
 				condition_expr = resolve_value(candy_de.vardict_symbol + condition_expr.substr(1))
+			elif condition_expr.begins_with("sv_res://"):
+				condition_expr = "v_res://" + resolve_value(condition_expr.substr("sv_res://".length()))
+			elif condition_expr.begins_with("sv_user://"):
+				condition_expr = "v_user://" + resolve_value(condition_expr.substr("sv_user://".length()))
 
-			#@ Replace Candy variable references in the condition:
-			var expr_line = _replace_with_values(condition_expr)
-			expr_line = expr_line.replace("'", "\"")	#/ Make quotes safe for Expression
-
-			#@ Prepare Expression for the condition:
-			var expr := Expression.new()
-			if expr.parse(expr_line) != OK:
-				push_error("§While: failed to parse condition → " + expr_line)
+			#@ Build fake_line from Commands upfront:
+			var dialogue_commands: Dictionary = command_value.get("Commands", {})
+			if dialogue_commands.is_empty():
+				printerr("§While: no Commands defined.")
 				return "Continue"
 
-			#@ Helper: simulate single-line transition body or execute direct control:
-			var run_body := func() -> Variant:
-				match result.to_lower():
-					"transition":
-						match transition_type.to_lower():
-							"bridge", "jump":
-								var cmd_to_run := "§Bridge" if transition_type.to_lower() == "bridge" else "§Jump"
-
-								var fake_line := [
-									{
-										cmd_to_run: {
-											"Conversation": convo,
-											"Block": block,
-											"Line": line_ref,
-										}
-									}
-								]
-
-								nesting_depth += 1
-								var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-								nesting_depth -= 1
-								return feedback
-
-							"return":
-								print("[DEBUG] §While → §Return triggered")
-								return "Return"
-
-							"end":
-								print("[DEBUG] §While → §End triggered")
-								end_dialogue()
-								return "END"
-
-							_:
-								print("[DEBUG] Unknown §While transition type: %s" % transition_type)
-								return "Continue"
-
-					"set":
-						var lhs_var: String = command_value.get("Variable", "")
-						var operator: String = resolve_value(command_value.get("Operator", "="))
-						var set_expr_line: String = command_value.get("Expression", "")
-
-						if set_expr_line.is_empty():
-							printerr("§Set: empty expression")
-							return "Continue"
-
-						if set_expr_line.begins_with(candy_de.super_singleton_symbol):
-							set_expr_line = resolve_value(candy_de.singleton_symbol + set_expr_line.substr(1))
-						elif set_expr_line.begins_with(candy_de.super_node_symbol):
-							set_expr_line = resolve_value(candy_de.node_symbol + set_expr_line.substr(1))
-						elif set_expr_line.begins_with(candy_de.super_vardict_symbol):
-							set_expr_line = resolve_value(candy_de.vardict_symbol + set_expr_line.substr(1))
-
-						var fake_line := [
-							{
-								"§Set": {
-									"Variable": lhs_var,
-									"Operator": operator,
-									"Expression": set_expr_line
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Set at depth %d" % nesting_depth)
-						return feedback
-
-					"call":
-						var func_name: String 		= command_value.get("Function", "")
-						var args_raw: Variant 		= command_value.get("Arguments", "")
-						var store_var: String		= command_value.get("Variable", "").strip_edges()
-						var await_call: Variant 	= resolve_value(command_value.get("Await", true))
-
-						if func_name.begins_with(candy_de.super_singleton_symbol):
-							func_name = resolve_value(candy_de.singleton_symbol + func_name.substr(1))
-						elif func_name.begins_with(candy_de.super_node_symbol):
-							func_name = resolve_value(candy_de.node_symbol + func_name.substr(1))
-						elif func_name.begins_with(candy_de.super_vardict_symbol):
-							func_name = resolve_value(candy_de.vardict_symbol + func_name.substr(1))
-
-						if typeof(args_raw) == TYPE_STRING:
-							if args_raw.begins_with(candy_de.super_singleton_symbol):
-								args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-							elif args_raw.begins_with(candy_de.super_node_symbol):
-								args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-							elif args_raw.begins_with(candy_de.super_vardict_symbol):
-								args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
-
-						var fake_line := [
-							{
-								"§Call": {
-									"Function": func_name,
-									"Arguments": args_raw,
-									"Variable": store_var,
-									"Await": await_call,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Call at depth %d" % nesting_depth)
-						return feedback
-
-					"emit":
-						var signal_name: String	= command_value.get("Signal", "")
-						var args_raw: Variant 	= command_value.get("Arguments", "")
-
-						#% Validate:
-						if signal_name == "":
-							return "Continue"
-
-						if signal_name.begins_with(candy_de.super_singleton_symbol):
-							signal_name = resolve_value(candy_de.singleton_symbol + signal_name.substr(1))
-						elif signal_name.begins_with(candy_de.super_node_symbol):
-							signal_name = resolve_value(candy_de.node_symbol + signal_name.substr(1))
-						elif signal_name.begins_with(candy_de.super_vardict_symbol):
-							signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
-
-						if typeof(args_raw) == TYPE_STRING:
-							if args_raw.begins_with(candy_de.super_singleton_symbol):
-								args_raw = resolve_value(candy_de.singleton_symbol + args_raw.substr(1))
-							elif args_raw.begins_with(candy_de.super_node_symbol):
-								args_raw = resolve_value(candy_de.node_symbol + args_raw.substr(1))
-							elif args_raw.begins_with(candy_de.super_vardict_symbol):
-								args_raw = resolve_value(candy_de.vardict_symbol + args_raw.substr(1))
-
-						var fake_line := [
-							{
-								"§Emit": {
-									"Signal": signal_name,
-									"Arguments": args_raw
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Emit at depth %d" % nesting_depth)
-						return feedback
-
-					"await":
-						var signal_name: String = command_value.get("Signal", "")
-						var store_var: String   = command_value.get("Variable", "").strip_edges()
-
-						if signal_name == "":
-							return "Continue"
-
-						if signal_name.begins_with(candy_de.super_singleton_symbol):
-							signal_name = resolve_value(candy_de.singleton_symbol + signal_name.substr(1))
-						elif signal_name.begins_with(candy_de.super_node_symbol):
-							signal_name = resolve_value(candy_de.node_symbol + signal_name.substr(1))
-						elif signal_name.begins_with(candy_de.super_vardict_symbol):
-							signal_name = resolve_value(candy_de.vardict_symbol + signal_name.substr(1))
-
-						var fake_line := [
-							{
-								"§Await": {
-									"Signal": signal_name,
-									"Variable": store_var,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Await at depth %d" % nesting_depth)
-						return feedback
-
-					"flag":
-						var flag_name: String		= resolve_value(command_value.get("Flag", "").strip_edges())
-						var operator: String		= resolve_value(command_value.get("Operator", "="))
-						var flag_expr_line: String	= command_value.get("Expression", "")
-
-						if flag_expr_line.begins_with(candy_de.super_singleton_symbol):
-							flag_expr_line = resolve_value(candy_de.singleton_symbol + flag_expr_line.substr(1))
-						elif flag_expr_line.begins_with(candy_de.super_node_symbol):
-							flag_expr_line = resolve_value(candy_de.node_symbol + flag_expr_line.substr(1))
-						elif flag_expr_line.begins_with(candy_de.super_vardict_symbol):
-							flag_expr_line = resolve_value(candy_de.vardict_symbol + flag_expr_line.substr(1))
-
-						var fake_line := [
-							{
-								"§Flag": {
-									"Flag": flag_name,
-									"Operator": operator,
-									"Expression": flag_expr_line,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Flag at depth %d" % nesting_depth)
-						return feedback
-
-					"name":
-						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
-						var new_name: String 	= resolve_value(command_value.get("Name", ""))
-						var table_raw: String 	= command_value.get("Table", "£candy_de.display_names")
-						var key_raw: String 	= resolve_value(command_value.get("Actor_Key", "Display Name"))
-
-						var fake_line := [
-							{
-								"§Name": {
-									"Reference": actor_ref,
-									"Name": new_name,
-									"Table": table_raw,
-									"Actor_Key": key_raw,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Name at depth %d" % nesting_depth)
-						return feedback
-
-					"disposition":
-						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
-						var new_disp: String 	= resolve_value(command_value.get("Disposition", ""))
-
-						var fake_line := [
-							{
-								"§Disposition": {
-									"Reference": actor_ref,
-									"Disposition": new_disp,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Disposition at depth %d" % nesting_depth)
-						return feedback
-
-					"role":
-						var role_key: String	= resolve_value(command_value.get("Role", ""))
-						var actor_ref: String 	= resolve_value(command_value.get("Reference", ""))
-
-						var fake_line := [
-							{
-								"§Role": {
-									"Role": role_key,
-									"Reference": actor_ref,
-								}
-							}
-						]
-						nesting_depth += 1
-						var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
-						nesting_depth -= 1
-						print("[DEBUG] Exiting §If Role at depth %d" % nesting_depth)
-						return feedback
-
-					_:
-						#% Failsafe
-						print("[DEBUG] §If condition TRUE but result type '%s' not handled yet." % result)
-						return "Continue"
+			var fake_line := []
+			for cmd_key in dialogue_commands.keys():
+				fake_line.append({ cmd_key: dialogue_commands[cmd_key] })
 
 			#@ Loop:
 			while true:
@@ -3010,10 +1985,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				safety_counter += 1
 
 				#% Re-resolve the condition expression each iteration:
-				expr_line = _replace_with_values(condition_expr)
+				var expr_line = _replace_with_values(condition_expr)
 				expr_line = expr_line.replace("'", "\"")
 
-				expr = Expression.new()
+				var expr := Expression.new()
 				if expr.parse(expr_line) != OK:
 					push_error("§While: failed to parse condition → " + expr_line)
 					break
@@ -3022,7 +1997,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				if expr.has_execute_failed() or not bool(cond_val):
 					break
 
-				var feedback = await run_body.call()
+				print("[DEBUG] §While iteration %d, type: %s" % [safety_counter, cmd_type])
+				nesting_depth += 1
+				var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
+				nesting_depth -= 1
 				if feedback == "END":
 					return "END"
 				elif feedback == "Return":
@@ -3048,7 +2026,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 			var new_conversation: String 	= resolve_value(str(command_value.get("Conversation", "")))
 			var new_block: String 			= resolve_value(str(command_value.get("Block", "")))
-			var line_ref: Variant 			= resolve_value(command_value.get("Line", 0))
+			var line_ref: Variant 			= resolve_value(command_value.get("Line", "0"))
 
 			#@ Step 1 - Fallbacks for empty conversation or block:
 			if new_conversation.strip_edges() == "":
@@ -3083,10 +2061,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 			#@ Step 4 - Resolve target line (number or §LM tag):
 			var target_line: int = 0
-			if line_ref == "":
+			if typeof(line_ref) == TYPE_STRING and line_ref == "":
 				line_ref = 0
-			if typeof(line_ref) == TYPE_INT:
 
+			if typeof(line_ref) == TYPE_INT:
 				target_line = line_ref
 			elif typeof(line_ref) == TYPE_STRING:
 				var text_array = running_dialogue[new_conversation][new_block]["Text"]
@@ -3101,9 +2079,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			nesting_depth = 0
 			choice_lists.clear()
 			choice_list_data.clear()
-			var input_elements_path = get_node_or_null(ui_elements_paths["input_node_path"])
-			if input_elements_path:
-				for child in input_elements_path.get_children():
+			if_array.clear()
+			var choice_lists_path = get_node_or_null(ui_elements_paths["choices_path"])
+			if choice_lists_path:
+				for child in choice_lists_path.get_children():
 					child.queue_free()
 			await get_tree().process_frame
 
@@ -3120,7 +2099,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		"§bridge":
 			var new_conversation: String 	= resolve_value(str(command_value.get("Conversation", "")))
 			var new_block: String 			= resolve_value(str(command_value.get("Block", "")))
-			var line_ref: Variant 			= resolve_value(command_value.get("Line", 0))
+			var line_ref: Variant 			= resolve_value(command_value.get("Line", "0"))
 
 			#@ Step 1 - Fallback to current conversation or block:
 			if new_conversation.strip_edges() == "":
@@ -3170,12 +2149,20 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			#@ Step 5 - Run the new Block:
 			nesting_depth += 1
 			print(target_line)
-			await run_dialogue(new_conversation, new_block, target_line, "Text", false)
+			var bridge_result = await run_dialogue(new_conversation, new_block, target_line, "Text", false)
 			nesting_depth -= 1
 
+			#% Trim any if_array entries left behind by §If/§Elif/§Else inside the bridged block:
+			if if_array.size() > nesting_depth + 1:
+				if_array.resize(nesting_depth + 1)
+
+			#% Propagate "END" if it was returned:
+			if bridge_result == "END":
+				return "END"
+
 			#@ Step 6 - Reactivate the current depth's choice menu if exists:
-			if choice_lists.has(str(nesting_depth)):
-				var previous_menu = choice_lists[str(nesting_depth)]["Menu"]
+			if choice_lists.has(nesting_depth):
+				var previous_menu = choice_lists[nesting_depth]["Menu"]
 				previous_menu.reactivate()
 
 			return "Continue"
@@ -3200,8 +2187,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		#region - Input Commands
 		#* §Mouse - change mouse mode:
 		"§mouse":
-			var mode: String 	= resolve_value(str(command_value.get("Mouse Mode", "")))
-
+			var mode: String = resolve_value(str(command_value.get("Mouse Mode", "")))
 			match mode.to_lower():
 				"visible":
 					Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
@@ -3213,7 +2199,50 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
 				"confined_hidden":
 					Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED_HIDDEN)
-
+				"dialogue_start":
+					match mouse_mode_start:
+						MouseModes.None:
+							print("[DEBUG] §Mouse: mouse_mode_start is None; mouse mode left unchanged.")
+						MouseModes.Visible:
+							Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+						MouseModes.Hidden:
+							Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+						MouseModes.Captured:
+							Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+						MouseModes.Confined:
+							Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
+						MouseModes.Confined_Hidden:
+							Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED_HIDDEN)
+				"dialogue_end":
+					match mouse_mode_end:
+						MouseModes.None:
+							print("[DEBUG] §Mouse: mouse_mode_end is None; mouse mode left unchanged.")
+						MouseModes.Visible:
+							Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+						MouseModes.Hidden:
+							Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+						MouseModes.Captured:
+							Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+						MouseModes.Confined:
+							Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
+						MouseModes.Confined_Hidden:
+							Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED_HIDDEN)
+				"choice":
+					match mouse_mode_choice:
+						MouseModes.None:
+							print("[DEBUG] §Mouse: mouse_mode_choice is None; mouse mode left unchanged.")
+						MouseModes.Visible:
+							Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+						MouseModes.Hidden:
+							Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+						MouseModes.Captured:
+							Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+						MouseModes.Confined:
+							Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
+						MouseModes.Confined_Hidden:
+							Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED_HIDDEN)
+				_:
+					print("[DEBUG] §Mouse: Unknown Mouse Mode '%s'; keeping current mode." % mode)
 			return "Continue"
 
 
@@ -3225,6 +2254,11 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var input_instructions: String	= str(command_value.get("Instructions", ""))
 			var input_placeholder: String	= str(command_value.get("Placeholder", ""))
 			var input_default_text: String	= str(command_value.get("Text", ""))
+			var input_custom_1: String		= str(command_value.get("Custom1", ""))
+			var input_custom_2: String		= str(command_value.get("Custom2", ""))
+			var input_custom_3: String		= str(command_value.get("Custom3", ""))
+			var input_custom_4: String		= str(command_value.get("Custom4", ""))
+			var input_custom_5: String		= str(command_value.get("Custom5", ""))
 
 			#@ Step 1 - Resolve super variables:
 			if input_variable.begins_with(candy_de.super_singleton_symbol):
@@ -3233,6 +2267,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				input_variable = resolve_value(candy_de.node_symbol + input_variable.substr(1))
 			elif input_variable.begins_with(candy_de.super_vardict_symbol):
 				input_variable = resolve_value(candy_de.vardict_symbol + input_variable.substr(1))
+			elif input_variable.begins_with("sv_res://"):
+				input_variable = "v_res://" + resolve_value(input_variable.substr("sv_res://".length()))
+			elif input_variable.begins_with("sv_user://"):
+				input_variable = "v_user://" + resolve_value(input_variable.substr("sv_user://".length()))
 
 			if setup_mode.begins_with(candy_de.super_singleton_symbol):
 				setup_mode = resolve_value(candy_de.singleton_symbol + setup_mode.substr(1))
@@ -3240,6 +2278,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				setup_mode = resolve_value(candy_de.node_symbol + setup_mode.substr(1))
 			elif setup_mode.begins_with(candy_de.super_vardict_symbol):
 				setup_mode = resolve_value(candy_de.vardict_symbol + setup_mode.substr(1))
+			elif setup_mode.begins_with("sv_res://"):
+				setup_mode = "v_res://" + resolve_value(setup_mode.substr("sv_res://".length()))
+			elif setup_mode.begins_with("sv_user://"):
+				setup_mode = "v_user://" + resolve_value(setup_mode.substr("sv_user://".length()))
 
 			if input_instructions.begins_with(candy_de.super_singleton_symbol):
 				input_instructions = resolve_value(candy_de.singleton_symbol + input_instructions.substr(1))
@@ -3247,6 +2289,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				input_instructions = resolve_value(candy_de.node_symbol + input_instructions.substr(1))
 			elif input_instructions.begins_with(candy_de.super_vardict_symbol):
 				input_instructions = resolve_value(candy_de.vardict_symbol + input_instructions.substr(1))
+			elif input_instructions.begins_with("sv_res://"):
+				input_instructions = "v_res://" + resolve_value(input_instructions.substr("sv_res://".length()))
+			elif input_instructions.begins_with("sv_user://"):
+				input_instructions = "v_user://" + resolve_value(input_instructions.substr("sv_user://".length()))
 
 			if input_placeholder.begins_with(candy_de.super_singleton_symbol):
 				input_placeholder = resolve_value(candy_de.singleton_symbol + input_placeholder.substr(1))
@@ -3254,6 +2300,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				input_placeholder = resolve_value(candy_de.node_symbol + input_placeholder.substr(1))
 			elif input_placeholder.begins_with(candy_de.super_vardict_symbol):
 				input_placeholder = resolve_value(candy_de.vardict_symbol + input_placeholder.substr(1))
+			elif input_placeholder.begins_with("sv_res://"):
+				input_placeholder = "v_res://" + resolve_value(input_placeholder.substr("sv_res://".length()))
+			elif input_placeholder.begins_with("sv_user://"):
+				input_placeholder = "v_user://" + resolve_value(input_placeholder.substr("sv_user://".length()))
 
 			if input_default_text.begins_with(candy_de.super_singleton_symbol):
 				input_default_text = resolve_value(candy_de.singleton_symbol + input_default_text.substr(1))
@@ -3261,6 +2311,65 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				input_default_text = resolve_value(candy_de.node_symbol + input_default_text.substr(1))
 			elif input_default_text.begins_with(candy_de.super_vardict_symbol):
 				input_default_text = resolve_value(candy_de.vardict_symbol + input_default_text.substr(1))
+			elif input_default_text.begins_with("sv_res://"):
+				input_default_text = "v_res://" + resolve_value(input_default_text.substr("sv_res://".length()))
+			elif input_default_text.begins_with("sv_user://"):
+				input_default_text = "v_user://" + resolve_value(input_default_text.substr("sv_user://".length()))
+
+			if input_custom_1.begins_with(candy_de.super_singleton_symbol):
+				input_custom_1 = resolve_value(candy_de.singleton_symbol + input_custom_1.substr(1))
+			elif input_custom_1.begins_with(candy_de.super_node_symbol):
+				input_custom_1 = resolve_value(candy_de.node_symbol + input_custom_1.substr(1))
+			elif input_custom_1.begins_with(candy_de.super_vardict_symbol):
+				input_custom_1 = resolve_value(candy_de.vardict_symbol + input_custom_1.substr(1))
+			elif input_custom_1.begins_with("sv_res://"):
+				input_custom_1 = "v_res://" + resolve_value(input_custom_1.substr("sv_res://".length()))
+			elif input_custom_1.begins_with("sv_user://"):
+				input_custom_1 = "v_user://" + resolve_value(input_custom_1.substr("sv_user://".length()))
+
+			if input_custom_2.begins_with(candy_de.super_singleton_symbol):
+				input_custom_2 = resolve_value(candy_de.singleton_symbol + input_custom_2.substr(1))
+			elif input_custom_2.begins_with(candy_de.super_node_symbol):
+				input_custom_2 = resolve_value(candy_de.node_symbol + input_custom_2.substr(1))
+			elif input_custom_2.begins_with(candy_de.super_vardict_symbol):
+				input_custom_2 = resolve_value(candy_de.vardict_symbol + input_custom_2.substr(1))
+			elif input_custom_2.begins_with("sv_res://"):
+				input_custom_2 = "v_res://" + resolve_value(input_custom_2.substr("sv_res://".length()))
+			elif input_custom_2.begins_with("sv_user://"):
+				input_custom_2 = "v_user://" + resolve_value(input_custom_2.substr("sv_user://".length()))
+
+			if input_custom_3.begins_with(candy_de.super_singleton_symbol):
+				input_custom_3 = resolve_value(candy_de.singleton_symbol + input_custom_3.substr(1))
+			elif input_custom_3.begins_with(candy_de.super_node_symbol):
+				input_custom_3 = resolve_value(candy_de.node_symbol + input_custom_3.substr(1))
+			elif input_custom_3.begins_with(candy_de.super_vardict_symbol):
+				input_custom_3 = resolve_value(candy_de.vardict_symbol + input_custom_3.substr(1))
+			elif input_custom_3.begins_with("sv_res://"):
+				input_custom_3 = "v_res://" + resolve_value(input_custom_3.substr("sv_res://".length()))
+			elif input_custom_3.begins_with("sv_user://"):
+				input_custom_3 = "v_user://" + resolve_value(input_custom_3.substr("sv_user://".length()))
+
+			if input_custom_4.begins_with(candy_de.super_singleton_symbol):
+				input_custom_4 = resolve_value(candy_de.singleton_symbol + input_custom_4.substr(1))
+			elif input_custom_4.begins_with(candy_de.super_node_symbol):
+				input_custom_4 = resolve_value(candy_de.node_symbol + input_custom_4.substr(1))
+			elif input_custom_4.begins_with(candy_de.super_vardict_symbol):
+				input_custom_4 = resolve_value(candy_de.vardict_symbol + input_custom_4.substr(1))
+			elif input_custom_4.begins_with("sv_res://"):
+				input_custom_4 = "v_res://" + resolve_value(input_custom_4.substr("sv_res://".length()))
+			elif input_custom_4.begins_with("sv_user://"):
+				input_custom_4 = "v_user://" + resolve_value(input_custom_4.substr("sv_user://".length()))
+
+			if input_custom_5.begins_with(candy_de.super_singleton_symbol):
+				input_custom_5 = resolve_value(candy_de.singleton_symbol + input_custom_5.substr(1))
+			elif input_custom_5.begins_with(candy_de.super_node_symbol):
+				input_custom_5 = resolve_value(candy_de.node_symbol + input_custom_5.substr(1))
+			elif input_custom_5.begins_with(candy_de.super_vardict_symbol):
+				input_custom_5 = resolve_value(candy_de.vardict_symbol + input_custom_5.substr(1))
+			elif input_custom_5.begins_with("sv_res://"):
+				input_custom_5 = "v_res://" + resolve_value(input_custom_5.substr("sv_res://".length()))
+			elif input_custom_5.begins_with("sv_user://"):
+				input_custom_5 = "v_user://" + resolve_value(input_custom_5.substr("sv_user://".length()))
 
 			#@ Step 2 - Configure instance name for consistency:
 			if not input_ui.ends_with(".tscn"):
@@ -3278,6 +2387,8 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			#@ Step 5 - Reuse existing node if present:
 			if input_parent.has_node(input_ui_name):
 				input_instance = input_parent.get_node(input_ui_name)
+				input_instance.depth = this_depth
+				input_instance.caller = self
 
 			#@ Step 6 - Instantiate input menu from scene if menu not present:
 			else:
@@ -3290,7 +2401,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 			#@ Step 7 - Setup input menu:
 			if input_instance.has_method("setup"):
-				input_instance.setup(input_variable, setup_mode, input_instructions, input_placeholder, input_default_text)
+				input_instance.setup(input_variable, setup_mode, input_instructions, input_default_text, input_placeholder, input_custom_1, input_custom_2, input_custom_3, input_custom_4, input_custom_5)
 			else:
 				push_warning("[NOTICE] §Input: setup() function missing in Input UI script.")
 
@@ -3307,20 +2418,48 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				var parameters = sig[2] if sig.size() >= 3 else {}
 
 				match event_type:
-					"finish":
+					"run_lines":	#& Run a fake Block with any dialogue lines
+						#+ Note: the 'parameters' argument must be an array featuring one or more lines as dictionaries.
+						#? Example: '[{"§command": { ... }}, {"§command": { ... }}]'
+						#! Warning: The §Input command will ignore the input_received signal while the Block is running!
+						if parameters is Array and not parameters.is_empty():
+							nesting_depth += 1
+							var feedback = await run_dialogue(current_conversation, current_block, 0, parameters, false)
+							nesting_depth -= 1
+							if feedback == "END":
+								return "END"
+							#/ Don't break loop: — keep waiting for more signals.
+						else:
+							printerr("§Input: 'run_lines' event received but parameters are missing or not an array.")
+						#/ Don't break loop: — keep waiting for more signals.
+
+					"finish":	#& Exit the §Input command without deleting the Input UI.
 						print("[DEBUG] §Input (Depth %s): Event: %s (%s)." % [str(this_depth), event_type, parameters])
+						break #/ Break loop to exit §input command and continue dialogue.
+
+					"close":	#& Exit the §Input command and delete the Input UI.
+						print("[DEBUG] §Input (Depth %s): Event: %s (%s)." % [str(this_depth), event_type, parameters])
+						input_instance.queue_free()
 						break
 
-					_:
+					_:		#& Fallback if incorrect event_type
 						print("[DEBUG] §Input (Depth %s): Unknown event: %s (%s)." % [str(this_depth), event_type, parameters])
-						break
+						break	#/ Break loop as precaution, to avoid being stuck in a defective input UI.
 
 			#@ Step 9 - Return mouse_mode to default for dialogues:
 			if mouse_mode_start != MouseModes.None:
 				Input.set_mouse_mode(mouse_mode_start as Input.MouseMode)
 
 			return "Continue"
- 		#endregion - input commands
+
+
+		#* §Player_Advance - Pause dialogue until player manually advances:
+		"§player_advance":
+			print("§Player_Advance: waiting for input.")
+			await wait_for_player_advance(null, true)
+			return "Continue"
+
+		#endregion - input commands
 
 
 		#&########################################
@@ -3573,7 +2712,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					general_category_scene += ".tscn"
 			general_category_scene = candy_de.choice_categories_folder.path_join(general_category_scene)
 
-			var category_list: Node = menu_node.get_node_or_null("Categories")
+			var category_list: Node = menu_node.category_list
 			if category_list == null:
 				print("§Choice_List: Menu scene is missing a 'Categories' node.")
 				return "Continue"
@@ -3745,14 +2884,40 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var cat_mouse_mode: String = resolve_value(main_cat_data.get("Mouse", "Default")).strip_edges()
 
 			var final_mouse_mode: String = cat_mouse_mode
-			if final_mouse_mode == "Default":
+			var defer_to_default := false
+
+			#% "Menu" - Use the menu's own Mouse value:
+			if final_mouse_mode == "Menu":
 				final_mouse_mode = general_mouse_mode
+				if final_mouse_mode == "Default":
+					defer_to_default = true
+
+			#% "Default" - Skip the menu entirely, go straight to mouse_mode_choice:
+			elif final_mouse_mode == "Default":
+				defer_to_default = true
+
+			if defer_to_default:
+				match mouse_mode_choice:
+					MouseModes.None:
+						final_mouse_mode = ""
+					MouseModes.Visible:
+						final_mouse_mode = "Visible"
+					MouseModes.Hidden:
+						final_mouse_mode = "Hidden"
+					MouseModes.Captured:
+						final_mouse_mode = "Captured"
+					MouseModes.Confined:
+						final_mouse_mode = "Confined"
+					MouseModes.Confined_Hidden:
+						final_mouse_mode = "Confined_Hidden"
 
 			#% Apply to engine mouse mode:
 			match final_mouse_mode.to_lower():
-				"default", "visible":
+				"":
+					print("[DEBUG] §Choice_List: Mouse_Mode_Start is None; mouse mode left unchanged.")
+				"visible":
 					Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-					print("[DEBUG] §Choice_List: Mouse_Mode set to Visible (Default).")
+					print("[DEBUG] §Choice_List: Mouse_Mode set to Visible.")
 				"hidden":
 					Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 					print("[DEBUG] §Choice_List: Mouse_Mode set to Hidden.")
@@ -3851,7 +3016,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 								% [choice_name, category_name])
 							continue
 
-						#@ Step 11-A - Pause all active timers during choice processing:
+						#% Pause all active timers during choice processing:
 						timers_array = choice_list_data[this_depth].get("Timers", [])
 						for timer_entry in timers_array:
 							for timer_key in timer_entry.keys():
@@ -3920,6 +3085,65 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							print("[DEBUG] §Choice_List: Navigated from '%s' → '%s'." %
 								[category_name, nav_target])
 
+							#% Re-resolve Mouse_Mode for the newly active category:
+							var nav_cat_data: Dictionary = {}
+							var nav_categories_array: Array = choice_list_data[this_depth].get("Categories", [])
+							for nav_category_entry in nav_categories_array:
+								if nav_category_entry.has(nav_target):
+									nav_cat_data = nav_category_entry[nav_target]
+									break
+
+							var nav_general_mouse_mode: String = resolve_value(choice_list_data[this_depth].get("Mouse", "Default")).strip_edges()
+							var nav_cat_mouse_mode: String = resolve_value(nav_cat_data.get("Mouse", "Default")).strip_edges()
+
+							var nav_final_mouse_mode: String = nav_cat_mouse_mode
+							var nav_defer_to_default := false
+
+							if nav_final_mouse_mode == "Menu":
+								nav_final_mouse_mode = nav_general_mouse_mode
+								if nav_final_mouse_mode == "Default":
+									nav_defer_to_default = true
+							elif nav_final_mouse_mode == "Default":
+								nav_defer_to_default = true
+
+							#% Solve mouse_mode_choice if used:
+							if nav_defer_to_default:
+								match mouse_mode_choice:
+									MouseModes.None:
+										nav_final_mouse_mode = ""
+									MouseModes.Visible:
+										nav_final_mouse_mode = "Visible"
+									MouseModes.Hidden:
+										nav_final_mouse_mode = "Hidden"
+									MouseModes.Captured:
+										nav_final_mouse_mode = "Captured"
+									MouseModes.Confined:
+										nav_final_mouse_mode = "Confined"
+									MouseModes.Confined_Hidden:
+										nav_final_mouse_mode = "Confined_Hidden"
+
+							#% Assign final Mouse_Mode:
+							match nav_final_mouse_mode.to_lower():
+								"":
+									print("[DEBUG] §Choice_List: Mouse_Mode_Start is None; mouse mode left unchanged after navigation to '%s'." % nav_target)
+								"visible":
+									Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+									print("[DEBUG] §Choice_List: Mouse_Mode set to Visible after navigation to '%s'." % nav_target)
+								"hidden":
+									Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+									print("[DEBUG] §Choice_List: Mouse_Mode set to Hidden after navigation to '%s'." % nav_target)
+								"captured", "locked":
+									Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+									print("[DEBUG] §Choice_List: Mouse_Mode set to Captured (Locked) after navigation to '%s'." % nav_target)
+								"confined":
+									Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
+									print("[DEBUG] §Choice_List: Mouse_Mode set to Confined after navigation to '%s'." % nav_target)
+								"confined_hidden":
+									Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED_HIDDEN)
+									print("[DEBUG] §Choice_List: Mouse_Mode set to Confined Hidden after navigation to '%s'." % nav_target)
+								_:
+									print("[DEBUG] §Choice_List: Unknown Mouse_Mode '%s' after navigation to '%s'; keeping current mode." % [nav_final_mouse_mode, nav_target])
+
 						#% If navigation only (no finish transition), resume timers immediately:
 						if nav_target != "" and convo == "" and block == "" and line_ref == "":
 							for timer_entry in timers_array:
@@ -3949,9 +3173,11 @@ func commands(command_key, command_value, current_conversation, current_block, _
 									var fake_line := [
 										{ cmd_to_run: { "Conversation": convo, "Block": block, "Line": line_ref } }
 									]
+									menu_node.shield.visible = true		#/ Shield hides menu and blocks mouse until returning from Bridge
 									nesting_depth += 1
 									var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
 									nesting_depth -= 1
+									menu_node.shield.visible = false
 									if feedback in ["END", "Return"]:
 										return feedback
 
@@ -4062,9 +3288,11 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							var fake_line := [
 								{ cmd_to_run: { "Conversation": convo, "Block": block, "Line": line_ref } }
 							]
+							menu_node.shield.visible = true
 							nesting_depth += 1
 							var feedback = await run_dialogue(current_conversation, current_block, 0, fake_line, false)
 							nesting_depth -= 1
+							menu_node.shield.visible = false
 							if feedback in ["END", "Return"]:
 								return feedback
 
@@ -4113,7 +3341,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							timer_data["Status"] = "Hold"
 							print("[DEBUG] §Choice_List: Timer '%s' completed all loops (Status=Hold)." % timer_name)
 
-						#@ Step 11-E - Trigger one or more choices if defined in timer data:
+						#@ Step 11E - Trigger one or more choices if defined in timer data:
 						var choice_trigger: String = resolve_value(timer_data.get("Timer Choices", "")).strip_edges()
 
 						if choice_trigger != "":
@@ -4151,7 +3379,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							else:
 								printerr("§Choice_List: Timer '%s' 'Timer Choices' must follow format '[Category, Choice]'." % timer_name)
 
-						#@ Step 11-F - Resume paused timers:
+						#@ Step 11F - Resume paused timers:
 						print("timer data: " + str(timer_data))
 						for t_entry in timers_array:
 							for t_key in t_entry.keys():
@@ -4194,6 +3422,14 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var category_tags = category_tags_raw.split(",", false)
 			var menu_tags = menu_tags_raw.split(",", false)
 
+			#% Convert null status modes:
+			if enable_mode == "":
+				enable_mode = "-"
+			if active_mode == "":
+				active_mode = "-"
+			if show_mode == "":
+				show_mode = "-"
+
 			#@ Determine target depths (menus/lists):
 			var target_depths: Array = []
 
@@ -4215,7 +3451,6 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			#@ Loop through selected menus/lists:
 			for depth in target_depths:
 				var cat_nodes: Dictionary = choice_lists.get(depth, {}).get("Category Nodes", {})
-				
 				var categories_array: Array = choice_list_data.get(depth, {}).get("Categories", [])
 				if categories_array.is_empty():
 					continue
@@ -4864,7 +4099,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		#* §BG_Stop - Stop one or more background animations:
 		"§bg_stop":
 			var layers_raw: Variant		= resolve_value(command_value.get("Layers", ""))
-			var use_default: Variant	= resolve_value(command_value.get("Default", 0))
+			var default_val: int		= int(resolve_value(command_value.get("Default", "0")))
 
 			#@ Step 1 - Convert to array:
 			var layers_array: Array = []
@@ -4879,7 +4114,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			#@ Step 2 - Stop animations:
 			var bg_scene = get_node(ui_elements_paths["backgrounds_path"])
 			bg_scene.caller = self
-			bg_scene.stop_bg_animation(layers_array, use_default)
+			bg_scene.stop_bg_animation(layers_array, default_val)
 
 			return "Continue"
 
@@ -5197,7 +4432,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var default_fps: float = 30.0
 
 			if str(wait_raw).strip_edges() == "":
-				wait_raw = "0"		
+				wait_raw = "0"
 
 			wait_target = int(wait_raw)
 
@@ -5307,7 +4542,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		#&            EFFECT COMMANDS           ##
 		#&										##
 		#region - VFX Commands
-		#* §Effect - play a visual effect animation clip:
+		#* §Effect - Play a visual effect animation clip:
 		"§effect":
 			var node_name: Variant		= resolve_value(command_value.get("Node", "Effect"))
 			var anim_name: String		= str(resolve_value(command_value.get("Animation", ""))).strip_edges()
@@ -5363,43 +4598,33 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				return "Continue"
 
 			var duration: float = anim.length
-			var resume_at: float = 0.0
-
-			if wait_target >= 0:
-				resume_at = (wait_target * duration) + time_target
-			elif time_target > 0.0:
-				resume_at = time_target
+			var resume_at: float = max(wait_target, 0) * duration + time_target
 
 			#@ Step 4 - Configure node and start playing:
 			player_node.loop_target		= loop_target
-			player_node.wait_target		= wait_target
+			player_node.wait_target		= -1
 			player_node.loops_played	= 0
 			player_node.duration		= duration
 			player_node.caller			= self
 			player_node.effect_player.play(anim_name)
+			active_media_players.append(player_node)
 
 			#% No wait required - continue immediately:
 			if resume_at <= 0.0:
 				return "Continue"
 
-			#@ Step 5 - Wait until resume_at is reached:
-			while true:
+			#@ Step 5 - Wait until resume_at is reached or playback ends:
+			while player_node in active_media_players:
+				if player_node.effect_player.is_playing():
+					var elapsed = player_node.loops_played * duration + player_node.effect_player.current_animation_position
+					if elapsed >= resume_at:
+						break
 				await get_tree().process_frame
-
-				if not player_node.effect_player.is_playing():
-					if loop_target > 0 and player_node.loops_played >= loop_target:
-						return "Continue"
-					await get_tree().process_frame
-					continue
-
-				var elapsed = player_node.loops_played * duration + player_node.effect_player.current_animation_position
-				if elapsed >= resume_at:
-					return "Continue"
 
 			return "Continue"
 
 
-		#* §Effect_Wait - pause dialogue until a visual effect animation reaches a loop/time target:
+		#* §Effect_Wait - Pause dialogue until a visual effect animation reaches a loop/time target:
 		"§effect_wait":
 			var node_name: Variant		= resolve_value(command_value.get("Node", "Effect"))
 			var wait_raw: Variant		= resolve_value(command_value.get("Wait", ""))
@@ -5435,45 +4660,29 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				player_node = get_node_or_null(media_players_locations.get(str(node_name), ""))
 
 			if not player_node or not (player_node.effect_player is AnimationPlayer):
-				printerr("§EffectWait: invalid or missing AnimationPlayer → ", node_name)
-				return "Continue"
-
-			var anim_name: String = player_node.effect_player.current_animation
-			if anim_name == "":
-				return "Continue"
-
-			var anim: Animation = player_node.effect_player.get_animation(anim_name)
-			if anim == null:
-				printerr("§EffectWait: current animation invalid → ", anim_name)
+				printerr("§Effect_Wait: invalid or missing AnimationPlayer → ", node_name)
 				return "Continue"
 
 			var duration: float = player_node.duration
-			var resume_at: float = 0.0
+			if duration <= 0.0:
+				return "Continue"
 
-			if wait_target >= 0:
-				resume_at = (wait_target * duration) + time_target
-			elif time_target > 0.0:
-				resume_at = time_target
-
+			var resume_at: float = max(wait_target, 0) * duration + time_target
 			if resume_at <= 0.0:
 				return "Continue"
 
 			#@ Step 2 - Wait for the animation progress:
-			while true:
-				if not player_node.effect_player.is_playing():
-					if player_node.loop_target > 0 and player_node.loops_played >= player_node.loop_target:
-						return "Continue"
-					await get_tree().process_frame
-					continue
-
-				var elapsed = player_node.loops_played * duration + player_node.effect_player.current_animation_position
-				if elapsed >= resume_at:
-					return "Continue"
-
+			while player_node in active_media_players:
+				if player_node.effect_player.is_playing():
+					var elapsed = player_node.loops_played * duration + player_node.effect_player.current_animation_position
+					if elapsed >= resume_at:
+						break
 				await get_tree().process_frame
 
+			return "Continue"
 
-		#* §Effect_Stop - stop a currently playing effect animation:
+
+		#* §Effect_Stop - Stop a currently playing effect animation:
 		"§effect_stop":
 			var node_name: Variant		= resolve_value(command_value.get("Node", "Effect"))
 
@@ -5495,7 +4704,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			return "Continue"
 
 
-		#* §Wait - pause dialogue processing for a set duration:
+		#* §Wait - Pause dialogue processing for a set duration:
 		"§wait":
 			var time_raw: Variant		= resolve_value(command_value.get("Time", 0.0))
 
@@ -5539,8 +4748,8 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 		#* §Hide - Reset Dialogue Box / Portrait z_index to defaults:
 		"§hide":
-			var reset_box: Variant			= resolve_value(command_value.get("Box", "1"))
-			var reset_portrait: Variant		= resolve_value(command_value.get("Portrait", "1"))
+			var reset_box: Variant			= int(resolve_value(command_value.get("Box", "1")))
+			var reset_portrait: Variant		= int(resolve_value(command_value.get("Portrait", "1")))
 
 			#@ Apply resets safely:
 			if reset_box == 1:
@@ -5679,8 +4888,8 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var time_raw: Variant		= resolve_value(command_value.get("Time", "0"))
 			var wait: Variant			= int(resolve_value(command_value.get("Wait", "0")))
 			var loop: Variant			= int(resolve_value(command_value.get("Loop", "1")))
-			var show_box: Variant		= resolve_value(command_value.get("Box", -1))
-			var show_portrait: Variant	= resolve_value(command_value.get("Portrait", -1))
+			var show_box: Variant		= int(resolve_value(command_value.get("Box", -1)))
+			var show_portrait: Variant	= int(resolve_value(command_value.get("Portrait", -1)))
 
 			#@ Step 1 - Resolve image player node:
 			var player_node
@@ -5688,6 +4897,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				player_node = node_name
 			else:
 				player_node = get_node(media_players_locations[str(node_name)])
+
 			if not player_node:
 				printerr("§Image: invalid image node → ", node_name)
 				return "Continue"
@@ -5699,10 +4909,13 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				if duration > 0:
 					fps_value = float(duration)
 				player_node.setup_animation(str(animation_path), fps_value, loop)
+
 			elif animated == 0:
 				var image_path = candy_de.image_folder.path_join(node_name).path_join(image).path_join(player_node.default_image_extension)
 				player_node.setup_static(str(image_path), float(duration), loop)
+
 			player_node.visible = true
+			player_node.caller = self
 
 			#@ Step 3 - Adjust z-index:
 			if show_box == 1:
@@ -5732,22 +4945,22 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			player_node.start()
 
 			#@ Step 5 - Optional blocking wait (Time + Wait):
-			if wait != -1 or time_raw != "":
-				var target_seconds: float = 0.0
-				if typeof(time_raw) == TYPE_STRING:
-					var s = time_raw.strip_edges()
-					if s != "":
-						var parts = s.split(":")
-						match parts.size():
-							3:
-								target_seconds = int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
-							2:
-								target_seconds = int(parts[0]) * 60 + float(parts[1])
-							1:
-								target_seconds = float(parts[0])
-				elif typeof(time_raw) in [TYPE_FLOAT, TYPE_INT]:
-					target_seconds = float(time_raw)
+			var target_seconds: float = 0.0
+			if typeof(time_raw) == TYPE_STRING:
+				var s = time_raw.strip_edges()
+				if s != "":
+					var parts = s.split(":")
+					match parts.size():
+						3:
+							target_seconds = int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
+						2:
+							target_seconds = int(parts[0]) * 60 + float(parts[1])
+						1:
+							target_seconds = float(parts[0])
+			elif typeof(time_raw) in [TYPE_FLOAT, TYPE_INT]:
+				target_seconds = float(time_raw)
 
+			if wait > 0 or target_seconds > 0.0:
 				#% Calculate duration per loop:
 				var media_length: float = player_node.static_duration
 				if player_node.animated and player_node.fps > 0:
@@ -5755,23 +4968,40 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				if media_length <= 0.0:
 					media_length = 1.0
 
-				var total_seconds = target_seconds
-				var loop_offset = int(total_seconds / media_length)
-				var offset_time = total_seconds - (loop_offset * media_length)
-				var target_loop = loop_offset
-				if wait > 0:
-					target_loop += int(wait)
+				var loop_offset = int(target_seconds / media_length)
+				var offset_time = target_seconds - (loop_offset * media_length)
+				var target_loop = wait + loop_offset
 
-				var elapsed := 0.0
+				#% Track position within the current playback, resetting at each rollover:
+				var loop_elapsed := 0.0
+				var prev_loops: int = player_node.loops_played
+
 				while player_node in active_media_players:
+					#% Suspension check - freeze the clock while dialogue is suspended:
+					if dialogue_suspended == true:
+						while dialogue_suspended == true:
+							await get_tree().process_frame
+						continue
+
+					#% Reset per-loop clock on rollover:
+					if player_node.loops_played != prev_loops:
+						loop_elapsed = 0.0
+						prev_loops = player_node.loops_played
+
+					#% Loop cap - never wait past the image's own loop count:
 					if loop > 0 and player_node.loops_played >= loop:
 						break
+
+					#% Passed the target playback entirely:
 					if player_node.loops_played > target_loop:
 						break
-					if player_node.loops_played == target_loop and elapsed >= offset_time:
+
+					#% Reached the timestamp within the target playback:
+					if player_node.loops_played == target_loop and loop_elapsed >= offset_time:
 						break
+
 					await get_tree().process_frame
-					elapsed += get_process_delta_time()
+					loop_elapsed += get_process_delta_time()
 
 			return "Continue"
 
@@ -5782,8 +5012,8 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var node_name: Variant		= resolve_value(command_value.get("Node", "Image"))
 			var time_raw: Variant		= resolve_value(command_value.get("Time", "0"))
 			var wait: Variant			= int(resolve_value(command_value.get("Wait", "0")))
-			var show_box: Variant		= resolve_value(command_value.get("Box", -1))
-			var show_portrait: Variant	= resolve_value(command_value.get("Portrait", -1))
+			var show_box: Variant		= int(resolve_value(command_value.get("Box", -1)))
+			var show_portrait: Variant	= int(resolve_value(command_value.get("Portrait", -1)))
 
 			#@ Step 2 - Get image player node:
 			var player_node
@@ -5811,31 +5041,48 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			elif typeof(time_raw) in [TYPE_FLOAT, TYPE_INT]:
 				target_seconds = float(time_raw)
 
-			#@ Step 4 - Determine per-loop duration:
+			#@ Step 4 - No dialogue pause if neither Wait nor Time is set:
+			if wait <= 0 and target_seconds <= 0.0:
+				return "Continue"
+
+			#% Determine per-loop duration:
 			var media_length: float = player_node.static_duration
 			if player_node.animated and player_node.fps > 0:
 				media_length = float(player_node.frames.size()) / player_node.fps
 			if media_length <= 0.0:
 				media_length = 1.0
 
-			var total_seconds = target_seconds
-			var loop_offset = int(total_seconds / media_length)
-			var offset_time = total_seconds - (loop_offset * media_length)
-			var target_loop = loop_offset
-			if wait > 0:
-				target_loop += int(wait)
+			var loop_offset = int(target_seconds / media_length)
+			var offset_time = target_seconds - (loop_offset * media_length)
+			var target_loop = wait + loop_offset
 
-			#@ Step 5 - Wait until elapsed time and loop reached:
-			var elapsed := 0.0
+			#@ Step 5 - Wait until target loop/timestamp reached:
+			#% Estimate current position within the ongoing playback when attaching mid-loop:
+			var loop_elapsed := 0.0
+			if player_node.animated and player_node.fps > 0:
+				loop_elapsed = float(player_node.frame_index) / player_node.fps
+			var prev_loops: int = player_node.loops_played
+
 			while player_node in active_media_players:
+				#% Freeze the clock while dialogue is suspended:
+				if dialogue_suspended == true:
+					while dialogue_suspended == true:
+						await get_tree().process_frame
+					continue
+
+				#% Reset per-loop clock on rollover:
+				if player_node.loops_played != prev_loops:
+					loop_elapsed = 0.0
+					prev_loops = player_node.loops_played
+
 				if player_node.loop_target > 0 and player_node.loops_played >= player_node.loop_target:
 					break
 				if player_node.loops_played > target_loop:
 					break
-				if player_node.loops_played == target_loop and elapsed >= offset_time:
+				if player_node.loops_played == target_loop and loop_elapsed >= offset_time:
 					break
 				await get_tree().process_frame
-				elapsed += get_process_delta_time()
+				loop_elapsed += get_process_delta_time()
 
 			#@ Step 6 - Overlay reset:
 			if show_box == 1:
@@ -5866,10 +5113,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		#* §I_Pause - Pause image timer for a given number of lines:
 		"§i_pause":
 			#@ Step 1 - Resolve parameters:
-			var line_count: Variant		= resolve_value(command_value.get("Lines", -1))
-			var count_all: Variant		= resolve_value(command_value.get("All", 0))
-			var show_box: Variant		= resolve_value(command_value.get("Box", -1))
-			var show_portrait: Variant	= resolve_value(command_value.get("Portrait", -1))
+			var line_count: Variant		= int(resolve_value(command_value.get("Lines", -1)))
+			var count_all: Variant		= int(resolve_value(command_value.get("All", 0)))
+			var show_box: Variant		= int(resolve_value(command_value.get("Box", -1)))
+			var show_portrait: Variant	= int(resolve_value(command_value.get("Portrait", -1)))
 			var node_name: Variant		= resolve_value(command_value.get("Node", "Image"))
 
 			#@ Step 2 - Get target image node:
@@ -5925,8 +5172,8 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		#* §I_Resume - Resume image timer immediately, cancel any active §IPause:
 		"§i_resume":
 			#@ Step 1 - Resolve parameters:
-			var show_box: Variant		= resolve_value(command_value.get("Box", -1))
-			var show_portrait: Variant	= resolve_value(command_value.get("Portrait", -1))
+			var show_box: Variant		= int(resolve_value(command_value.get("Box", -1)))
+			var show_portrait: Variant	= int(resolve_value(command_value.get("Portrait", -1)))
 			var node_name: Variant		= resolve_value(command_value.get("Node", "Image"))
 
 			#@ Step 2 - Get target image node:
@@ -6020,8 +5267,8 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		#* §I_Show - Raise Dialogue Box / Portrait above the image:
 		"§i_show":
 			#@ Step 1 - Resolve parameters:
-			var show_box: Variant		= resolve_value(command_value.get("Box", -1))
-			var show_portrait: Variant	= resolve_value(command_value.get("Portrait", -1))
+			var show_box: Variant		= int(resolve_value(command_value.get("Box", -1)))
+			var show_portrait: Variant	= int(resolve_value(command_value.get("Portrait", -1)))
 			var node_name: Variant		= resolve_value(command_value.get("Node", "Image"))
 
 			#@ Step 2 - Get the target display node:
@@ -6110,6 +5357,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				return "Continue"
 
 			player_node.audio_player.stream = stream
+			player_node.caller = self
 
 			#@ Step 3 - Assign loop tracking:
 			player_node.loop_target = loop
@@ -6137,25 +5385,28 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			active_media_players.append(player_node)
 
 			#@ Step 6 - Optional blocking wait until time/loop reached:
-			if wait != -1 or time_raw != "":
+			if wait > 0 or target_seconds > 0.0:
 				var media_length: float = stream.get_length()
 				if media_length <= 0.0:
 					media_length = 1.0
 
-				var total_seconds = target_seconds
-				var loop_offset = int(total_seconds / media_length)
-				var offset_time = total_seconds - (loop_offset * media_length)
-				var target_loop = loop_offset
-				if wait > 0:
-					target_loop += int(wait)
+				var loop_offset = int(target_seconds / media_length)
+				var offset_time = target_seconds - (loop_offset * media_length)
+				var target_loop = wait + loop_offset
 
 				while player_node in active_media_players:
+					#% Loop cap - never wait past the audio's own loop count:
 					if loop > 0 and player_node.loops_played >= loop:
 						break
+
+					#% Passed the target playback entirely:
 					if player_node.loops_played > target_loop:
 						break
+
+					#% Reached the timestamp within the target playback:
 					if player_node.loops_played == target_loop and player_node.audio_player.get_playback_position() >= offset_time:
 						break
+
 					await get_tree().process_frame
 
 			return "Continue"
@@ -6164,7 +5415,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		#* §A_Wait - Block dialogue until audio reaches a timestamp or loop (with carryover):
 		"§a_wait":
 			var time_raw: Variant	= resolve_value(command_value.get("Time","0.0"))
-			var wait: Variant		= int(resolve_value(command_value.get("Wait", "1")))
+			var wait: Variant		= int(resolve_value(command_value.get("Wait", "0")))
 			var node_name: Variant	= resolve_value(command_value.get("Node", "Sound"))
 
 			#@ Step 1 - Get the target audio node:
@@ -6196,20 +5447,23 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			elif typeof(time_raw) in [TYPE_FLOAT, TYPE_INT]:
 				target_seconds = float(time_raw)
 
-			#@ Step 3 - Compute loop carryover:
+			#@ Step 3 - No dialogue pause if neither Wait nor Time is set:
+			if wait <= 0 and target_seconds <= 0.0:
+				return "Continue"
+
+			#@ Step 4 - Compute loop carryover:
 			var media_length: float = audio_stream.get_length()
 			if media_length <= 0.0:
 				media_length = 1.0
 
-			var total_seconds = target_seconds
-			var loop_offset = int(total_seconds / media_length)
-			var offset_time = total_seconds - (loop_offset * media_length)
-			var target_loop = loop_offset
-			if wait > 0:
-				target_loop += int(wait)
+			var loop_offset = int(target_seconds / media_length)
+			var offset_time = target_seconds - (loop_offset * media_length)
+			var target_loop = wait + loop_offset
 
-			#@ Step 4 - Wait until target loop/time or until playback ends:
-			while player_node.audio_player.stream:
+			#@ Step 5 - Wait until target loop/time or until playback ends:
+			while player_node in active_media_players:
+				if not player_node.audio_player.playing:
+					break
 				if player_node.loop_target > 0 and player_node.loops_played >= player_node.loop_target:
 					break
 				if player_node.loops_played > target_loop:
@@ -6277,8 +5531,8 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 		#* §A_Pause - pause audio playback for a given number of lines:
 		"§a_pause":
-			var line_count: Variant		= resolve_value(command_value.get("Lines", -1))
-			var count_all: Variant		= resolve_value(command_value.get("All", 0))
+			var line_count: Variant		= int(resolve_value(command_value.get("Lines", -1)))
+			var count_all: Variant		= int(resolve_value(command_value.get("All", 0)))
 			var node_name: Variant		= resolve_value(command_value.get("Node", "Sound"))
 
 			#@ Step 1 - Get the target audio player node:
@@ -6443,8 +5697,8 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var time_raw: Variant		= resolve_value(command_value.get("Time", ""))
 			var wait: Variant			= int(resolve_value(command_value.get("Wait", "0")))
 			var loop: Variant			= int(resolve_value(command_value.get("Loop", "1")))
-			var show_box: Variant		= resolve_value(command_value.get("Box", -1))
-			var show_portrait: Variant	= resolve_value(command_value.get("Portrait", -1))
+			var show_box: Variant		= int(resolve_value(command_value.get("Box", -1)))
+			var show_portrait: Variant	= int(resolve_value(command_value.get("Portrait", -1)))
 			var node_name: Variant		= resolve_value(command_value.get("Node", "Video"))
 
 			var default_fps: float = 30.0
@@ -6461,6 +5715,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				return "Continue"
 
 			player_node.visible = true
+			player_node.caller = self
 
 			#@ Step 2 - Get the video stream:
 			var stream
@@ -6540,31 +5795,47 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			active_media_players.append(player_node)
 
 			#@ Step 7 - Optional wait until time / loop:
-			if wait != -1 or time_raw != "":
-				#% Video streams don’t expose duration - track manually:
-				var fallback_max := 600.0	#/ assume max 10 min if unknown (safety net)
+			if wait > 0 or target_seconds > 0.0:
+				var fallback_max := 600.0	#/ absolute safety net if length never becomes known
 
-				#% We’ll estimate total_seconds directly from parsed time:
-				var total_seconds = target_seconds
-				var target_loop = max(loop - 1, 0) if loop > 0 else 0
-				var offset_time = total_seconds
+				#% Try to get media length up front (returns 0.0 for some stream types):
+				var media_length: float = player_node.video_player.get_stream_length()
 
-				#% Wait until target loop/time:
+				#% Compute target from best known length:
+				var target_loop: int = wait
+				var offset_time: float = target_seconds
+				if media_length > 0.0:
+					var loop_offset = int(target_seconds / media_length)
+					offset_time = target_seconds - (loop_offset * media_length)
+					target_loop = wait + loop_offset
+
+				var prev_loops: int = player_node.loops_played
+				var prev_pos: float = 0.0
+
 				while player_node in active_media_players:
-					#% Stop waiting if it’s stopped:
-					if not player_node.video_player.is_playing():
-						break
+					#% Learn length at runtime from loop rollover, recompute target once known:
+					if media_length <= 0.0 and player_node.loops_played > prev_loops and prev_pos > 0.0:
+						media_length = prev_pos
+						var loop_offset = int(target_seconds / media_length)
+						offset_time = target_seconds - (loop_offset * media_length)
+						target_loop = wait + loop_offset
+					prev_loops = player_node.loops_played
+					prev_pos = max(prev_pos, player_node.video_player.stream_position) if player_node.loops_played == prev_loops else player_node.video_player.stream_position
 
-					#% Simulate loop tracking (you probably increment loops_played elsewhere):
+					#% Loop cap - never wait past the video's own loop count:
 					if loop > 0 and player_node.loops_played >= loop:
 						break
 
-					#% Check elapsed time manually:
+					#% Passed the target playback entirely:
+					if player_node.loops_played > target_loop:
+						break
+
+					#% Reached the timestamp within the target playback:
 					if player_node.loops_played == target_loop and player_node.video_player.stream_position >= offset_time:
 						break
 
-					#% Emergency cutoff (in case duration unknown):
-					if player_node.video_player.stream_position > fallback_max:
+					#% Emergency cutoff (length never learned, no rollover ever observed):
+					if media_length <= 0.0 and player_node.video_player.stream_position > fallback_max:
 						break
 
 					await get_tree().process_frame
@@ -6631,8 +5902,8 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var node_name: Variant		= resolve_value(command_value.get("Node", "Video"))
 			var time_raw: Variant		= resolve_value(command_value.get("Time", "0.0"))
 			var wait: Variant			= int(resolve_value(command_value.get("Wait", "0")))
-			var show_box: Variant		= resolve_value(command_value.get("Box", -1))
-			var show_portrait: Variant	= resolve_value(command_value.get("Portrait", -1))
+			var show_box: Variant		= int(resolve_value(command_value.get("Box", -1)))
+			var show_portrait: Variant	= int(resolve_value(command_value.get("Portrait", -1)))
 
 			var default_fps: float = 30.0
 
@@ -6669,26 +5940,43 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			elif typeof(time_raw) in [TYPE_FLOAT, TYPE_INT]:
 				target_seconds = float(time_raw)
 
-			#@ Step 3 - Compute loop carryover:
-			var media_length: float = stream.get_length()
-			if media_length <= 0.0:
-				media_length = 1.0
+			#@ Step 3 - No dialogue pause if neither Wait nor Time is set:
+			if wait <= 0 and target_seconds <= 0.0:
+				return "Continue"
 
-			var total_seconds = target_seconds
-			var loop_offset = int(total_seconds / media_length)
-			var offset_time = total_seconds - (loop_offset * media_length)
-			var target_loop = loop_offset
-			if wait > 0:
-				target_loop += int(wait)
+			#% Try to get media length up front:
+			var media_length: float = player_node.video_player.get_stream_length()
+
+			var target_loop: int = wait
+			var offset_time: float = target_seconds
+			if media_length > 0.0:
+				var loop_offset = int(target_seconds / media_length)
+				offset_time = target_seconds - (loop_offset * media_length)
+				target_loop = wait + loop_offset
+
+			var prev_loops: int = player_node.loops_played
+			var prev_pos: float = 0.0
 
 			#@ Step 4 - Wait until target loop/time or until playback ends:
-			while player_node.video_player.stream:
+			while player_node in active_media_players:
+				#% Learn length at runtime from loop rollover, recompute target once known:
+				if media_length <= 0.0 and player_node.loops_played > prev_loops and prev_pos > 0.0:
+					media_length = prev_pos
+					var loop_offset = int(target_seconds / media_length)
+					offset_time = target_seconds - (loop_offset * media_length)
+					target_loop = wait + loop_offset
+				prev_loops = player_node.loops_played
+				prev_pos = max(prev_pos, player_node.video_player.stream_position) if player_node.loops_played == prev_loops else player_node.video_player.stream_position
+
 				if player_node.loop_target > 0 and player_node.loops_played >= player_node.loop_target:
 					break
 				if player_node.loops_played > target_loop:
 					break
 				if player_node.loops_played == target_loop and player_node.video_player.stream_position >= offset_time:
 					break
+				if media_length <= 0.0 and player_node.video_player.stream_position > 600.0:
+					break
+
 				await get_tree().process_frame
 
 			#@ Step 5 - Overlay z_index restoration:
@@ -6719,10 +6007,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 		#* §V_Pause - Pause video playback for a given number of lines:
 		"§v_pause":
-			var line_count: Variant		= resolve_value(command_value.get("Lines", -1))
-			var count_all: Variant		= resolve_value(command_value.get("All", 0))
-			var show_box: Variant		= resolve_value(command_value.get("Box", -1))
-			var show_portrait: Variant	= resolve_value(command_value.get("Portrait", -1))
+			var line_count: Variant		= int(resolve_value(command_value.get("Lines", -1)))
+			var count_all: Variant		= int(resolve_value(command_value.get("All", 0)))
+			var show_box: Variant		= int(resolve_value(command_value.get("Box", -1)))
+			var show_portrait: Variant	= int(resolve_value(command_value.get("Portrait", -1)))
 			var node_name: Variant		= resolve_value(command_value.get("Node", "Video"))
 
 			#@ Step 1 - Get the target video player node:
@@ -6781,8 +6069,8 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		#* §V_Resume - Resume paused video immediately:
 		"§v_resume":
 			var node_name: Variant		= resolve_value(command_value.get("Node", "Video"))
-			var show_box: Variant		= resolve_value(command_value.get("Box", -1))
-			var show_portrait: Variant	= resolve_value(command_value.get("Portrait", -1))
+			var show_box: Variant		= int(resolve_value(command_value.get("Box", -1)))
+			var show_portrait: Variant	= int(resolve_value(command_value.get("Portrait", -1)))
 
 			#@ Step 1 - Get the target video player node:
 			var player_node
@@ -6949,8 +6237,8 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 		#* §V_Show - Raise Dialogue Box / Portrait above the video:
 		"§v_show":
-			var show_box: Variant		= resolve_value(command_value.get("Box", -1))
-			var show_portrait: Variant	= resolve_value(command_value.get("Portrait", -1))
+			var show_box: Variant		= int(resolve_value(command_value.get("Box", -1)))
+			var show_portrait: Variant	= int(resolve_value(command_value.get("Portrait", -1)))
 			var node_name: Variant		= resolve_value(command_value.get("Node", "Video"))
 
 			#@ Step 1 - Get the target video player node:
@@ -7262,7 +6550,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				return "Continue"
 
 			var refs_raw: Variant	= command_value.get("Actors", "")
-			var use_default: bool	= resolve_value(command_value.get("Default", 0))
+			var default_val: int = int(resolve_value(command_value.get("Default", "0")))
 
 			#@ Step 1 - Convert to array (handles string or array input):
 			var refs_array: Array = []
@@ -7291,7 +6579,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			#@ Step 3 - Stop animations for the resulting actor list:
 			var bust_scene = get_node(ui_elements_paths["busts_path"])
 			bust_scene.caller = self
-			bust_scene.stop_bust_animation(refs_array, use_default)
+			bust_scene.stop_bust_animation(refs_array, default_val)
 
 			return "Continue"
 
@@ -7667,7 +6955,6 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 			return "Continue"
 
-
 		#endregion - vn commands
 
 
@@ -7678,9 +6965,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		#region - Cutscene Commands
 		#* §CS_Scene - Instantiate a scene as a child of one or more target nodes:
 		"§cs_scene":
-			var path_1: Variant			= resolve_value(command_value.get("Path 1", ""))
-			var targets_raw: Variant	= resolve_value(command_value.get("Targets", ""))
-			var scene_raw: Variant		= resolve_value(command_value.get("Scene", ""))
+			var path_1: Variant         = resolve_value(command_value.get("Path 1", ""))
+			var targets_raw: Variant    = resolve_value(command_value.get("Targets", ""))
+			var scene_raw: Variant      = resolve_value(command_value.get("Scene", ""))
+			var new_name: Variant       = resolve_value(command_value.get("Name", ""))
 
 			#@ Step 1 - Parse target list (comma-separated or array):
 			var targets: Array = []
@@ -7696,24 +6984,46 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				printerr("§CSScene: No Targets provided.")
 				return "Continue"
 
-			#@ Step 2 - Load scene:
-			var scene_path: String = str(scene_raw).strip_edges()
-			if scene_path == "":
+			#@ Step 2 - Parse scene list (comma-separated or single):
+			var scene_paths: Array = []
+			if scene_raw is String:
+				for part in scene_raw.split(",", false):
+					var s = part.strip_edges()
+					if s != "":
+						scene_paths.append(s)
+			elif scene_raw is Array:
+				scene_paths = scene_raw.duplicate()
+
+			if scene_paths.is_empty():
 				printerr("§CSScene: Missing Scene path.")
 				return "Continue"
 
-			var packed_scene: PackedScene = load(scene_path)
-			if packed_scene == null:
-				printerr("§CSScene: Failed to load scene at → ", scene_path)
+			#@ Step 3 - Load all scenes:
+			var packed_scenes: Array = []
+			for scene_path in scene_paths:
+				var packed_scene: PackedScene = load(scene_path)
+				if packed_scene == null:
+					printerr("§CSScene: Failed to load scene at → ", scene_path)
+					continue
+				packed_scenes.append(packed_scene)
+
+			if packed_scenes.is_empty():
+				printerr("§CSScene: No valid scenes loaded.")
 				return "Continue"
 
-			#@ Step 3 - Locate Path 1 container:
+			#@ Step 4 - Parse name list (comma-separated or single):
+			var new_names: Array = []
+			if str(new_name).strip_edges() != "":
+				for part in str(new_name).split(",", false):
+					new_names.append(part.strip_edges())
+
+			#@ Step 5 - Locate Path 1 container:
 			var container = get_node_or_null(cs_locations.get(path_1, ""))
 			if not container:
 				printerr("§CSScene: Invalid Path 1 → ", path_1)
 				return "Continue"
 
-			#@ Step 4 - Instantiate scene for each target:
+			#@ Step 6 - Instantiate scenes for each target:
 			for target_name in targets:
 				#% Resolve role alias if needed:
 				if typeof(target_name) == TYPE_STRING and target_name.begins_with(candy_de.role_symbol):
@@ -7729,9 +7039,13 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					printerr("§CSScene: Could not find parent node at ", path_1, "/", target_name)
 					continue
 
-				#@ Step 5 - Instantiate and attach:
-				var instance: Node = packed_scene.instantiate()
-				parent.add_child(instance)
+				#@ Step 7 - Instantiate and attach each scene:
+				for i in packed_scenes.size():
+					var instance: Node = packed_scenes[i].instantiate()
+					#% Assign name if one exists for this index:
+					if i < new_names.size() and new_names[i] != "":
+						instance.name = new_names[i]
+					parent.add_child(instance)
 
 			return "Continue"
 
@@ -7837,12 +7151,178 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			return "Continue"
 
 
-		#* §CS_Move - Move a node towards a marker:
-		"§cs_move":
+		#* §CS_Look - Rotate Target nodes to look toward a corresponding Marker:
+		"§cs_look":
+			var path_1: Variant         = resolve_value(command_value.get("Path 1", ""))
+			var path_2: Variant         = resolve_value(command_value.get("Path 2", ""))
+			var targets_raw: Variant    = resolve_value(command_value.get("Targets", ""))
+			var markers_raw: Variant    = resolve_value(command_value.get("Markers", ""))
+			var axis_raw: Variant       = resolve_value(command_value.get("Axis", "-z")).to_lower().strip_edges()
+
+			#@ Step 1 - Parse Targets and Markers into arrays:
+			var targets: Array = []
+			if targets_raw is String:
+				for part in targets_raw.split(",", false):
+					var t = part.strip_edges()
+					if t != "":
+						targets.append(t)
+			elif targets_raw is Array:
+				targets = targets_raw.duplicate()
+
+			var markers: Array = []
+			if markers_raw is String:
+				for part in markers_raw.split(",", false):
+					var m = part.strip_edges()
+					if m != "":
+						markers.append(m)
+			elif markers_raw is Array:
+				markers = markers_raw.duplicate()
+
+			if targets.is_empty() or markers.is_empty():
+				printerr("§CSLook: Missing Targets or Markers.")
+				return "Continue"
+
+			#@ Step 2 - Locate containers for targets and markers:
+			var targets_container = get_node_or_null(cs_locations.get(path_1, ""))
+			var markers_container = get_node_or_null(cs_locations.get(path_2, ""))
+
+			if not targets_container:
+				printerr("§CSLook: Invalid Path 1 → ", path_1)
+				return "Continue"
+			if not markers_container:
+				printerr("§CSLook: Invalid Path 2 → ", path_2)
+				return "Continue"
+
+			#@ Step 3 - Determine pairing strategy:
+			#% If only one marker is provided, all targets look at that single marker.
+			#% If multiple markers are provided, targets and markers are paired by index, and any excess targets beyond the number of markers are silently dropped.
+			var single_marker_mode: bool = markers.size() == 1
+			var shared_marker: Node = null
+			if single_marker_mode:
+				var marker_name = markers[0]
+				if typeof(marker_name) == TYPE_STRING and marker_name.begins_with(candy_de.role_symbol):
+					if candy_de.roles.has(marker_name):
+						marker_name = candy_de.roles[marker_name]
+					else:
+						printerr("§CSLook: Unknown role marker → ", marker_name)
+						return "Continue"
+				shared_marker = markers_container.get_node_or_null(NodePath(marker_name))
+				if not shared_marker:
+					printerr("§CSLook: Marker not found → ", marker_name)
+					return "Continue"
+
+			#@ Step 4 - Determine how many iterations to run:
+			#% Single-marker mode: process all targets.
+			#% Paired mode: process only as many targets as there are markers, dropping any excess targets beyond that count.
+			var pair_count: int = targets.size() if single_marker_mode else min(targets.size(), markers.size())
+
+			#@ Step 5 - Process each target:
+			for i in range(pair_count):
+				var target_name = targets[i]
+
+				#% Resolve role alias for target:
+				if typeof(target_name) == TYPE_STRING and target_name.begins_with(candy_de.role_symbol):
+					var role_name = target_name
+					if candy_de.roles.has(role_name):
+						target_name = candy_de.roles[role_name]
+					else:
+						printerr("§CSLook: Unknown role target → ", role_name)
+						continue
+
+				var target: Node = targets_container.get_node_or_null(NodePath(target_name))
+				if not target:
+					printerr("§CSLook: Target not found → ", target_name)
+					continue
+
+				#% Single-marker mode: every target uses the shared marker resolved above.
+				#% Paired mode: resolve this iteration's marker fresh.
+				var marker: Node = shared_marker
+				if not single_marker_mode:
+					var marker_name = markers[i]
+					if typeof(marker_name) == TYPE_STRING and marker_name.begins_with(candy_de.role_symbol):
+						var role_name = marker_name
+						if candy_de.roles.has(role_name):
+							marker_name = candy_de.roles[role_name]
+						else:
+							printerr("§CSLook: Unknown role marker → ", role_name)
+							continue
+					marker = markers_container.get_node_or_null(NodePath(marker_name))
+					if not marker:
+						printerr("§CSLook: Marker not found → ", marker_name)
+						continue
+
+				#@ Step 6A - 3D nodes:
+				if target is Node3D and marker is Node3D:
+					var direction: Vector3 = marker.global_position - target.global_position
+
+					#% Skip orientation if target and marker are on the same spot:
+					#% length_squared() avoids the cost of square root and is safe for a near-zero comparisons.
+					if direction.length_squared() < 0.0001:
+						printerr("§CSLook: Target and marker are at the same position, skipping → ", target_name)
+						continue
+
+					#% Orient the target so the designated axis faces the marker:
+					target.look_at(marker.global_position, Vector3.UP)
+
+					match axis_raw:
+						"-z":
+							pass    #/ -Z is Godot's native look_at forward — no modification needed.
+						"+z", "z":
+							target.rotate_object_local(Vector3.UP, PI)
+						"+x", "x":
+							target.rotate_object_local(Vector3.UP, -PI / 2.0)
+						"-x":
+							target.rotate_object_local(Vector3.UP, PI / 2.0)
+						"+y", "y":
+							target.rotate_object_local(Vector3.RIGHT, PI / 2.0)
+						"-y":
+							target.rotate_object_local(Vector3.RIGHT, -PI / 2.0)
+						_:
+							printerr("§CSLook: Unknown Axis value → ", axis_raw, ". Defaulting to -Z.")
+
+				#@ Step 6B - 2D nodes:
+				elif target is Node2D and marker is Node2D:
+					var direction: Vector2 = marker.global_position - target.global_position
+
+					if direction.length_squared() < 0.0001:
+						printerr("§CSLook: Target and marker are at the same position, skipping → ", target_name)
+						continue
+
+					#% atan2 returns the angle of the direction vector measured from +X at 0 radians.
+					#% The axis offsets shift that result so the declared forward axis ends up pointing toward the marker instead.
+					var angle: float = atan2(direction.y, direction.x)
+
+					match axis_raw:
+						"+x", "x":
+							pass
+						"-x":
+							angle += PI
+						"+y", "y":
+							angle -= PI / 2.0   #/ Godot's 2D +Y points downward, so -90° gives upward-facing.
+						"-y":
+							angle += PI / 2.0
+						"-z", "+z", "z":
+							printerr("§CSLook: Z axis is not valid for 2D nodes → ", target_name, ". Defaulting to +X.")
+						_:
+							printerr("§CSLook: Unknown Axis value → ", axis_raw, ". Defaulting to +X.")
+
+					target.global_rotation = angle
+
+				#@ Step 6C - Unsupported node type:
+				else:
+					printerr("§CSLook: Target is not a Node2D or Node3D → ", target_name)
+					continue
+
 			return "Continue"
 
 
-		#* §CS_Anim - Play one or more animations on one or more nodes with Loop/Wait/Time and Play logic:
+		#* §CS_Move - Move a node towards a marker:
+		"§cs_move":
+			#TODO: Write your own code, depending on the movement logic you desire.
+			return "Continue"
+
+
+		#* §CS_Anim - Play one or more animations on one or more nodes:
 		"§cs_anim":
 			var path_1: Variant			= resolve_value(command_value.get("Path 1", ""))
 			var path_2: Variant			= resolve_value(command_value.get("Path 2", ""))
@@ -7851,11 +7331,9 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var loop_raw: Variant		= resolve_value(command_value.get("Loop", "1"))
 			var wait_raw: Variant		= resolve_value(command_value.get("Wait", "0"))
 			var time_raw: Variant		= resolve_value(command_value.get("Time", "0"))
-			var play_raw: Variant		= resolve_value(command_value.get("Play", "1"))
 
 			var loop: int = int(loop_raw)
 			var wait: int = int(wait_raw)
-			var play: int = int(play_raw)
 
 			#@ Step 1 - Parse Time value (HH:MM:SS.xx or f=frames):
 			var time_target: float = 0.0
@@ -7945,10 +7423,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				data["elapsed_time"] = 0.0
 				data["duration"] = 0.0
 				data["anim_name"] = anim_name
-				data["paused"] = (play == 0)
+				data["paused"] = (loop == 0)
 
-				#@ Step 8 - Handle Play = 0 case:
-				if play == 0:
+				#@ Step 8 - Handle Loop = 0 case (stop on first frame):
+				if loop == 0:
 					if anim_node is AnimationPlayer:
 						anim_node.stop()
 						anim_node.seek(0.0, true)
@@ -7970,11 +7448,13 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							anim_node.play(anim_name)
 							await anim_node.animation_finished
 							data["loops_played"] += 1
-							if loop == 0 or data["loops_played"] < loop:
-								continue
-							else:
+							if loop == -1:
+								continue    #/ Infinite loop
+							elif loop > 0 and data["loops_played"] >= loop:
 								anim_node.stop()
 								return
+							else:
+								continue
 					_anim_loop.call_deferred()
 
 				elif anim_node is AnimationTree:
@@ -7986,7 +7466,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					anim_node.active = true
 					playback.travel(anim_name)
 
-					var duration: float = 1.0	#/ Unknown duration fallback
+					var duration: float = 1.0
 					data["duration"] = duration
 
 					var _tree_loop := func():
@@ -7999,7 +7479,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 								break
 							if playback.get_current_node() != anim_name:
 								data["loops_played"] += 1
-								if loop == 0 or data["loops_played"] < loop:
+								if loop == -1 or loop == 0 or data["loops_played"] < loop:
 									playback.travel(anim_name)
 								else:
 									break
@@ -8023,19 +7503,25 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							continue
 
 						var d = cs_loop_data[path_2]
-						d["elapsed_time"] += get_process_delta_time()
-
-						var duration: float = float(d.get("duration", 0.0))
 						var loop_target: int = int(d.get("loop_target", 0))
 						var loops_played: int = int(d.get("loops_played", 0))
-						var resume_at: float = (max(wait, 0) * duration) + max(time_target, 0.0)
 
-						if loop_target > 0 and loops_played < loop_target:
+						#% Don't wait if finite animation finished:
+						if loop_target > 0 and loops_played >= loop_target:
+							continue
+
+						#% If Wait is set, wait for that many loops to complete:
+						if wait > 0 and loops_played < wait:
 							all_done = false
 							break
-						elif d["elapsed_time"] < resume_at:
-							all_done = false
-							break
+
+						#% If only Time is set, fall back to elapsed time:
+						if time_target > 0.0:
+							d["elapsed_time"] += get_process_delta_time()
+							if d["elapsed_time"] < time_target:
+								all_done = false
+								break
+
 					if all_done:
 						break
 					await get_tree().process_frame
@@ -8131,23 +7617,26 @@ func commands(command_key, command_value, current_conversation, current_block, _
 						continue
 
 					var data = cs_loop_data[path_2]
-					data["elapsed_time"] += get_process_delta_time()
-
 					var loop_target: int = int(data.get("loop_target", 0))
 					var loops_played: int = int(data.get("loops_played", 0))
-					var elapsed: float = float(data.get("elapsed_time", 0.0))
-					var duration: float = float(data.get("duration", 0.0))
-					var resume_at: float = (max(wait_target, 0) * duration) + max(time_target, 0.0)
 
-					#% Skip if nothing to wait for:
-					if loop_target == 0 and wait_target == -1 and time_target <= 0.0:
+					#% Don't wait if animation finished:
+					if loop_target > 0 and loops_played >= loop_target:
 						done_nodes.append(node)
 						continue
 
-					#% Finished required loops/time:
-					if elapsed >= resume_at or (loop_target > 0 and loops_played >= loop_target):
-						done_nodes.append(node)
+					#% If Wait is set, wait for that many loops to complete:
+					if wait_target > 0 and loops_played < wait_target:
 						continue
+
+					#% If only Time is set, fall back to elapsed time:
+					if time_target > 0.0:
+						data["elapsed_time"] += get_process_delta_time()
+						if float(data.get("elapsed_time", 0.0)) < time_target:
+							continue
+
+					#% Nothing to wait for - continue immediately:
+					done_nodes.append(node)
 
 				await get_tree().process_frame
 
@@ -8159,9 +7648,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var path_1: Variant			= resolve_value(command_value.get("Path 1", ""))
 			var path_2: Variant			= resolve_value(command_value.get("Path 2", ""))
 			var targets_raw: Variant	= resolve_value(command_value.get("Targets", ""))
-			var reset_raw: Variant		= resolve_value(command_value.get("Default", "0"))
-
-			var reset_to_first := int(reset_raw) == 1
+			var default_val: int		= int(resolve_value(command_value.get("Default", "0")))
 
 			#@ Step 1 - Parse Targets list:
 			var targets: Array = []
@@ -8208,17 +7695,28 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 				#@ Step 5 - Stop animation based on type:
 				if anim_node is AnimationPlayer:
-					anim_node.stop()
-					if reset_to_first:
-						anim_node.seek(0.0, true)
+					if default_val == 0:
+						#% Stop on current frame:
+						anim_node.stop(false)
+					elif default_val == -1:
+						#% Stop on last frame:
+						var anim = anim_node.current_animation
+						if anim != "":
+							var length = anim_node.get_animation(anim).length
+							anim_node.stop(false)
+							anim_node.seek(length, true)
+						else:
+							anim_node.stop(false)
+					else:
+						#% Stop on specific frame:
+						anim_node.stop(false)
+						anim_node.seek(default_val / 30.0, true)
 
 				elif anim_node is AnimationTree:
-					if reset_to_first:
-						var playback: AnimationNodeStateMachinePlayback = anim_node.get("parameters/playback")
-						if playback and playback.has_method("travel"):
-							playback.travel("Idle")
+					var playback: AnimationNodeStateMachinePlayback = anim_node.get("parameters/playback")
+					if default_val == -1 and playback:
+						playback.travel("Idle")
 					anim_node.active = false
-
 				else:
 					printerr("§CSAnimStop: Unsupported animation node → ", anim_node)
 					continue
@@ -8241,11 +7739,9 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var loop_raw: Variant		= resolve_value(command_value.get("Loop", "1"))
 			var wait_raw: Variant		= resolve_value(command_value.get("Wait", "0"))
 			var time_raw: Variant		= resolve_value(command_value.get("Time", "0"))
-			var play_raw: Variant		= resolve_value(command_value.get("Play", "1"))
 
 			var loop: int = int(loop_raw)
 			var wait: int = int(wait_raw)
-			var play: int = int(play_raw)
 
 			#@ Step 1 - Parse Time (HH:MM:SS.xx or f=frames):
 			var time_target: float = 0.0
@@ -8328,21 +7824,29 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					continue
 
 				#@ Step 6 - Determine resource path:
-				var folder = candy_de.sprite_folder.path_join(target_name)
-				var file_name := file_ref if file_ref != "" else "Default"
+				#% Empty File = remove current sprite/texture:
+				if file_ref == "":
+					if sprite_node is Sprite2D or sprite_node is Sprite3D:
+						sprite_node.texture = null
+						sprite_node.visible = false
+					elif sprite_node is AnimatedSprite2D or sprite_node is AnimatedSprite3D:
+						sprite_node.stop()
+						sprite_node.sprite_frames = null
+						sprite_node.visible = false
+					continue
 
+				var folder = candy_de.sprite_folder.path_join(target_name)
+				var file_name := file_ref
 				if file_name.find(".") == -1:
 					if sprite_node is Sprite2D or sprite_node is Sprite3D:
 						file_name += candy_de.default_sprite_extension
 					elif sprite_node is AnimatedSprite2D or sprite_node is AnimatedSprite3D:
 						file_name += candy_de.default_animated_sprite_extension
-
 				var file_path: String
 				if sprite_node is AnimatedSprite2D or sprite_node is AnimatedSprite3D:
-					file_path = folder.path_join("Sprite Frames").path_join(file_name)
+					file_path = folder.path_join("Sprite_Frames").path_join(file_name)
 				else:
 					file_path = folder.path_join(file_name)
-
 				if not ResourceLoader.exists(file_path):
 					printerr("§CSSprite: Missing resource → ", file_path)
 					continue
@@ -8358,7 +7862,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					"time_target": time_target,
 					"elapsed_time": 0.0,
 					"duration": 0.0,
-					"paused": (play == 0)
+					"paused": (loop == 0)
 				}
 
 				var data = cs_loop_data[path_2]
@@ -8403,7 +7907,11 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					duration = total_frames / candy_de.cs_sprite_fps
 					data["duration"] = duration
 
-					if play == 0 or total_frames <= 1:
+					#% Stop on first frame if Loop = 0:
+					if loop == 0 or total_frames <= 1:
+						continue
+
+					if total_frames <= 1:
 						continue
 
 					var new_timer = Timer.new()
@@ -8420,7 +7928,9 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							if next_frame >= total_frames:
 								data["loops_played"] += 1
 								next_frame = 0
-								if loop > 0 and data["loops_played"] >= loop:
+								if loop == -1:
+									pass    #/ Infinite loop
+								elif loop > 0 and data["loops_played"] >= loop:
 									new_timer.stop()
 									new_timer.queue_free()
 									return
@@ -8448,7 +7958,8 @@ func commands(command_key, command_value, current_conversation, current_block, _
 					duration = frames.get_frame_count(anim) / candy_de.cs_sprite_fps
 					data["duration"] = duration
 
-					if play == 0:
+					#% Stop on first frame if Loop = 0:
+					if loop == 0:
 						sprite_node.frame = 0
 						sprite_node.stop()
 						continue
@@ -8458,11 +7969,13 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							sprite_node.play(anim)
 							await sprite_node.animation_finished
 							data["loops_played"] += 1
-							if loop == 0 or data["loops_played"] < loop:
-								continue
-							else:
+							if loop == -1:
+								continue    #/ Infinite loop
+							elif loop > 0 and data["loops_played"] >= loop:
 								sprite_node.stop()
 								return
+							else:
+								continue
 					_anim_loop.call_deferred()
 
 				else:
@@ -8483,19 +7996,25 @@ func commands(command_key, command_value, current_conversation, current_block, _
 							continue
 						var d = cs_loop_data[path_2]
 
-						d["elapsed_time"] += get_process_delta_time()
-
-						var duration: float = float(d.get("duration", 0.0))
 						var loop_target: int = int(d.get("loop_target", 0))
 						var loops_played: int = int(d.get("loops_played", 0))
-						var resume_at: float = (max(wait, 0) * duration) + max(time_target, 0.0)
 
-						if loop_target > 0 and loops_played < loop_target:
+						#% Don't wait if finite animation finished:
+						if loop_target > 0 and loops_played >= loop_target:
+							continue
+
+						#% If Wait is set, wait for that many loops to complete:
+						if wait > 0 and loops_played < wait:
 							all_done = false
 							break
-						elif d["elapsed_time"] < resume_at:
-							all_done = false
-							break
+
+						#% If only Time is set, fall back to elapsed time:
+						if time_target > 0.0:
+							d["elapsed_time"] += get_process_delta_time()
+							if d["elapsed_time"] < time_target:
+								all_done = false
+								break
+
 					if all_done:
 						break
 					await get_tree().process_frame
@@ -8592,28 +8111,27 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 					var cs_loop_data: Dictionary = node.get_meta("cs_loop_data")
 					var d = cs_loop_data[path_2]
-					d["elapsed_time"] += get_process_delta_time()
 
-					var duration: float = float(d.get("duration", 0.0))
 					var loop_target: int = int(d.get("loop_target", 0))
 					var loops_played: int = int(d.get("loops_played", 0))
-					var elapsed: float = float(d.get("elapsed_time", 0.0))
-					var resume_at: float = (max(wait_target, 0) * duration) + max(time_target, 0.0)
 
-					#% Case 1: nothing to wait for:
-					if loop_target == 0 and wait_target == -1 and time_target <= 0.0:
-						done_nodes.append(node)
-						continue
-
-					#% Case 2: target time reached:
-					if elapsed >= resume_at:
-						done_nodes.append(node)
-						continue
-
-					#% Case 3: finished all loops:
+					#% If animation has a finite loop target and it's done, don't wait further:
 					if loop_target > 0 and loops_played >= loop_target:
 						done_nodes.append(node)
 						continue
+
+					#% If Wait is set, wait for that many loops to complete:
+					if wait_target > 0 and loops_played < wait_target:
+						continue
+
+					#% If Time is set, check elapsed time (after Wait loops are satisfied):
+					if time_target > 0.0:
+						d["elapsed_time"] += get_process_delta_time()
+						if d["elapsed_time"] < time_target:
+							continue
+
+					#% Nothing left to wait for:
+					done_nodes.append(node)
 
 				await get_tree().process_frame
 
@@ -8625,9 +8143,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 			var path_1: Variant			= resolve_value(command_value.get("Path 1", ""))
 			var path_2: Variant			= resolve_value(command_value.get("Path 2", ""))
 			var targets_raw: Variant	= resolve_value(command_value.get("Targets", ""))
-			var default_raw: Variant	= resolve_value(command_value.get("Default", "1"))
-
-			var reset_to_first: bool = int(default_raw) == 1
+			var default_val: int = int(resolve_value(command_value.get("Default", "0")))
 
 			#@ Step 1 - Parse target list:
 			var targets: Array = []
@@ -8688,15 +8204,26 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				#@ Step 5 - Stop playback depending on node type:
 				if sprite_node is AnimatedSprite2D or sprite_node is AnimatedSprite3D:
 					sprite_node.stop()
-					if reset_to_first:
-						sprite_node.frame = 0
+					if default_val == 0:
+						pass    # Keep current frame
+					elif default_val == -1:
+						sprite_node.frame = sprite_node.sprite_frames.get_frame_count(sprite_node.animation) - 1
+					else:
+						sprite_node.frame = clamp(default_val - 1, 0, sprite_node.sprite_frames.get_frame_count(sprite_node.animation) - 1)
+
 				elif sprite_node is Sprite2D or sprite_node is Sprite3D:
 					var timer := sprite_node.get_node_or_null("CSSpriteTimer")
 					if timer:
 						timer.stop()
 						timer.queue_free()
-					if reset_to_first and "frame" in sprite_node:
-						sprite_node.frame = 0
+					if default_val == 0:
+						pass    # Keep current frame
+					elif default_val == -1:
+						if "frame" in sprite_node:
+							sprite_node.frame = sprite_node.hframes * sprite_node.vframes - 1
+					else:
+						if "frame" in sprite_node:
+							sprite_node.frame = clamp(default_val - 1, 0, sprite_node.hframes * sprite_node.vframes - 1)
 				else:
 					printerr("§CSSpriteStop: Unsupported node type → ", sprite_node)
 					continue
@@ -8704,7 +8231,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				#@ Step 6 - Clean cs_loop_data metadata:
 				if target_node.has_meta("cs_loop_data"):
 					var cs_loop_data: Dictionary = target_node.get_meta("cs_loop_data")
-					cs_loop_data.erase(path_2)		#/ remove entry completely for clean restart
+					cs_loop_data.erase(path_2)		#/ Remove entry completely for clean restart
 
 			return "Continue"
 
@@ -8713,7 +8240,7 @@ func commands(command_key, command_value, current_conversation, current_block, _
 		"§cs_visible":
 			var path_1: Variant			= resolve_value(command_value.get("Path 1", ""))
 			var targets_raw: Variant	= resolve_value(command_value.get("Targets", ""))
-			var status: Variant			= resolve_value(command_value.get("Status", ""))
+			var status: Variant			= resolve_value(command_value.get("Visibility", ""))
 
 			#@ Step 1 - Locate Path 1 container:
 			var container = get_node_or_null(cs_locations.get(path_1, ""))
@@ -8768,11 +8295,11 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 			for node in target_nodes:
 				match status_str:
-					"true", "1", "on", "show", "visible":
+					"true", "1", "on", "show", "unhidden", "visible":
 						node.visible = true
-					"false", "0", "off", "hide", "hidden":
+					"false", "0", "off", "hide", "hidden", "invisible":
 						node.visible = false
-					"toggle":
+					"toggle", "swap", "switch":
 						node.visible = not node.visible
 					_:
 						printerr("§CSVisible: Unknown status value → ", status_str, " (Node: ", node.name, ")")
@@ -9007,6 +8534,10 @@ func commands(command_key, command_value, current_conversation, current_block, _
 				data = resolve_value(candy_de.node_symbol + data.substr(1))
 			elif data.begins_with(candy_de.super_vardict_symbol):
 				data = resolve_value(candy_de.vardict_symbol + data.substr(1))
+			elif data.begins_with("sv_res://"):
+				data = "v_res://" + resolve_value(data.substr("sv_res://".length()))
+			elif data.begins_with("sv_user://"):
+				data = "v_user://" + resolve_value(data.substr("sv_user://".length()))
 
 			match command:
 				#TODO: Add your own commands
@@ -9072,6 +8603,14 @@ func load_scripted_dialogue(file_name: String) -> void:
 	file.close()
 
 	#@ Step 2 - Clean and normalize exported syntax:
+	#% Strip comment lines:
+	var lines = text_data.split("\n")
+	var cleaned = []
+	for line in lines:
+		if not line.strip_edges().begins_with("\u0023"):
+			cleaned.append(line)
+	text_data = "\n".join(cleaned)
+
 	#% Replace <null> placeholders with proper GDScript null:
 	text_data = text_data.replace("<null>", "null")
 	text_data = text_data.replace("<Null>", "null")
@@ -9103,23 +8642,54 @@ func load_scripted_dialogue(file_name: String) -> void:
 		push_error("Candy DE: Dialogue file root must be a Dictionary: " + path)
 		return
 
-	#@ Step 4 - Validate new export format:
-	if not result.has("Dialogue"):
-		push_error("Candy DE: Invalid dialogue format (missing 'Dialogue' section): " + path)
-		return
+	#@ Step 4 - Store successfully loaded dialogue:
+	#% Handle both bare format (conversations at root) and wrapped format (with Meta/Dialogue keys):
+	if result.has("Dialogue"):
+		running_dialogue = result["Dialogue"]
+	else:
+		running_dialogue = result
 
-	if typeof(result["Dialogue"]) != TYPE_DICTIONARY:
-		push_error("Candy DE: 'Dialogue' section must be a Dictionary: " + path)
-		return
-
-	#@ Step 5 - Store successfully loaded dialogue only:
-	running_dialogue = result["Dialogue"]
-
-	print("Candy DE: Loaded dialogue file:", path)
 
 #* Initiate dialogue:
 #? Call this to start a dialogues.
 func start_dialogue(conversation, start_block, start_line):
+	#& Multi-dialogue prevention:
+	#! Running dialogues on the same instance at the same time should normally not be done.
+	#@ Prevent starting multiple dialogues on the same engine instance:
+	if dialogue_running == true:
+		printerr("CANNOT START DIALOGUE: Another dialogue is still running in " + str(self))
+		return
+
+	#@ Unsuspend and trigger Killswitch to kill any previous dialogue still running in this instance:
+	#% In case the previous dialogue_running prevention check failed:
+	dialogue_suspended = false
+	killswitch = true
+
+	#@ Cleanup previous dialogue:
+	#% In a case a previous dialogue didn't end properly.
+	greenlight = true
+	nesting_depth = 0
+	choice_lists.clear()
+	choice_list_data.clear()
+	if_array.clear()
+	var choice_lists_path = get_node_or_null(ui_elements_paths["choices_path"])
+	if choice_lists_path:
+		for child in choice_lists_path.get_children():
+			child.queue_free()
+	await get_tree().process_frame
+
+	killswitch = false
+
+	#& Start new dialogue:
+	#@ Get language:
+	if engine_language == "":
+		use_language = candy_de.language
+	else:
+		use_language = engine_language
+
+	if use_language == "":
+		use_language = "Default"
+
 	#@ Change game state to indicate dialogue is running:
 	candy_de.change_game_state(self, "start")
 
@@ -9153,6 +8723,7 @@ func run_dialogue(current_conversation, current_block, line_index, source, main)
 	print(current_conversation)
 	print(current_block)
 	print(line_index)
+
 	#@ Step 0 - Update progress trackers, check killswitch and dialogue suspension:
 	#% Update progress trackers:
 	conversation_tracker = current_conversation
@@ -9180,13 +8751,21 @@ func run_dialogue(current_conversation, current_block, line_index, source, main)
 
 	#@ Step 2 - Resolve LM reference if line_index is a string:
 	if typeof(line_index) == TYPE_STRING:
-		var target_index := 0
-		for i in range(text_array.size()):
-			var ld = text_array[i]
-			if ld.has("§LM") and str(ld["§LM"]) == line_index:
-				target_index = i
-				break
-		line_index = target_index
+		if line_index.is_valid_int():
+			#% Treat entirely numeric string as a line index, not a line mark:
+			line_index = int(line_index)
+		else:
+			var target_index := 0
+			var lm_found := false
+			for i in range(text_array.size()):
+				var ld = text_array[i]
+				if ld.has("§LM") and str(ld["§LM"]) == line_index:
+					target_index = i
+					lm_found = true
+					break
+			if not lm_found:
+				push_warning("Candy DE: Line Mark '" + line_index + "' not found in " + current_conversation + " > " + current_block + ". Defaulting to line 0.")
+			line_index = target_index
 
 	#@ Step 3 - Loop through all lines in sequence:
 	var index = line_index
@@ -9279,10 +8858,8 @@ func process_lines(current_conversation, current_block, line_index, source, main
 			#% Feedback + Killswitch check:
 			if feedback == "END" or killswitch == true:
 				if main == false:
-					print("AAA")
 					return "END"
 				elif main == true:
-					print("BBB")
 					killswitch = false
 					emit_signal("killswitch_off")
 					return "END"
@@ -9366,10 +8943,10 @@ func process_lines(current_conversation, current_block, line_index, source, main
 				#% Detect numeric pattern like (n):
 				var numeric_regex := RegEx.new()
 				numeric_regex.compile(r"^\((\d+)\)")
-				var match := numeric_regex.search(disposition_cond)
-				if match:
-					match_count = int(match.get_string(1))
-					disposition_cond = disposition_cond.substr(match.get_end(0)).strip_edges()
+				var match_num := numeric_regex.search(disposition_cond)
+				if match_num:
+					match_count = int(match_num.get_string(1))
+					disposition_cond = disposition_cond.substr(match_num.get_end(0)).strip_edges()
 
 				#% Clean up prefix and detect flags:
 				is_negated = prefix.find("!") != -1
@@ -9434,89 +9011,235 @@ func process_lines(current_conversation, current_block, line_index, source, main
 
 				#@ Step 3F - Skip line if condition fails:
 				if not passes:
+					if mp_count_dispositions:
+						#@ Step 9 - Decrement media pauses for skipped line:
+						for mp in active_media_players:
+							if mp.pause_count > 0:
+								if mp.pause_mode == "speech":
+									mp.pause_count -= 1
+								elif mp.pause_mode == "all":
+									mp.pause_count -= 1
+							if mp.pause_count == 0:
+								mp.unpause()
+						for mp in active_media_players:
+							if mp.pause_re_wait == true:
+								while mp in active_media_players:
+									await get_tree().process_frame
 					continue
 
-			#@ Step 4 - Variant selection:
-			var chosen_variant: String = candy_de.language	#/ Start from the language
+			#@ Step 4A - Variant selection:
+			var chosen_variant: String = use_language
 			var variants: Array = speech_data.get("Variants", [])
 
-			#? You may add more variant options here - e.g. moral alignment, character class, etc.
-			#? The order doesn't matter as long as it matches the tag order in your variant names, except Random should be last.
-			#?
-			#? Tags are optional. If variants don't exist for a tag, the tag is ignored.
-			#? In other words, the engine can never end up trying to display a variant that doesn't exist.
-			#?
-			#? If adding your own criteria, the logic should be:
-			#? 	1) check if a variant matching chosen_variant + tag' exists;
-			#? 	2) if so, append tag to chosen_variant.
+			#% Build set of known tag values for built-in tags:
+			var active_tags: Dictionary = {}
 
-			#@ Player gender variant:
-			if player_gender_variants:
-				var gender_tag = str(player_gender)
-				var test_variant = chosen_variant + "_P:" + gender_tag		#/ "_P:M", "_P:F", or any other gender value you choose
-				#% Check if variant exists (any form):
-				for entry in variants:
-					if entry.has(test_variant):
-						chosen_variant = test_variant
-						print("Variant - player gender: " + str(chosen_variant))
-						break
+			#% Player tags - look up current_player in actors dictionary:
+			if "current_player" in candy_de:	#! This check will be removed in Candy DE 1.2
+				var current_player = candy_de.current_player
+				if current_player != "" and candy_de.actors.has(current_player):
+					for tag_key in player_tags.keys():
+						#% Skip disabled tags:
+						if tag_key in disabled_tags:
+							continue
+						var actor_attr: String = player_tags[tag_key]
+						if candy_de.actors[current_player].has(actor_attr):
+							active_tags[tag_key] = str(candy_de.actors[current_player][actor_attr])
+			else:
+				printerr("Unable to check Player tags: 'var current_player' is missing from Candy_Database.gd. Please see the 'Variants & Translations' guide.")
 
-			#@ Speaker gender variant:
-			if speaker_gender_variants and candy_de.actors.has(speaker_ref) and candy_de.actors[speaker_ref].has("Gender"):
-				var speaker_gender = str(candy_de.actors[speaker_ref]["Gender"])
-				var test_variant = chosen_variant + "_S:" + speaker_gender	#/ "_S:M", "_S:F", or any other gender value you choose
-				for entry in variants:
-					if entry.has(test_variant):
-						chosen_variant = test_variant
-						print("Variant - speaker gender: " + str(chosen_variant))
-						break
+			#% Speaker tags - look up the current speaker in actors dictionary:
+			if candy_de.actors.has(speaker_ref):
+				for tag_key in speaker_tags.keys():
+					#% Skip disabled tags:
+					if tag_key in disabled_tags:
+						continue
+					var actor_attr: String = speaker_tags[tag_key]
+					if candy_de.actors[speaker_ref].has(actor_attr):
+						active_tags[tag_key] = str(candy_de.actors[speaker_ref][actor_attr])
 
-			#@ Random variant (always last step):
-			#? Looks for variant names ending in "_#int" but will also include chosen_variant without "_#int" if it exists.
-			var chosen_text := ""
-			var text_direction := ""
-			var pool: Array = []
-			var pool_names: Array = []	#/ Array for variant names
-			var pool_directions: Array = []
+			#TODO: Add any additional custom tag logic you want to support
+
+			#@ Step 4B - Parse and filter variants:
+			#? A variant passes if:
+			#?   - Its base language matches use_language
+			#?   - All its tags are present in active_tags and their values match
+			#?   - It is not a numbered sub-variant (_#int)
+			#! Unknown tags (not handled by any of the logic above) cause the variant to fail!
+			var passing_variants: Array = []
 
 			for entry in variants:
 				for variant_name in entry.keys():
+					#% Discard variants with no text early:
+					if entry[variant_name].get("Text", "") == "":
+						continue
+
+					var parts = variant_name.split("_", false)
+					if parts.is_empty():
+						continue
+
+					#% First part must match base language:
+					if parts[0] != use_language:
+						continue
+
+					#% Parse tags:
+					var all_pass := true
+					var is_numbered := false
+					for i in range(1, parts.size()):
+						var part = parts[i]
+						#% Skip numbered sub-variants - handled later:
+						if part.begins_with("\u0023") and part.substr(1).is_valid_int():
+							is_numbered = true
+							break
+						var colon_idx = part.find(":")
+						if colon_idx == -1:
+							all_pass = false
+							break
+						var tag_key = part.substr(0, colon_idx)
+						var tag_val = part.substr(colon_idx + 1)
+						#% Check if tag auto-passes:
+						if tag_key in passed_tags:
+							continue
+						#% Unknown tags fail — tag must be present in active_tags and match its value:
+						if not active_tags.has(tag_key) or active_tags[tag_key] != tag_val:
+							all_pass = false
+							break
+
+					if is_numbered or not all_pass:
+						continue
+
+					passing_variants.append({
+						"name": variant_name,
+						"tags": {},
+						"entry": entry
+					})
+
+					#% Re-parse tags into the dict for subset comparison:
+					var v = passing_variants.back()
+					for i in range(1, parts.size()):
+						var part = parts[i]
+						var colon_idx = part.find(":")
+						if colon_idx != -1:
+							v["tags"][part.substr(0, colon_idx)] = part.substr(colon_idx + 1)
+
+			#@ Step 4C - Discard variants whose tags are a strict subset of another passing variant's tags:
+			var filtered_variants: Array = []
+			for i in range(passing_variants.size()):
+				var v = passing_variants[i]
+				var is_subset := false
+				for j in range(passing_variants.size()):
+					if i == j:
+						continue
+					var other = passing_variants[j]
+					if v["tags"].size() >= other["tags"].size():
+						continue
+					var all_in_other := true
+					for tag_key in v["tags"].keys():
+						if not other["tags"].has(tag_key) or other["tags"][tag_key] != v["tags"][tag_key]:
+							all_in_other = false
+							break
+					if all_in_other:
+						is_subset = true
+						break
+				if not is_subset:
+					filtered_variants.append(v)
+
+			#@ Step 4D - If no variants passed, fall back to base language:
+			if filtered_variants.is_empty():
+				for entry in variants:
+					if entry.has(use_language):
+						filtered_variants.append({ "name": use_language, "tags": {}, "entry": entry })
+						break
+
+			#@ Step 4E - Build weighted pool from filtered variants:
+			var variant_pool: Array = []
+			for v in filtered_variants:
+				var variant_name: String = v["name"]
+				var v_entry = v["entry"]
+				if v_entry == null or not v_entry.has(variant_name):
+					continue
+				var weight := 1
+				var raw_weight = v_entry[variant_name].get("Weight", "1")
+				if typeof(raw_weight) == TYPE_STRING and raw_weight.strip_edges().is_valid_int():
+					weight = max(1, int(raw_weight.strip_edges()))
+				for _i in range(weight):
+					variant_pool.append(v)
+
+			#% Pick one variant at random from the pool (or deterministically):
+			var chosen_v = null
+			if variant_pool.size() > 0:
+				if random_variants:
+					chosen_v = variant_pool[randi() % variant_pool.size()]
+				else:
+					chosen_v = variant_pool[0]
+
+			#@ Step 4F - Now build the text pool from the chosen variant, including numbered sub-variants:
+			var chosen_text := ""
+			var text_direction := ""
+			var pool: Array = []
+			var pool_names: Array = []
+			var pool_directions: Array = []
+
+			if chosen_v != null:
+				var base_name: String = chosen_v["name"]
+				var base_entry = chosen_v["entry"]
+
+				#% Add the exact variant:
+				if base_entry.has(base_name):
 					var weight := 1
-					var raw_weight = entry[variant_name].get("Weight", "1")
+					var raw_weight = base_entry[base_name].get("Weight", "1")
 					if typeof(raw_weight) == TYPE_STRING and raw_weight.strip_edges().is_valid_int():
 						weight = max(1, int(raw_weight.strip_edges()))
+					for _i in range(weight):
+						pool.append(base_entry[base_name].get("Text", ""))
+						pool_names.append(base_name)
+						pool_directions.append(base_entry[base_name].get("Direction", ""))
 
-					#% Always add the exact variant if it exists:
-					if variant_name == chosen_variant:
-						for _i in range(weight):
-							pool.append(entry[variant_name].get("Text", ""))
-							pool_names.append(variant_name)
-							pool_directions.append(entry[variant_name].get("Direction", ""))
+				#% Add numbered sub-variants if randomization enabled:
+				if random_variants:
+					for entry in variants:
+						for sub_name in entry.keys():
+							if sub_name.begins_with(base_name + "_%s" % "\u0023") and \
+							sub_name.substr(base_name.length() + 2).is_valid_int():
+								var weight := 1
+								var raw_weight = entry[sub_name].get("Weight", "1")
+								if typeof(raw_weight) == TYPE_STRING and raw_weight.strip_edges().is_valid_int():
+									weight = max(1, int(raw_weight.strip_edges()))
+								for _i in range(weight):
+									pool.append(entry[sub_name].get("Text", ""))
+									pool_names.append(sub_name)
+									pool_directions.append(entry[sub_name].get("Direction", ""))
 
-					#% Add numbered sub-variants only if randomization is enabled:
-					elif random_variants and \
-					variant_name.begins_with(chosen_variant + "_%s" % "\u0023") and \
-					variant_name.substr(chosen_variant.length() + 2).is_valid_int():
-						for _i in range(weight):
-							pool.append(entry[variant_name].get("Text", ""))
-							pool_names.append(variant_name)
-							pool_directions.append(entry[variant_name].get("Direction", ""))
-
-			#% Select variant:
+			#% Select from text pool:
 			if pool.size() > 0:
 				if random_variants:
-					var index := randi() % pool.size()		#/ Random pick if multiple options
+					var index := randi() % pool.size()
 					chosen_text = pool[index]
 					chosen_variant = pool_names[index]
 					text_direction = pool_directions[index]
 					print("Variant - random: " + str(chosen_variant))
 				else:
-					chosen_text = pool[0]					#/ Deterministic: use first found
+					chosen_text = pool[0]
 					chosen_variant = pool_names[0]
 					text_direction = pool_directions[0]
 
-			#% Skip line if no variant matches:
+			#@ Step 4G - Skip line if no variant matches:
 			if chosen_text == "":
+				#@ Step 9 - Decrement media pauses for skipped lines:
+				#? Optional Step 9 logic to count lines towards §Media_Pause commands.
+				if mp_count_variants:
+					for mp in active_media_players:
+						if mp.pause_count > 0:
+							if mp.pause_mode == "speech":
+								mp.pause_count -= 1
+							elif mp.pause_mode == "all":
+								mp.pause_count -= 1
+						if mp.pause_count == 0:
+							mp.unpause()
+					for mp in active_media_players:
+						if mp.pause_re_wait == true:
+							while mp in active_media_players:
+								await get_tree().process_frame
 				continue
 
 			var line_str = chosen_text
@@ -9561,9 +9284,9 @@ func process_lines(current_conversation, current_block, line_index, source, main
 						var actor_name = var_name
 						var key_path: Array = []
 
-						var match = regex.search(var_name)
-						if match:
-							actor_name = match.get_string(1).strip_edges()
+						var match_var = regex.search(var_name)
+						if match_var:
+							actor_name = match_var.get_string(1).strip_edges()
 
 							#% Find all keys inside brackets: e.g. Alice["Age"]["Subkey"]:
 							var key_regex = RegEx.new()
@@ -9955,7 +9678,7 @@ func process_lines(current_conversation, current_block, line_index, source, main
 					search_pos = start_idx + final_word.length()
 
 			#@ Step 7 - LLM handling:
-			var ai_mode = int(speech_data.get("AI", 0))
+			var ai_mode = int(speech_data.get("AI", "0"))
 			var use_llm = llm_mode
 
 			#+ You can swap the order of the Line Override and Actor Override code blocks to change the priority:
@@ -9975,8 +9698,8 @@ func process_lines(current_conversation, current_block, line_index, source, main
 			#% If use LLM, call the externalized LLM query function:
 			if use_llm:
 				var display_name = speaker_ref
-				if candy_de.actors.has(speaker_ref) and candy_de.actors[speaker_ref].has("Display Name"):
-					display_name = str(candy_de.actors[speaker_ref]["Display Name"])
+				if candy_de.actors.has(speaker_ref) and candy_de.actors[speaker_ref].has("DisplayName"):
+					display_name = str(candy_de.actors[speaker_ref]["DisplayName"])
 
 				#% Pass all dispositions instead of a single one:
 				var actor_disps_array: Array = []
@@ -10046,8 +9769,13 @@ func process_lines(current_conversation, current_block, line_index, source, main
 
 	#@ Step 13 - Finished processing this line:
 	if feedback == null or feedback == "":
+		#% Default to "Continue" - this is almost always the correct value:
 		feedback = "Continue"
-		push_warning("process_lines() ended with feedback = '" + feedback + "'. This should never happen. Defaulting to 'Continue' as precaution. May cause errors. Good luck.")
+
+		#% Notify the user:
+		push_warning("process_lines() ended with feedback = '" + feedback + "'. This should never happen: defaulting to 'Continue' as an assumption. May cause errors. Good luck.")
+		#% Piss the user off so they actually report this if "Continue" was wrong:
+		push_warning("Also, make sure you include this in your complaint or we can't help you, Karen --- LINE DATA: " + str(line_data))
 	return feedback
 
 
@@ -10059,10 +9787,10 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 	var play_portrait: String		= resolve_value(speech_data.get("PortraitPlay", "1"))
 	var disposition: String			= resolve_value(speech_data.get("Disposition", ""))
 	var voice_raw: String			= speech_data.get("Voice", "")
-	var speech_bubble_exempt: bool	= resolve_value(speech_data.get("BubbleExempt", false))
+	var force_bubble: String		= resolve_value(speech_data.get("ForceBubbles", "0"))
 	var force_portrait: String		= resolve_value(speech_data.get("ForcePortrait", "0"))
-	var tts: int					= resolve_value(speech_data.get("TTS", 0))
-	var direction					= resolve_value(text_direction)
+	var tts: int					= int(resolve_value(speech_data.get("TTS", "0")))
+	var direction					= resolve_value(text_direction).to_lower()
 
 	#@ Set role flag:
 	var role_flag := false
@@ -10110,36 +9838,45 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 	#@ Resolve display name from candy_de.actors table:
 	var speaker_display: String = speaker_ref
-	if candy_de.actors.has(speaker_ref) and candy_de.actors[speaker_ref].has("Display Name"):
-		speaker_display = str(candy_de.actors[speaker_ref]["Display Name"])
-		if candy_de.actors[speaker_ref].has("Speaker BBCode"):
-			var bbcode_l = candy_de.actors[speaker_ref]["Speaker BBCode"][0]
-			var bbcode_r = candy_de.actors[speaker_ref]["Speaker BBCode"][1]
+	if candy_de.actors.has(speaker_ref) and candy_de.actors[speaker_ref].has("DisplayName"):
+		speaker_display = str(candy_de.actors[speaker_ref]["DisplayName"])
+		if candy_de.actors[speaker_ref].has("SpeakerBBCode"):
+			var bbcode_l = candy_de.actors[speaker_ref]["SpeakerBBCode"][0]
+			var bbcode_r = candy_de.actors[speaker_ref]["SpeakerBBCode"][1]
 			speaker_display = bbcode_l + speaker_display + bbcode_r
 
 	var style = DialogueModes.keys()[dialogue_mode]
 
-	print(style)
+	#print(style)
 
-	#@ Alternate to VN_Bubbles:
-	if style == "Bubbles" and vn_mode == true:
+	#@ Speech Bubbles:
+	#% Check if speaker has bubble force:
+	if candy_de.actors.has(speaker_ref) and candy_de.actors[speaker_ref].has("BubblesOverride"):
+		if candy_de.actors[speaker_ref]["BubblesOverride"] == 1:
+			style = "Bubbles"
+
+	#% Check if line has bubble force:
+	if force_bubble == "1":
+		style = "Bubbles"
+
+	#% Alternate to VN_Bubbles:
+	var bust_scene = get_node_or_null(ui_elements_paths["busts_path"])
+	if style == "Bubbles" and vn_mode == true and bust_scene != null:
 		style = "VN_Bubbles"
-		print(style)
+		#print(style)
 
-	#@ Pre-resolve bust bubble node if using VN_Bubbles:
+	#% Pre-resolve bust bubble node if using VN_Bubbles:
 	var vn_bubble_node = null
 	var vn_bubble_text_node = null
 	var bust_node = null
-
-	if style == "VN_Bubbles":
+	if style == "VN_Bubbles" and bust_scene != null:
 		#% Check that a bust exists for this speaker:
-		var bust_scene = get_node_or_null(ui_elements_paths["busts_path"])
 		var busts_container = bust_scene.busts_container
 		if bust_positions.has(speaker_ref):
 			var bust_slot = bust_positions[speaker_ref]["pos"]
 			bust_node = busts_container.get_node_or_null(bust_slot)
 			if bust_node != null and bust_node.has_node("SpeechBubble"):
-				vn_bubble_node = bust_node.get_node("SpeechBubble")
+				vn_bubble_node = bust_node.get_node(bust_scene.speech_bubbles_name)
 				#% Get Bubble's text node:
 				vn_bubble_text_node = vn_bubble_node.label
 			else:
@@ -10149,16 +9886,21 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			#% Speaker not registered in bust_positions → switch to Exempt mode:
 			style = DialogueModes.keys()[bubble_exempt_mode]
 
-	#@ If speech bubble mode, check that the line and speaker aren't exempt, and that the speaker has an actor node in the scene:
+	#% If speech bubble mode, check that the line and speaker aren't exempt, and that the speaker has an actor node in the scene:
 	var speaker_node
-	if style == "Bubbles" or style == "VN_Bubbles":
+	if style == "Bubbles" or (style == "VN_Bubbles" and bust_scene != null):
 		#% Check if speaker is bubble exempt:
-		if candy_de.actors.has(speaker_ref) and candy_de.actors[speaker_ref].has("Bubble Exempt") and candy_de.actors[speaker_ref]["Bubble Exempt"] == true:
-			style = DialogueModes.keys()[bubble_exempt_mode]
+		if candy_de.actors.has(speaker_ref) and candy_de.actors[speaker_ref].has("BubblesOverride") and force_bubble != "1":
+			if candy_de.actors[speaker_ref]["BubblesOverride"] == -1:
+				style = DialogueModes.keys()[bubble_exempt_mode]
 
 		#% Check if line is bubble exempt:
-		elif speech_bubble_exempt == true:
+		elif force_bubble == "-1":
 			style = DialogueModes.keys()[bubble_exempt_mode]
+
+	#% If VN_Bubbles mode but no VN scene is loaded, always switch to exempt mode:
+	if style == "VN_Bubbles" and bust_scene == null:
+		style = DialogueModes.keys()[bubble_exempt_mode]
 
 	if style == "Bubbles":
 		#% Check the speaker node is present:
@@ -10168,10 +9910,10 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			speaker_node = get_node_or_null(str(bubbles_npc_path.path_join(speaker_ref)))
 
 		#% Default to alternative style:
-		if speaker_node == null:
+		if speaker_node == null or speaker_node.get("internal_node_dict") == null or not speaker_node.internal_node_dict.has("Speech_Bubble") or speaker_node.internal_node_dict["Speech_Bubble"] == null:
 			style = DialogueModes.keys()[bubble_exempt_mode]
 
-	print(style)
+	#print(style)
 
 	#@ Clear previous dialogue:
 	#? This allows dialogue to persist after a line (e.g. while player makes a choice),
@@ -10187,7 +9929,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 			dialogue_box.visible = true
 
-			#@ Speaker label shows Display Name:
+			#@ Speaker label shows DisplayName:
 			dialogue_box.speaker_node.text = speaker_display
 			dialogue_text = dialogue_text + box_end_of_line_string
 
@@ -10198,8 +9940,8 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 			#% 1. Actor-specific color:
 			if candy_de.actors.has(speaker_ref):
-				if candy_de.actors[speaker_ref].has("Box Speaker Color") and candy_de.actors[speaker_ref]["Box Speaker Color"] != null:
-					final_speaker_color = candy_de.actors[speaker_ref]["Box Speaker Color"]
+				if candy_de.actors[speaker_ref].has("BoxSpeakerColor") and candy_de.actors[speaker_ref]["BoxSpeakerColor"] != null:
+					final_speaker_color = candy_de.actors[speaker_ref]["BoxSpeakerColor"]
 					has_speaker_override = true
 					print("Override speaker color with actor color.")
 
@@ -10240,8 +9982,8 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 			#% 1. Actor-specific color:
 			if candy_de.actors.has(speaker_ref):
-				if candy_de.actors[speaker_ref].has("Box Text Color") and candy_de.actors[speaker_ref]["Box Text Color"] != null:
-					final_font_color = candy_de.actors[speaker_ref]["Box Text Color"]
+				if candy_de.actors[speaker_ref].has("BoxTextColor") and candy_de.actors[speaker_ref]["BoxTextColor"] != null:
+					final_font_color = candy_de.actors[speaker_ref]["BoxTextColor"]
 					has_override = true
 					print("Override text color with actor color.")
 
@@ -10281,11 +10023,11 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 				portrait_node.no_portrait()
 
 			#% If no line rule and actor forces portrait:
-			elif speaker_ref in candy_de.actors and "Portrait" in candy_de.actors[speaker_ref] and candy_de.actors[speaker_ref]["Portrait"] == 1:
+			elif speaker_ref in candy_de.actors and "PortraitOverride" in candy_de.actors[speaker_ref] and candy_de.actors[speaker_ref]["PortraitOverride"] == 1:
 				portrait_node.receive_portrait(speaker_ref, portrait_raw, play_portrait)
 
 			#% If no line rule and actor forbids portraits:
-			elif speaker_ref in candy_de.actors and "Portrait" in candy_de.actors[speaker_ref] and candy_de.actors[speaker_ref]["Portrait"] == -1:
+			elif speaker_ref in candy_de.actors and "PortraitOverride" in candy_de.actors[speaker_ref] and candy_de.actors[speaker_ref]["PortraitOverride"] == -1:
 				portrait_node.no_portrait()
 
 			#% Portrait if no actor/line rule and portrait mode = All:
@@ -10386,7 +10128,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			#% 1. Instant writing (no typewriter):
 			if writing_speed <= 0:
 				dialogue_text_node.text = bbcode_text
-				await wait_for_player_advance()
+				await wait_for_player_advance(voice_player, false)
 				if vn_mode == true and bust_positions.has(speaker_ref):
 					get_node(ui_elements_paths["busts_path"]).end_highlight_speaker(speaker_ref, style)
 				dialogue_history.append({
@@ -10444,18 +10186,18 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 					#@ 1. Skip/Slow/Skip:
 					#% 1A. Speed writing:
-					if Input.is_action_just_pressed(input_speed_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					if InputMap.has_action(input_speed_dialogue) and Input.is_action_pressed(input_speed_dialogue) and input_enabled == true:
+						if continue_fast_speed < 0:
 							pass
-						elif continue_skip_speed == 0:
+						elif continue_fast_speed == 0:
 							dialogue_text_node.visible_characters = -1
 							break
 						else:
-							effective_speed = continue_skip_speed
+							effective_speed = continue_fast_speed
 
 					#% 1B. Slow writing:
-					elif Input.is_action_just_pressed(input_slow_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					elif InputMap.has_action(input_slow_dialogue) and Input.is_action_pressed(input_slow_dialogue) and input_enabled == true:
+						if continue_slow_speed < 0:
 							pass
 						elif continue_slow_speed == 0:
 							dialogue_text_node.visible_characters = -1
@@ -10464,9 +10206,13 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_slow_speed
 
 					#% 1C. Skip writing:
-					elif Input.is_action_just_pressed(input_skip_dialogue) and input_enabled == true:
+					elif InputMap.has_action(input_skip_dialogue) and Input.is_action_pressed(input_skip_dialogue) and input_enabled == true:
 						dialogue_text_node.visible_characters = -1
 						break
+
+					#% 1D. Return to default speed:
+					else:
+						effective_speed = writing_speed
 
 					#@ 2. Time progression:
 					var now := Time.get_ticks_msec() / 1000.0
@@ -10491,7 +10237,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			if portrait_node.has_method("x_write_finished"):
 				await portrait_node.x_write_finished()
 
-			await wait_for_player_advance()
+			await wait_for_player_advance(voice_player, false)
 
 			#@ VN Mode:
 			if vn_mode == true and bust_positions.has(speaker_ref):
@@ -10527,12 +10273,14 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			var npc_path_node = get_node_or_null(bubbles_npc_path)
 			if npc_path_node:
 				for actor in npc_path_node.get_children():
-					actor.internal_node_dict["Speech_Bubble"].clear()
+					if actor.get("internal_node_dict") != null and actor.internal_node_dict.has("Speech_Bubble") and actor.internal_node_dict["Speech_Bubble"] != null:
+						actor.internal_node_dict["Speech_Bubble"].clear()
 
 			var player_path_node = get_node_or_null(bubbles_player_path)
 			if player_path_node:
 				for actor in player_path_node.get_children():
-					actor.internal_node_dict["Speech_Bubble"].clear()
+					if actor.get("internal_node_dict") != null and actor.internal_node_dict.has("Speech_Bubble") and actor.internal_node_dict["Speech_Bubble"] != null:
+						actor.internal_node_dict["Speech_Bubble"].clear()
 
 			#@ Get bubble nodes:
 			var bubble_node = speaker_node.internal_node_dict["Speech_Bubble"]
@@ -10558,8 +10306,8 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 			#% 1. Actor-specific color:
 			if candy_de.actors.has(speaker_ref):
-				if candy_de.actors[speaker_ref].has("Bubble Text Color") and candy_de.actors[speaker_ref]["Bubble Text Color"] != null:
-					final_font_color = candy_de.actors[speaker_ref]["Bubble Text Color"]
+				if candy_de.actors[speaker_ref].has("BubbleTextColor") and candy_de.actors[speaker_ref]["BubbleTextColor"] != null:
+					final_font_color = candy_de.actors[speaker_ref]["BubbleTextColor"]
 					has_override = true
 					print("Override text color with actor color.")
 
@@ -10682,7 +10430,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 						if voice_length > 0.1 and total_visible > 0:
 							effective_speed = float(total_visible) / voice_length
 
-				#§ Hook call:
+				#. Hook call:
 				if bubble_node.has_method("x_write_begun"):
 					await bubble_node.x_write_begun()
 
@@ -10698,18 +10446,18 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 					#@ 1. Skip/Slow/Skip:
 					#% 1A. Speed writing:
-					if Input.is_action_just_pressed(input_speed_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					if InputMap.has_action(input_speed_dialogue) and Input.is_action_pressed(input_speed_dialogue) and input_enabled == true:
+						if continue_fast_speed < 0:
 							pass
-						elif continue_skip_speed == 0:
+						elif continue_fast_speed == 0:
 							bubble_text_node.visible_characters = -1
 							break
 						else:
-							effective_speed = continue_skip_speed
+							effective_speed = continue_fast_speed
 
 					#% 1B. Slow writing:
-					elif Input.is_action_just_pressed(input_slow_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					elif InputMap.has_action(input_slow_dialogue) and Input.is_action_pressed(input_slow_dialogue) and input_enabled == true:
+						if continue_slow_speed < 0:
 							pass
 						elif continue_slow_speed == 0:
 							bubble_text_node.visible_characters = -1
@@ -10718,9 +10466,13 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_slow_speed
 
 					#% 1C. Skip writing:
-					elif Input.is_action_just_pressed(input_skip_dialogue) and input_enabled == true:
+					elif InputMap.has_action(input_skip_dialogue) and Input.is_action_pressed(input_skip_dialogue) and input_enabled == true:
 						bubble_text_node.visible_characters = -1
 						break
+
+					#% 1D. Return to default speed:
+					else:
+						effective_speed = writing_speed
 
 					#@ 2. Time progression:
 					var now := Time.get_ticks_msec() / 1000.0
@@ -10742,7 +10494,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			if bubble_node.has_method("x_write_finished"):
 				await bubble_node.x_write_finished()
 
-			await wait_for_player_advance()
+			await wait_for_player_advance(voice_player, false)
 
 			#@ VN Mode:
 			if vn_mode == true and bust_positions.has(speaker_ref):
@@ -10804,8 +10556,8 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 			#% 1. Actor-specific color:
 			if candy_de.actors.has(speaker_ref):
-				if candy_de.actors[speaker_ref].has("Bubble Text Color") and candy_de.actors[speaker_ref]["Bubble Text Color"] != null:
-					final_font_color = candy_de.actors[speaker_ref]["Bubble Text Color"]
+				if candy_de.actors[speaker_ref].has("BubbleTextColor") and candy_de.actors[speaker_ref]["BubbleTextColor"] != null:
+					final_font_color = candy_de.actors[speaker_ref]["BubbleTextColor"]
 					has_override = true
 					print("Override text color with actor color.")
 
@@ -10944,18 +10696,18 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 					#@ 1. Skip/Slow/Skip:
 					#% 1A. Speed writing:
-					if Input.is_action_just_pressed(input_speed_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					if InputMap.has_action(input_speed_dialogue) and Input.is_action_pressed(input_speed_dialogue) and input_enabled == true:
+						if continue_fast_speed < 0:
 							pass
-						elif continue_skip_speed == 0:
+						elif continue_fast_speed == 0:
 							vn_bubble_text_node.visible_characters = -1
 							break
 						else:
-							effective_speed = continue_skip_speed
+							effective_speed = continue_fast_speed
 
 					#% 1B. Slow writing:
-					elif Input.is_action_just_pressed(input_slow_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					elif InputMap.has_action(input_slow_dialogue) and Input.is_action_pressed(input_slow_dialogue) and input_enabled == true:
+						if continue_slow_speed < 0:
 							pass
 						elif continue_slow_speed == 0:
 							vn_bubble_text_node.visible_characters = -1
@@ -10964,9 +10716,13 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_slow_speed
 
 					#% 1C. Skip writing:
-					elif Input.is_action_just_pressed(input_skip_dialogue) and input_enabled == true:
+					elif InputMap.has_action(input_skip_dialogue) and Input.is_action_pressed(input_skip_dialogue) and input_enabled == true:
 						vn_bubble_text_node.visible_characters = -1
 						break
+
+					#% 1D. Return to default speed:
+					else:
+						effective_speed = writing_speed
 
 					#@ 2. Time progression:
 					var now := Time.get_ticks_msec() / 1000.0
@@ -10988,7 +10744,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			if vn_bubble_node.has_method("x_write_finished"):
 				await vn_bubble_node.x_write_finished()
 
-			await wait_for_player_advance()
+			await wait_for_player_advance(voice_player, false)
 
 			#@ VN Mode:
 			if vn_mode == true and bust_positions.has(speaker_ref):
@@ -11047,8 +10803,8 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 			#% 1. Actor-specific color:
 			if candy_de.actors.has(speaker_ref):
-				if candy_de.actors[speaker_ref].has("Bark Text Color") and candy_de.actors[speaker_ref]["Bark Text Color"] != null:
-					final_font_color = candy_de.actors[speaker_ref]["Bark Text Color"]
+				if candy_de.actors[speaker_ref].has("BarkTextColor") and candy_de.actors[speaker_ref]["BarkTextColor"] != null:
+					final_font_color = candy_de.actors[speaker_ref]["BarkTextColor"]
 					has_override = true
 					print("Override text color with actor color.")
 
@@ -11187,18 +10943,18 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 					#@ 1. Skip/Slow/Skip:
 					#% 1A. Speed writing:
-					if Input.is_action_just_pressed(input_speed_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					if InputMap.has_action(input_speed_dialogue) and Input.is_action_pressed(input_speed_dialogue) and input_enabled == true:
+						if continue_fast_speed < 0:
 							pass
-						elif continue_skip_speed == 0:
+						elif continue_fast_speed == 0:
 							bark_text_node.visible_characters = -1
 							break
 						else:
-							effective_speed = continue_skip_speed
+							effective_speed = continue_fast_speed
 
 					#% 1B. Slow writing:
-					elif Input.is_action_just_pressed(input_slow_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					elif InputMap.has_action(input_slow_dialogue) and Input.is_action_pressed(input_slow_dialogue) and input_enabled == true:
+						if continue_slow_speed < 0:
 							pass
 						elif continue_slow_speed == 0:
 							bark_text_node.visible_characters = -1
@@ -11207,9 +10963,13 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_slow_speed
 
 					#% 1C. Skip writing:
-					elif Input.is_action_just_pressed(input_skip_dialogue) and input_enabled == true:
+					elif InputMap.has_action(input_skip_dialogue) and Input.is_action_pressed(input_skip_dialogue) and input_enabled == true:
 						bark_text_node.visible_characters = -1
 						break
+
+					#% 1D. Return to default speed:
+					else:
+						effective_speed = writing_speed
 
 					#@ 2. Time progression:
 					var now := Time.get_ticks_msec() / 1000.0
@@ -11231,7 +10991,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			if bark_node.has_method("x_write_finished"):
 				await bark_node.x_write_finished()
 
-			await wait_for_player_advance()
+			await wait_for_player_advance(voice_player, false)
 
 			#@ VN Mode:
 			if vn_mode == true and bust_positions.has(speaker_ref):
@@ -11292,8 +11052,8 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 			#% 1. Actor-specific color:
 			if candy_de.actors.has(speaker_ref):
-				if candy_de.actors[speaker_ref].has("Subtitle Text Color") and candy_de.actors[speaker_ref]["Subtitle Text Color"] != null:
-					final_font_color = candy_de.actors[speaker_ref]["Subtitle Text Color"]
+				if candy_de.actors[speaker_ref].has("SubtitleTextColor") and candy_de.actors[speaker_ref]["SubtitleTextColor"] != null:
+					final_font_color = candy_de.actors[speaker_ref]["SubtitleTextColor"]
 					has_override = true
 					print("Override text color with actor color.")
 
@@ -11394,8 +11154,8 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 				#% 1. Actor-specific color:
 				if candy_de.actors.has(speaker_ref):
-					if candy_de.actors[speaker_ref].has("Subtitle Speaker Color") and candy_de.actors[speaker_ref]["Subtitle Speaker Color"] != null:
-						col = candy_de.actors[speaker_ref]["Subtitle Speaker Color"]
+					if candy_de.actors[speaker_ref].has("SubtitleSpeakerColor") and candy_de.actors[speaker_ref]["SubtitleSpeakerColor"] != null:
+						col = candy_de.actors[speaker_ref]["SubtitleSpeakerColor"]
 						has_speaker_override = true
 						print("Override text color with actor color.")
 
@@ -11443,7 +11203,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			#% 1. Instant writing (no typewriter):
 			if writing_speed <= 0:
 				subtitle_text_node.text = bbcode_text
-				await wait_for_player_advance()
+				await wait_for_player_advance(voice_player, false)
 				if vn_mode == true and bust_positions.has(speaker_ref):
 					get_node(ui_elements_paths["busts_path"]).end_highlight_speaker(speaker_ref, style)
 				dialogue_history.append({
@@ -11504,18 +11264,18 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 					#@ 1. Skip/Slow/Skip:
 					#% 1A. Speed writing:
-					if Input.is_action_just_pressed(input_speed_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					if InputMap.has_action(input_speed_dialogue) and Input.is_action_pressed(input_speed_dialogue) and input_enabled == true:
+						if continue_fast_speed < 0:
 							pass
-						elif continue_skip_speed == 0:
+						elif continue_fast_speed == 0:
 							subtitle_text_node.visible_characters = -1
 							break
 						else:
-							effective_speed = continue_skip_speed
+							effective_speed = continue_fast_speed
 
 					#% 1B. Slow writing:
-					elif Input.is_action_just_pressed(input_slow_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					elif InputMap.has_action(input_slow_dialogue) and Input.is_action_pressed(input_slow_dialogue) and input_enabled == true:
+						if continue_slow_speed < 0:
 							pass
 						elif continue_slow_speed == 0:
 							subtitle_text_node.visible_characters = -1
@@ -11524,9 +11284,13 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_slow_speed
 
 					#% 1C. Skip writing:
-					elif Input.is_action_just_pressed(input_skip_dialogue) and input_enabled == true:
+					elif InputMap.has_action(input_skip_dialogue) and Input.is_action_pressed(input_skip_dialogue) and input_enabled == true:
 						subtitle_text_node.visible_characters = -1
 						break
+
+					#% 1D. Return to default speed:
+					else:
+						effective_speed = writing_speed
 
 					#@ 2. Time progression:
 					var now := Time.get_ticks_msec() / 1000.0
@@ -11548,7 +11312,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			if subtitle_node.has_method("x_write_finished"):
 				await subtitle_node.x_write_finished()
 
-			await wait_for_player_advance()
+			await wait_for_player_advance(voice_player, false)
 
 			#@ VN Mode:
 			if vn_mode == true and bust_positions.has(speaker_ref):
@@ -11603,8 +11367,8 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 			#% 1. Actor-specific color:
 			if candy_de.actors.has(speaker_ref):
-				if candy_de.actors[speaker_ref].has("Chat Text Color") and candy_de.actors[speaker_ref]["Chat Text Color"] != null:
-					final_font_color = candy_de.actors[speaker_ref]["Chat Text Color"]
+				if candy_de.actors[speaker_ref].has("ChatTextColor") and candy_de.actors[speaker_ref]["ChatTextColor"] != null:
+					final_font_color = candy_de.actors[speaker_ref]["ChatTextColor"]
 					has_override = true
 					print("Override text color with actor color.")
 
@@ -11705,8 +11469,8 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 				#% 1. Actor-specific color:
 				if candy_de.actors.has(speaker_ref):
-					if candy_de.actors[speaker_ref].has("Chat Speaker Color") and candy_de.actors[speaker_ref]["Chat Speaker Color"] != null:
-						col = candy_de.actors[speaker_ref]["Chat Speaker Color"]
+					if candy_de.actors[speaker_ref].has("ChatSpeakerColor") and candy_de.actors[speaker_ref]["ChatSpeakerColor"] != null:
+						col = candy_de.actors[speaker_ref]["ChatSpeakerColor"]
 						has_speaker_override = true
 						print("Override text color with actor color.")
 
@@ -11747,7 +11511,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			if writing_speed <= 0:
 				#% Append rather than replace:
 				chat_text_node.append_text(dialogue_text + "\n")
-				await wait_for_player_advance()
+				await wait_for_player_advance(voice_player, false)
 				if vn_mode == true and bust_positions.has(speaker_ref):
 					get_node(ui_elements_paths["busts_path"]).end_highlight_speaker(speaker_ref, style)
 				dialogue_history.append({
@@ -11810,18 +11574,18 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 
 					#@ 1. Skip/Slow/Speed:
 					#% 1A. Speed writing:
-					if Input.is_action_just_pressed(input_speed_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					if InputMap.has_action(input_speed_dialogue) and Input.is_action_pressed(input_speed_dialogue) and input_enabled == true:
+						if continue_fast_speed < 0:
 							pass
-						elif continue_skip_speed == 0:
+						elif continue_fast_speed == 0:
 							chat_text_node.visible_characters = -1
 							break
 						else:
-							effective_speed = continue_skip_speed
+							effective_speed = continue_fast_speed
 
 					#% 1B. Slow writing:
-					elif Input.is_action_just_pressed(input_slow_dialogue) and input_enabled == true:
-						if continue_skip_speed < 0:
+					elif InputMap.has_action(input_slow_dialogue) and Input.is_action_pressed(input_slow_dialogue) and input_enabled == true:
+						if continue_slow_speed < 0:
 							pass
 						elif continue_slow_speed == 0:
 							chat_text_node.visible_characters = -1
@@ -11830,9 +11594,13 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 							effective_speed = continue_slow_speed
 
 					#% 1C. Skip writing:
-					elif Input.is_action_just_pressed(input_skip_dialogue) and input_enabled == true:
+					elif InputMap.has_action(input_skip_dialogue) and Input.is_action_pressed(input_skip_dialogue) and input_enabled == true:
 						chat_text_node.visible_characters = -1
 						break
+
+					#% 1D. Return to default speed:
+					else:
+						effective_speed = writing_speed
 
 					#@ 2. Time progression:
 					var now := Time.get_ticks_msec() / 1000.0
@@ -11855,7 +11623,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 			if chat_node.has_method("x_write_finished"):
 				await chat_node.x_write_finished()
 
-			await wait_for_player_advance()
+			await wait_for_player_advance(voice_player, false)
 
 			#@ VN Mode:
 			if vn_mode == true and bust_positions.has(speaker_ref):
@@ -11958,7 +11726,7 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 				await voice_player.playback_starting()
 				voice_player.play()
 				await voice_player.playback_started()
-				await wait_for_player_advance()
+				await wait_for_player_advance(voice_player, false)
 
 			#@ VN Mode:
 			if vn_mode == true and bust_positions.has(speaker_ref):
@@ -11997,18 +11765,29 @@ func display_line(current_conversation, current_block, speech_data: Dictionary, 
 #?######################
 #region
 #* Wait for player input or auto-read timeout to advance dialogue:
-func wait_for_player_advance(voice_player = null) -> void:
+func wait_for_player_advance(voice_player, command) -> void:
 	print("Waiting for player advance.")
 
-	#@ Wait for advance key to be released before accepting input:
-	while Input.is_action_pressed(input_advance_dialogue):
+	#^ Wait for advance key to be released before accepting input:
+	while Input.is_action_pressed(input_advance_dialogue) or Input.is_action_pressed(input_player_advance):
 		await get_tree().process_frame
 
+	#^ Command mode: wait only for manual input, no auto-advance or voice checks:
+	if command == true:
+		while true:
+			await get_tree().process_frame
+			if dialogue_suspended == true:
+				continue
+			if Input.is_action_just_pressed(input_player_advance) and input_enabled == true:
+				break
+		await get_tree().process_frame
+		return
+
+	#^ Spoken Line mode:
 	var timer := 0.0
 	var auto_enabled = auto_advance > -1
 	var wait_time := float(auto_advance)
 
-	#@ Advance:
 	while true:
 		await get_tree().process_frame
 
@@ -12029,7 +11808,7 @@ func wait_for_player_advance(voice_player = null) -> void:
 				break		#/ Player manually advances even if timer not finished
 
 		#@ Auto-read advance:
-		#% Only if timer done *and* (voice finished or no player)
+		#% Only if timer done and voice finished or no player:
 		if auto_enabled and timer >= wait_time:
 			var voice_done = (voice_player == null or not voice_player.playing)
 			if voice_done:
@@ -12048,6 +11827,9 @@ func end_dialogue():
 
 	#@ End - Cleanup
 	elif greenlight == true:
+		#% Unsuspend dialogue:
+		dialogue_suspended = false
+
 		#% Change game state back to game:
 		candy_de.change_game_state(self, "end")
 
@@ -12061,15 +11843,33 @@ func end_dialogue():
 		#% Stop any media:
 		for path in media_players_locations:
 			var media_player = get_node_or_null(media_players_locations[path])
-			if media_player is AudioStreamPlayer or media_player is AudioStreamPlayer2D or media_player is AudioStreamPlayer3D or  media_player is VideoStreamPlayer:
+			if media_player.has_method("stop"):
 				media_player.stop()
 
-		#% Reset greenlight for the next dialogues:
-		greenlight = true
+			if "stream" in media_player:
+				media_player.stream = null
+
+			if "visible" in media_player:
+				media_player.visible = false
+
+		#% Reset choice list data:
+		choice_lists.clear()
+		choice_list_data.clear()
+		var choice_lists_path = get_node_or_null(ui_elements_paths["choices_path"])
+		if choice_lists_path:
+			for child in choice_lists_path.get_children():
+				child.queue_free()
+		await get_tree().process_frame
+
+		#% Reset if_array:
+		if_array.clear()
 
 		#. Hook call:
 		if candy_de.has_method("x_dialogue_end"):
 			await candy_de.x_dialogue_end(self)
+
+		#% Reset nesting dept:
+		nesting_depth = 0
 
 		#% Disable dialogue_running
 		dialogue_running = false
@@ -12680,13 +12480,16 @@ func _replace_with_values(expr: String) -> String:
 		var value = resolve_value(token)
 
 		#% Convert to Expression-safe literal
+		var literal: String
 		if typeof(value) == TYPE_STRING:
-			value = "\"" + value + "\""
+			literal = "\"" + value + "\""
 		elif value == null:
-			value = "null"
+			literal = "null"
+		else:
+			literal = var_to_str(value)
 
 		#% Replace in expression
-		expr = expr.replace(token, var_to_str(value))
+		expr = expr.replace(token, literal)
 
 	return expr
 
@@ -12707,13 +12510,13 @@ func resolve_value(raw: Variant) -> Variant:
 	#@ Declare placeholder before assignment (needed for recursion):
 	var _resolve : Callable
 
-	#@ Recursive resolver
+	#@ Recursive resolver:
 	_resolve = func(text_val: String, depth := 0) -> Variant:
 		if depth > 10:
 			printerr("resolve_value(): exceeded recursion depth while resolving ", text_val)
 			return text_val
 
-		#% 1. Variable references - £, $, or vardict:
+		#@ 1. Variable references - £, $, or vardict:
 		if text_val.begins_with(candy_de.vardict_symbol) \
 		or text_val.begins_with(candy_de.singleton_symbol) \
 		or text_val.begins_with(candy_de.node_symbol):
@@ -12734,7 +12537,7 @@ func resolve_value(raw: Variant) -> Variant:
 				#return _resolve.call(resolved, depth + 1)
 			return resolved
 
-		#% 2. Role references - °role_key → looks up actor in candy_de.roles, then resolves path:
+		#@ 2. Role references - °role_key → looks up actor in candy_de.roles, then resolves path:
 		elif text_val.begins_with(candy_de.role_symbol):
 			if not candy_de.roles.has(text_val.split(".")[0].split("[")[0]):
 				printerr("resolve_value(): role not found → ", text_val)
@@ -12770,7 +12573,128 @@ func resolve_value(raw: Variant) -> Variant:
 			var rebuilt = candy_de.singleton_symbol + "candy_de.actors[\"" + actor_ref + "\"]" + remainder
 			return resolve_value(rebuilt)
 
-		#% 3. Resource paths (res://, user://):
+		#@ 3. File variable references (v_res:// or v_user://):
+		elif text_val.begins_with("v_res://") or text_val.begins_with("v_user://"):
+			var actual_path = text_val.substr(2)  #% Strip v_ prefix
+			var supported_extensions = ["json", "txt", "cfg", "ini", "bin", "b64", "base64", "tres", "res", "csv"]
+			var file_path = ""
+			var var_path = ""
+			var ext = ""
+			var found = false
+
+			for supported_ext in supported_extensions:
+				var search = "." + supported_ext + candy_de.file_var_symbol
+				var pos = actual_path.find(search)
+				if pos != -1:
+					file_path = actual_path.substr(0, pos + supported_ext.length() + 1)
+					var_path = actual_path.substr(pos + search.length()).strip_edges()
+					ext = supported_ext
+					found = true
+					break
+
+			if not found:
+				printerr("resolve_value(): no supported extension found → ", text_val)
+				return null
+
+			if not FileAccess.file_exists(file_path):
+				printerr("resolve_value(): file not found → ", file_path)
+				return null
+
+			var file = FileAccess.open(file_path, FileAccess.READ)
+			if file == null:
+				printerr("resolve_value(): failed to open → ", file_path)
+				return null
+			var content = file.get_as_text()
+			file.close()
+
+			var file_data = null
+			match ext:
+				"json":
+					var parsed = JSON.parse_string(content)
+					if typeof(parsed) == TYPE_DICTIONARY:
+						file_data = {}
+						for k in parsed.keys():
+							var raw_parsed = parsed[k]
+							if typeof(raw_parsed) == TYPE_STRING:
+								var reconstructed = str_to_var(raw_parsed)
+								if reconstructed != null or raw_parsed.strip_edges().to_lower() == "null":
+									file_data[k] = reconstructed
+								else:
+									file_data[k] = raw_parsed
+							else:
+								file_data[k] = raw_parsed
+				"txt":
+					file_data = {}
+					var joined := ""
+					var file_depth := 0
+					for ch in content:
+						if ch == "{" or ch == "[":
+							file_depth += 1
+						elif ch == "}" or ch == "]":
+							file_depth -= 1
+						if ch == "\n" and file_depth > 0:
+							joined += " "
+						else:
+							joined += ch
+					var lines = joined.split("\n", false)
+					for line in lines:
+						line = line.strip_edges()
+						if line == "" or not line.contains("="):
+							continue
+						var eq_pos = line.find("=")
+						var key = line.substr(0, eq_pos).strip_edges()
+						var raw_val = line.substr(eq_pos + 1).strip_edges()
+						var reconstructed = str_to_var(raw_val)
+						if reconstructed != null or raw_val.strip_edges().to_lower() == "null":
+							file_data[key] = reconstructed
+						else:
+							file_data[key] = raw_val
+				"cfg", "ini":
+					var cfg = ConfigFile.new()
+					if cfg.load(file_path) == OK:
+						file_data = {}
+						for section in cfg.get_sections():
+							file_data[section] = {}
+							for key in cfg.get_section_keys(section):
+								file_data[section][key] = cfg.get_value(section, key)
+				"bin":
+					var f = FileAccess.open(file_path, FileAccess.READ)
+					file_data = f.get_var()
+					f.close()
+				"b64", "base64":
+					file_data = Marshalls.base64_to_variant(content)
+				"tres", "res":
+					var res = ResourceLoader.load(file_path)
+					if res:
+						file_data = {}
+						for p in res.get_property_list():
+							file_data[p.name] = res.get(p.name)
+					else:
+						printerr("resolve_value(): failed to load resource → ", file_path)
+						return null
+				"csv":
+					file_data = {}
+					var f = FileAccess.open(file_path, FileAccess.READ)
+					while not f.eof_reached():
+						var cols = f.get_csv_line()
+						if cols.size() >= 2:
+							file_data[cols[0].strip_edges()] = cols[1].strip_edges()
+					f.close()
+
+			if file_data == null:
+				printerr("resolve_value(): failed to parse → ", file_path)
+				return null
+
+			#% If no variable path, return the whole file data:
+			if var_path == "":
+				return file_data
+
+			#% Otherwise resolve the path into the file data:
+			var decoded = decode_variable_name(candy_de.singleton_symbol + "file_data." + var_path)
+			decoded["base"] = file_data
+			return get_variable_value(decoded, _resolve)
+
+		#@ 4. Resource paths (res://, user://):
 		elif text_val.begins_with("res://") or text_val.begins_with("user://"):
 			if ResourceLoader.exists(text_val):
 				var resource := load(text_val)
@@ -12782,7 +12706,7 @@ func resolve_value(raw: Variant) -> Variant:
 				push_warning("resolve_value(): resource path is a folder or has no file specified → ", text_val)
 				return text_val
 
-		#% 4. Everything else: literal string:
+		#@ 5. Everything else - literal string:
 		return text_val
 
 	#@ Execute the recursive helper:
@@ -12804,7 +12728,9 @@ func decode_variable_name(ref: String) -> Dictionary:
 	if ref.begins_with(candy_de.node_symbol):
 		result["base"] = get_node_or_null("/root/" + base_name)
 	elif ref.begins_with(candy_de.singleton_symbol):
-		if Engine.has_singleton(base_name):
+		if base_name == "self":
+			result["base"] = self
+		elif Engine.has_singleton(base_name):
 			result["base"] = Engine.get_singleton(base_name)
 		elif has_node("/root/" + base_name):
 			result["base"] = get_node("/root/" + base_name)
@@ -12872,7 +12798,7 @@ func get_variable_value(decoded: Dictionary, resolver = null) -> Variant:
 
 #* Compute a new value for a variable without setting it directly:
 #! We can't guarantee that all these operators work as you might expect.
-#! Please test oeprators before committing to using them, and check the code below to make sure you understand their effects!
+#! Please test oprators before committing to using them, and check the code below to make sure you understand their effects!
 #TODO Feel free to add your own custom operators and logic if you like.
 func calculate_variable_value(decoded: Dictionary, value: Variant, op: String) -> Variant:
 	var current = get_variable_value(decoded)
@@ -12890,25 +12816,33 @@ func calculate_variable_value(decoded: Dictionary, value: Variant, op: String) -
 		"*=", "×=":
 			return current * value
 		"/=", "÷=":
+			if value == 0:
+				printerr("calculate_variable_value: division by zero")
+				return current
 			return current / value
 		"//=":
+			if value == 0:
+				printerr("calculate_variable_value: division by zero")
+				return current
 			return int(floor(current / value))
 		"%=":
+			if value == 0:
+				printerr("calculate_variable_value: modulo by zero")
+				return current
 			return current % value
 		"^=", "**=", "pow":
 			return pow(current, value)
 
-		#@ LOGICAL OPERATORS:
-		"toggle_bool":
-			return not bool(current)
-
 		#@ STRING OPERATIONS:
 		"strip_edges":
-			return str(current).strip_edges()
+			var target = value if value != null else current
+			return str(target).strip_edges()
 		"to_upper":
-			return str(current).to_upper()
+			var target = value if value != null else current
+			return str(target).to_upper()
 		"to_lower":
-			return str(current).to_lower()
+			var target = value if value != null else current
+			return str(target).to_lower()
 		"replace":
 			if typeof(value) == TYPE_ARRAY and value.size() >= 2:
 				return str(current).replace(str(value[0]), str(value[1]))
@@ -12920,6 +12854,10 @@ func calculate_variable_value(decoded: Dictionary, value: Variant, op: String) -
 		"split":
 			if typeof(current) == TYPE_STRING and typeof(value) == TYPE_STRING:
 				return current.split(value)
+			return current
+		"split_to_array":
+			if typeof(current) == TYPE_STRING and typeof(value) == TYPE_STRING:
+				return current.split(value).to_array()
 			return current
 		"join":
 			if typeof(current) == TYPE_ARRAY and typeof(value) == TYPE_STRING:
@@ -12962,38 +12900,42 @@ func calculate_variable_value(decoded: Dictionary, value: Variant, op: String) -
 				return arr
 			return current
 		"clear":
-			if typeof(current) == TYPE_ARRAY:
+			var target = value if value != null else current
+			if typeof(target) == TYPE_ARRAY:
 				return []
-			elif typeof(current) == TYPE_DICTIONARY:
+			elif typeof(target) == TYPE_DICTIONARY:
 				return {}
-			else:
-				return current
+			return current
 		"slice":
 			if typeof(current) == TYPE_ARRAY and typeof(value) == TYPE_ARRAY and value.size() >= 2:
 				return current.slice(value[0], value[1])
 			return current
 		"reverse":
-			if typeof(current) == TYPE_ARRAY:
-				var arr = current.duplicate()
+			var target = value if value != null else current
+			if typeof(target) == TYPE_ARRAY:
+				var arr = target.duplicate()
 				arr.reverse()
 				return arr
 			return current
 		"sort":
-			if typeof(current) == TYPE_ARRAY:
-				var arr = current.duplicate()
+			var target = value if value != null else current
+			if typeof(target) == TYPE_ARRAY:
+				var arr = target.duplicate()
 				arr.sort()
 				return arr
 			return current
 		"shuffle":
-			if typeof(current) == TYPE_ARRAY:
-				var arr = current.duplicate()
+			var target = value if value != null else current
+			if typeof(target) == TYPE_ARRAY:
+				var arr = target.duplicate()
 				arr.shuffle()
 				return arr
 			return current
 		"unique":
-			if typeof(current) == TYPE_ARRAY:
+			var target = value if value != null else current
+			if typeof(target) == TYPE_ARRAY:
 				var arr = []
-				for item in current:
+				for item in target:
 					if item not in arr:
 						arr.append(item)
 				return arr
@@ -13007,9 +12949,14 @@ func calculate_variable_value(decoded: Dictionary, value: Variant, op: String) -
 					merged[k] = value[k]
 				return merged
 			return current
-		"get":
+		"get":	#/ value must be an array or string with two values: [variable_to_get, default_value]
 			if typeof(current) == TYPE_DICTIONARY:
-				return current.get(value)
+				if typeof(value) == TYPE_STRING:
+					return current.get(value)
+				elif typeof(value) == TYPE_ARRAY and value.size() == 2:
+					return current.get(value[0], value[1])
+				printerr("calculate_variable_value: 'get' expects a string or array of two values")
+				return null
 			return null
 		"set_key":
 			if typeof(current) == TYPE_DICTIONARY and typeof(value) == TYPE_ARRAY and value.size() >= 2:
@@ -13028,57 +12975,126 @@ func calculate_variable_value(decoded: Dictionary, value: Variant, op: String) -
 
 		#@ TYPE & CONVERSION HELPERS:
 		"typeof":
-			return typeof(value)
+			var target = value if value != null else current
+			return typeof(target)
+		"type_string":
+			var target = value if value != null else current
+			return type_string(typeof(target))
 		"is_array":
-			return typeof(value) == TYPE_ARRAY
+			var target = value if value != null else current
+			return typeof(target) == TYPE_ARRAY
 		"is_dict":
-			return typeof(value) == TYPE_DICTIONARY
+			var target = value if value != null else current
+			return typeof(target) == TYPE_DICTIONARY
 		"is_object":
-			return value is Object
+			var target = value if value != null else current
+			return target is Object
+		"is_nan":
+			var target = value if value != null else current
+			return is_nan(float(target))
+		"is_inf":
+			var target = value if value != null else current
+			return is_inf(float(target))
 		"to_int":
-			return int(value)
+			var target = value if value != null else current
+			return int(target)
 		"to_float":
-			return float(value)
+			var target = value if value != null else current
+			return float(target)
 		"to_string":
-			return str(value)
+			var target = value if value != null else current
+			return str(target)
 		"to_bool":
-			return bool(value)
+			var target = value if value != null else current
+			return bool(target)
+		"toggle_bool":
+			var target = value if value != null else current
+			return not bool(target)
+		"var_to_str":
+			var target = value if value != null else current
+			return var_to_str(target)
+		"str_to_var":
+			var target = value if value != null else current
+			return str_to_var(str(target))
+		"json_to_str":
+			var target = value if value != null else current
+			return JSON.stringify(target)
+		"str_to_json":
+			var target = value if value != null else current
+			return JSON.parse_string(str(target))
+		"var_to_bytes":
+			var target = value if value != null else current
+			return var_to_bytes(target)
+		"bytes_to_var":
+			var target = value if value != null else current
+			if typeof(target) == TYPE_PACKED_BYTE_ARRAY:
+				return bytes_to_var(target)
+			printerr("calculate_variable_value: 'bytes_to_var' expects a PackedByteArray")
+			return current
 
 		#@ MATH FUNCTIONS:
 		"abs":
-			return abs(value)
+			var target = value if value != null else current
+			return abs(target)
 		"floor":
-			return floor(value)
+			var target = value if value != null else current
+			return floor(target)
 		"ceil":
-			return ceil(value)
+			var target = value if value != null else current
+			return ceil(target)
 		"round":
-			return round(value)
-		"sqrt":
-			return sqrt(value)
+			var target = value if value != null else current
+			return round(target)
+		"sqrt", "root":		#/ Square root
+			var target = value if value != null else current
+			if target < 0:
+				printerr("calculate_variable_value: sqrt of negative value")
+				return current
+			return sqrt(target)
 		"sign":
-			return sign(value)
+			var target = value if value != null else current
+			return sign(target)
 		"sin":
-			return sin(value)
+			var target = value if value != null else current
+			return sin(target)
 		"cos":
-			return cos(value)
+			var target = value if value != null else current
+			return cos(target)
 		"tan":
-			return tan(value)
+			var target = value if value != null else current
+			return tan(target)
 		"asin":
-			return asin(value)
+			var target = value if value != null else current
+			return asin(target)
 		"acos":
-			return acos(value)
+			var target = value if value != null else current
+			return acos(target)
 		"atan":
-			return atan(value)
+			var target = value if value != null else current
+			return atan(target)
 		"deg_to_rad":
-			return deg_to_rad(value)
+			var target = value if value != null else current
+			return deg_to_rad(target)
 		"rad_to_deg":
-			return rad_to_deg(value)
+			var target = value if value != null else current
+			return rad_to_deg(target)
 		"log":
-			return log(value)
+			var target = value if value != null else current
+			if target <= 0:
+				printerr("calculate_variable_value: log of non-positive value")
+				return current
+			return log(target)
 		"log10":
-			return log(value) / log(10.0)
+			var target = value if value != null else current
+			if target <= 0:
+				printerr("calculate_variable_value: log of non-positive value")
+				return current
+			return log(target) / log(10.0)
 		"log_base":
 			if typeof(value) in [TYPE_FLOAT, TYPE_INT] and value != 1:
+				if current <= 0:
+					printerr("calculate_variable_value: log of non-positive value")
+					return current
 				return log(current) / log(value)
 			return current
 		"clamp":
@@ -13103,17 +13119,34 @@ func calculate_variable_value(decoded: Dictionary, value: Variant, op: String) -
 			return current
 
 		#@ RANDOM & UTILITY:
-		"rand_i":
-			if typeof(value) == TYPE_ARRAY and value.size() >= 2:
-				return randi_range(int(value[0]), int(value[1]))
+		"randi", "rand_i":
+			if value != null:
+				if typeof(value) == TYPE_ARRAY and value.size() >= 2:
+					push_warning("Operator 'randi' was used with a range. Defaulting to 'randi_range' for backward compatibility. You should change to 'randi_range' in your dialogues.")
+					return randi_range(int(value[0]), int(value[1]))
+				return current
+			return randi()
+		"randi_range", "rand_i_range":
+			var target = value if value != null else current
+			if typeof(target) == TYPE_ARRAY and target.size() >= 2:
+				return randi_range(int(target[0]), int(target[1]))
 			return current
-		"rand_f":
-			if typeof(value) == TYPE_ARRAY and value.size() >= 2:
-				return randf_range(float(value[0]), float(value[1]))
+		"randf", "rand_f":
+			if value != null:
+				if typeof(value) == TYPE_ARRAY and value.size() >= 2:
+					push_warning("Operator 'randf' was used with a range. Defaulting to 'randf_range' for backward compatibility. You should change to 'randf_range' in your dialogues.")
+					return randf_range(float(value[0]), float(value[1]))
+				return current
+			return randf()
+		"randf_range", "rand_f_range":
+			var target = value if value != null else current
+			if typeof(target) == TYPE_ARRAY and target.size() >= 2:
+				return randf_range(float(target[0]), float(target[1]))
 			return current
 		"rand_pick":
-			if typeof(value) == TYPE_ARRAY and value.size() > 0:
-				return value[randi() % value.size()]
+			var target = value if value != null else current
+			if typeof(target) == TYPE_ARRAY and target.size() > 0:
+				return target[randi() % target.size()]
 			return current
 
 		#@ NODES:
@@ -13142,7 +13175,7 @@ func calculate_variable_value(decoded: Dictionary, value: Variant, op: String) -
 
 		#@ FALLBACK:
 		_:
-			push_error("Unknown operator in Set Command: " + op)
+			push_error("Unknown operator: " + op)
 			return current
 
 
@@ -13184,6 +13217,128 @@ func set_variable_value(decoded: Dictionary, value: Variant) -> void:
 			container.append(value)
 	elif container is Object:
 		container.set(last_key, value)
+
+
+#* Write a value to a file variable reference (v_res:// or v_user://):
+#? Used by §Call, §Await and §Set.
+func _set_file_variable(lhs_var: String, value: Variant, operator: String = "=") -> bool:
+	var actual_path = lhs_var.substr(2)
+	var supported_extensions = ["json", "txt", "cfg", "ini", "bin", "b64", "base64", "tres", "res", "csv"]
+	var file_path = ""
+	var var_path = ""
+	var ext = ""
+	var found = false
+
+	for supported_ext in supported_extensions:
+		var search = "." + supported_ext + candy_de.file_var_symbol
+		var pos = actual_path.find(search)
+		if pos != -1:
+			file_path = actual_path.substr(0, pos + supported_ext.length() + 1)
+			var_path = actual_path.substr(pos + search.length()).strip_edges()
+			ext = supported_ext
+			found = true
+			break
+
+	if not found:
+		printerr("_set_file_variable: no supported extension found → ", lhs_var)
+		return false
+
+	if var_path == "":
+		printerr("_set_file_variable: no variable path specified → ", lhs_var)
+		return false
+
+	#@ Load existing file data or create empty:
+	var file_data = {}
+	if FileAccess.file_exists(file_path):
+		var file = FileAccess.open(file_path, FileAccess.READ)
+		if file:
+			var content = file.get_as_text()
+			file.close()
+			match ext:
+				"json":
+					var parsed = JSON.parse_string(content)
+					if typeof(parsed) == TYPE_DICTIONARY:
+						file_data = parsed
+				"txt":
+					var lines = content.split("\n", false)
+					for line in lines:
+						line = line.strip_edges()
+						if line == "" or not line.contains("="):
+							continue
+						var eq_pos = line.find("=")
+						var key = line.substr(0, eq_pos).strip_edges()
+						var raw_val = line.substr(eq_pos + 1).strip_edges()
+						var reconstructed = str_to_var(raw_val)
+						file_data[key] = reconstructed if reconstructed != null else raw_val
+				"cfg", "ini":
+					var cfg = ConfigFile.new()
+					if cfg.load(file_path) == OK:
+						for section in cfg.get_sections():
+							file_data[section] = {}
+							for key in cfg.get_section_keys(section):
+								file_data[section][key] = cfg.get_value(section, key)
+				"bin":
+					var f = FileAccess.open(file_path, FileAccess.READ)
+					file_data = f.get_var()
+					f.close()
+				"b64", "base64":
+					file_data = Marshalls.base64_to_variant(content)
+				"csv":
+					var f = FileAccess.open(file_path, FileAccess.READ)
+					while not f.eof_reached():
+						var cols = f.get_csv_line()
+						if cols.size() >= 2:
+							file_data[cols[0].strip_edges()] = cols[1].strip_edges()
+					f.close()
+
+	#@ Apply operator and set value:
+	var decoded_file = decode_variable_name(candy_de.singleton_symbol + "file_data." + var_path)
+	decoded_file["base"] = file_data
+	var final_value = calculate_variable_value(decoded_file, value, operator)
+	set_variable_value(decoded_file, final_value)
+
+	#@ Write back to file:
+	var dir = file_path.get_base_dir()
+	if not DirAccess.dir_exists_absolute(dir):
+		DirAccess.make_dir_recursive_absolute(dir)
+
+	match ext:
+		"json":
+			var serialized = {}
+			for k in file_data.keys():
+				serialized[k] = var_to_str(file_data[k])
+			var f = FileAccess.open(file_path, FileAccess.WRITE)
+			f.store_string(JSON.stringify(serialized, "\t"))
+			f.close()
+		"txt":
+			var txt = ""
+			for k in file_data.keys():
+				txt += "%s = %s\n" % [k, var_to_str(file_data[k])]
+			var f = FileAccess.open(file_path, FileAccess.WRITE)
+			f.store_string(txt)
+			f.close()
+		"cfg", "ini":
+			var cfg = ConfigFile.new()
+			for k in file_data.keys():
+				cfg.set_value("Export", k, file_data[k])
+			cfg.save(file_path)
+		"bin":
+			var f = FileAccess.open(file_path, FileAccess.WRITE)
+			f.store_var(file_data, true)
+			f.close()
+		"b64", "base64":
+			var f = FileAccess.open(file_path, FileAccess.WRITE)
+			f.store_string(Marshalls.variant_to_base64(file_data))
+			f.close()
+		"csv":
+			var f = FileAccess.open(file_path, FileAccess.WRITE)
+			for k in file_data.keys():
+				f.store_csv_line([k, str(file_data[k])])
+			f.close()
+
+	print("[DEBUG] _set_file_variable → ", file_path, " key: ", var_path, " = ", final_value)
+	return true
+
 #endregion - variables
 
 
@@ -13512,10 +13667,12 @@ func apply_lexicon_tags(text: String, lexicon: Dictionary, chosen_variant: Strin
 		if clickable:
 			var meta_dict = {
 				"keyword": word,
-				"keyword_data": keyword_click_data,
+				"keyword_click_data": keyword_click_data,
 				"keyword_variant": variant_key,
 			}
-			start_tags += "[url=%s]" % JSON.stringify(meta_dict)
+			var json_str = JSON.stringify(meta_dict)
+			var encoded = Marshalls.variant_to_base64(json_str)
+			start_tags += "[url=%s]" % encoded
 			end_tags = "[/url]" + end_tags
 
 		#@ Tooltip wrapper:
@@ -13555,7 +13712,7 @@ func apply_lexicon_tags(text: String, lexicon: Dictionary, chosen_variant: Strin
 #%   - A plain string key: looked up as a property on candy_de
 #% Returns the translated string, or new_value unchanged if no translation found.
 func translate(new_value: String, table_raw: String = "") -> String:
-	var language: String = candy_de.language
+	var language: String = use_language
 
 	#@ Step 1 - Resolve which dictionary to use:
 	var translation_dict: Dictionary

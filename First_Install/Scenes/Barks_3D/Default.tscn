@@ -1,0 +1,74 @@
+[gd_scene format=3 uid="uid://2e1qv65wtgk6"]
+
+[ext_resource type="Script" uid="uid://dwn6hkvjmo13f" path="res://Candy_DE/Scripts/Candy_Engine.gd" id="1_qo0ij"]
+[ext_resource type="Script" uid="uid://k0vwennvq3nw" path="res://Candy_DE/Scripts/Actor_Nodes/Bark_Bubble_3D.gd" id="2_kp8r3"]
+[ext_resource type="Texture2D" uid="uid://ciq1rkf7rr2nh" path="res://Candy_DE/UI Resources/BarkBubble.png" id="3_4li5y"]
+[ext_resource type="Script" uid="uid://du2b1humalw62" path="res://Candy_DE/Scripts/Media_Players/Audio_Player.gd" id="4_apucd"]
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_l37du"]
+viewport_path = NodePath("BarkBubble/SubViewport")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bfd75"]
+texture = ExtResource("3_4li5y")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_l37du"]
+texture = ExtResource("3_4li5y")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[node name="BarkEngine" type="Node3D" unique_id=803358169]
+script = ExtResource("1_qo0ij")
+engine_mode = "Bark"
+dialogue_mode = 5
+input_enabled = false
+ui_elements_paths = Dictionary[String, String]({
+"barks_path": "BarkBubble"
+})
+media_players_locations = Dictionary[String, String]({
+"Voice": "VoicePlayer"
+})
+bubbles_npc_path = ""
+bubbles_player_path = ""
+
+[node name="BarkBubble" type="Node3D" parent="." unique_id=661473030 node_paths=PackedStringArray("label", "sprite", "viewport")]
+visible = false
+script = ExtResource("2_kp8r3")
+label = NodePath("SubViewport/Text")
+sprite = NodePath("Sprite3D")
+viewport = NodePath("SubViewport")
+
+[node name="Sprite3D" type="Sprite3D" parent="BarkBubble" unique_id=910485908]
+billboard = 1
+render_priority = 9
+texture = SubResource("ViewportTexture_l37du")
+
+[node name="SubViewport" type="SubViewport" parent="BarkBubble" unique_id=1353259859]
+disable_3d = true
+transparent_bg = true
+size = Vector2i(64, 40)
+
+[node name="Text" type="RichTextLabel" parent="BarkBubble/SubViewport" unique_id=114134089]
+offset_right = 11.0
+offset_bottom = 33.0
+theme_override_colors/default_color = Color(0, 0, 0, 1)
+theme_override_styles/normal = SubResource("StyleBoxTexture_bfd75")
+theme_override_styles/focus = SubResource("StyleBoxTexture_l37du")
+bbcode_enabled = true
+text = "Text"
+fit_content = true
+scroll_active = false
+horizontal_alignment = 1
+meta_underlined = false
+hint_underlined = false
+
+[node name="VoicePlayer" type="AudioStreamPlayer" parent="." unique_id=831506310]
+editor_description = "Plays speech inside dialogue lines."
+script = ExtResource("4_apucd")
+
+[connection signal="finished" from="VoicePlayer" to="VoicePlayer" method="_on_finished"]

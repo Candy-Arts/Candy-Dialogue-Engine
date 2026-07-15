@@ -1,0 +1,48 @@
+[gd_scene format=3 uid="uid://dthy5dsv6idqd"]
+
+[ext_resource type="Script" uid="uid://786guk7wgd2b" path="res://Candy_DE/Scripts/UI_Elements/History_Display.gd" id="1_p0eli"]
+
+[node name="History" type="PanelContainer" unique_id=487529836 node_paths=PackedStringArray("log_node")]
+visible = false
+z_index = 100
+offset_left = 640.0
+offset_top = 64.0
+offset_right = 1280.0
+offset_bottom = 768.0
+script = ExtResource("1_p0eli")
+log_node = NodePath("MarginContainer/VBox/Log")
+
+[node name="BG" type="ColorRect" parent="." unique_id=1317178657]
+layout_mode = 2
+color = Color(0.20152658, 0.20152658, 0.20152658, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1602541315]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer" unique_id=2031740758]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Label" type="Label" parent="MarginContainer/VBox" unique_id=111366579]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+text = "History:"
+vertical_alignment = 1
+
+[node name="Log" type="RichTextLabel" parent="MarginContainer/VBox" unique_id=1957177001]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+
+[node name="Button" type="Button" parent="MarginContainer/VBox" unique_id=192478025]
+custom_minimum_size = Vector2(128, 32)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Close"
+
+[connection signal="pressed" from="MarginContainer/VBox/Button" to="." method="_on_close_pressed"]
