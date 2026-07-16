@@ -13,10 +13,9 @@
 
 extends AnimationPlayer
 
-var effect_player
 
 ## Required
-@export var effect_player_path = self
+@export var effect_player = self
 
 var pause_count = 0
 var pause_mode = "speech"
@@ -30,10 +29,6 @@ var duration: float = 0.0
 
 var caller: Node
 
-
-
-func _ready():
-	effect_player = get_node(effect_player_path)
 
 
 func _on_animation_finished(_anim_name: StringName) -> void:

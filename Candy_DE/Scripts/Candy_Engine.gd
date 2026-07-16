@@ -9067,9 +9067,12 @@ func process_lines(current_conversation, current_block, line_index, source, main
 			#?   - It is not a numbered sub-variant (_#int)
 			#! Unknown tags (not handled by any of the logic above) cause the variant to fail!
 			var passing_variants: Array = []
-
 			for entry in variants:
 				for variant_name in entry.keys():
+					#% Skip TTS variants:
+					if variant_name.ends_with("_TTS") or "_TTS_" in variant_name:
+						continue
+
 					#% Discard variants with no text early:
 					if entry[variant_name].get("Text", "") == "":
 						continue
@@ -9122,7 +9125,7 @@ func process_lines(current_conversation, current_block, line_index, source, main
 						if colon_idx != -1:
 							v["tags"][part.substr(0, colon_idx)] = part.substr(colon_idx + 1)
 
-			#@ Step 4C - Discard variants whose tags are a strict subset of another passing variant's tags:
+			#@ Step 4C - Discard variants whose tags are all included in another variant:
 			var filtered_variants: Array = []
 			for i in range(passing_variants.size()):
 				var v = passing_variants[i]
@@ -9165,7 +9168,7 @@ func process_lines(current_conversation, current_block, line_index, source, main
 				for _i in range(weight):
 					variant_pool.append(v)
 
-			#% Pick one variant at random from the pool (or deterministically):
+			#% Pick one variant at random from the pool:
 			var chosen_v = null
 			if variant_pool.size() > 0:
 				if random_variants:
@@ -9173,7 +9176,7 @@ func process_lines(current_conversation, current_block, line_index, source, main
 				else:
 					chosen_v = variant_pool[0]
 
-			#@ Step 4F - Now build the text pool from the chosen variant, including numbered sub-variants:
+			#@ Step 4F - Select random variant:
 			var chosen_text := ""
 			var text_direction := ""
 			var pool: Array = []
@@ -9199,8 +9202,12 @@ func process_lines(current_conversation, current_block, line_index, source, main
 				if random_variants:
 					for entry in variants:
 						for sub_name in entry.keys():
-							if sub_name.begins_with(base_name + "_%s" % "\u0023") and \
-							sub_name.substr(base_name.length() + 2).is_valid_int():
+							var suffix = sub_name.substr(base_name.length() + 2)
+							var number_part = suffix.split("_", false)[0]
+							if sub_name.begins_with(base_name + "_%s" % "\u0023") and number_part.is_valid_int():
+								#% Skip TTS-only variants:
+								if sub_name.ends_with("_TTS") or "_TTS_" in sub_name:
+									continue
 								var weight := 1
 								var raw_weight = entry[sub_name].get("Weight", "1")
 								if typeof(raw_weight) == TYPE_STRING and raw_weight.strip_edges().is_valid_int():

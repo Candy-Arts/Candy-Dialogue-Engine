@@ -9,6 +9,18 @@
 
 -----
 
+## 1.1.1
+### Scripts:
+#### Candy_Engine.gd:
+process_lines():
+- (FIX) Fixed random variants with _TTS tag being selected as possible randomness options.
+- (IMPROVE) Added logic to reject _TTS variants outright. This is just a precaution: the logic causes variants with the _TTS tag to be rejected for other reasons.
+
+#### Effect_Player.gd:
+- (FIX) Fixed the script still using var effect\_player\_path instead of var effect\_player\. This had previously been fixed in our development build, but we forgot to port the change over to the public release build.
+
+-----
+
 ## 1.1.0.c
 ### Scripts:
 - (CHANGE) All UI and Media Player scripts now take direct node references instead of string paths for required and optional nodes. **You will need to update your scenes to provide these direct node references!**
