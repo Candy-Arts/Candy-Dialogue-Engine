@@ -9,6 +9,17 @@
 
 -----
 
+## 1.1.2
+### Scripts
+#### Candy_Engine.gd:
+commands():
+- (FIX) §Set and §Flag Commands: nested quotes inside expressions could cause conflicts. Typically this likely only happened if you tried combining two strings, for example: **"Wizard's" + " hat"** → was read as a single string: **Wizard's" + " hat**. The fix solves this, and it also makes the escape character (backslash \\) work (it may not have worked in some cases before). If you still encounter issues with Expressions, please let us know.
+
+process_lines():
+- (FIX) Fixed an error at Step 4 (variant selection). If random variants were enabled, the code was assuming a random variant in every case, even when none existed. It should work correctly now, but Step 4 is another part of the code where there can be a number of edge cases, so please let us know if you encounter other errors.
+
+-----
+
 ## 1.1.1
 ### Scripts:
 #### Candy_Engine.gd:

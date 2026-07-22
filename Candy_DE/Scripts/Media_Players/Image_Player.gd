@@ -14,7 +14,7 @@
 extends Control
 
 ## Required
-@export var image_player = self
+@export var image_player: Node = self
 
 var pause_count = 0
 var pause_mode = "speech"

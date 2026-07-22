@@ -15,11 +15,11 @@ extends Node2D
 
 #^ Required Node Paths:
 #? If you use your own custom node hierarchy, update this appropriately.
-## Required
+## Required: The node that displays text.
 @export var label: RichTextLabel
-## Required
+## Required: The Sprite3D node.
 @export var sprite: Sprite2D
-## Required
+## Required: The viewport.
 @export var viewport: SubViewport
 
 

@@ -15,7 +15,7 @@ extends AnimationPlayer
 
 
 ## Required
-@export var effect_player = self
+@export var effect_player: Node = self
 
 var pause_count = 0
 var pause_mode = "speech"

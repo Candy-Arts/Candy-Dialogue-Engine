@@ -14,7 +14,7 @@
 extends AudioStreamPlayer3D
 
 ## Required
-@export var audio_player = self
+@export var audio_player: Node = self
 
 var pause_count = 0
 var pause_mode = "speech"

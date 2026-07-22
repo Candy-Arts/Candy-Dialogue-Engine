@@ -84,17 +84,17 @@ _data = {
 [node name="Candy_UI" type="CanvasLayer" unique_id=670198239]
 script = ExtResource("1_d27hq")
 engine_mode = "UI"
-ui_elements_paths = {
-&"backgrounds_path": "Backgrounds",
-&"busts_path": "Busts",
-&"chat_path": "ChatBox",
-&"choices_path": "Choices",
-&"dialogue_box_path": "DialogueBox",
-&"history_display_path": "History",
-&"input_node_path": "Input",
-&"portrait_path": "Portrait",
-&"subtitles_path": "Subtitles"
-}
+ui_elements_paths = Dictionary[String, String]({
+"backgrounds_path": "Backgrounds",
+"busts_path": "Busts",
+"chat_path": "ChatBox",
+"choices_path": "Choices",
+"dialogue_box_path": "DialogueBox",
+"history_display_path": "History",
+"input_node_path": "Input",
+"portrait_path": "Portrait",
+"subtitles_path": "Subtitles"
+})
 
 [node name="DialogueBox" parent="." unique_id=325784414 instance=ExtResource("2_nrqv7")]
 visible = false
@@ -140,13 +140,12 @@ layout_mode = 3
 anchors_preset = 0
 mouse_filter = 2
 
-[node name="ImagePlayer" parent="MediaPlayers" unique_id=44489275 node_paths=PackedStringArray("image_player") instance=ExtResource("8_ckpvn")]
+[node name="ImagePlayer" parent="MediaPlayers" unique_id=44489275 instance=ExtResource("8_ckpvn")]
 layout_mode = 1
 offset_left = 896.0
 offset_top = 476.0
 offset_right = 1024.0
 offset_bottom = 604.0
-image_player = NodePath(".")
 
 [node name="SplashPlayer" type="TextureRect" parent="MediaPlayers" unique_id=1804735031 node_paths=PackedStringArray("image_player")]
 editor_description = "Momentarily displays images screen-wide."
@@ -182,11 +181,12 @@ mouse_filter = 2
 color = Color(0, 0, 0, 0)
 metadata/_edit_lock_ = true
 
-[node name="EffectPlayer" type="AnimationPlayer" parent="MediaPlayers" unique_id=1060315011]
+[node name="EffectPlayer" type="AnimationPlayer" parent="MediaPlayers" unique_id=1060315011 node_paths=PackedStringArray("effect_player")]
 editor_description = "Used in conjunction with various UI elements (e.g. Screen Effects) to play animations."
 root_node = NodePath("../..")
 libraries/ = SubResource("AnimationLibrary_p21q5")
 script = ExtResource("11_4ysxm")
+effect_player = NodePath(".")
 
 [node name="SoundPlayer" type="AudioStreamPlayer" parent="MediaPlayers" unique_id=456038637 node_paths=PackedStringArray("audio_player")]
 editor_description = "Plays sounds."

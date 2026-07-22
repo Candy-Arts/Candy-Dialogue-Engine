@@ -1099,18 +1099,21 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 			#@ Determine RHS value:
 			var rhs_value
+
 			#% Literal string → strip quotes:
-			if (expr_line.begins_with("'") and expr_line.ends_with("'")) or (expr_line.begins_with("\"") and expr_line.ends_with("\"")):
+			if _is_quoted_literal(expr_line):
 				rhs_value = expr_line.substr(1, expr_line.length() - 2)
-			#% Replace variable symbols with actual values:
+
 			else:
+				#% Replace variable symbols with actual values:
 				var replaced_expr = _replace_with_values(expr_line)
-				replaced_expr = replaced_expr.replace("'", "\"")	#/ Make quotes safe for Expression
 				var expression = Expression.new()
 				if expression.parse(replaced_expr) != OK:
 					printerr("§Set: failed to parse → ", replaced_expr)
 					return "Continue"
+
 				rhs_value = expression.execute()
+
 				if expression.has_execute_failed():
 					printerr("§Set: runtime error → ", replaced_expr)
 					return "Continue"
@@ -1161,18 +1164,20 @@ func commands(command_key, command_value, current_conversation, current_block, _
 
 			#@ Evaluate RHS using Expression:
 			var rhs_value: Variant
-			if (typeof(expr_line) == TYPE_STRING) and ((expr_line.begins_with("'") and expr_line.ends_with("'")) or (expr_line.begins_with("\"") and expr_line.ends_with("\""))):
-				#% Literal string → strip quotes:
+			#% Literal string → strip quotes:
+			if _is_quoted_literal(str(expr_line)):
 				rhs_value = expr_line.substr(1, expr_line.length() - 2)
+
 			else:
 				#% Replace variable symbols with actual values:
 				var replaced_expr = _replace_with_values(str(expr_line))
-				replaced_expr = replaced_expr.replace("'", "\"")	#/ Make quotes safe for Expression
 				var expression = Expression.new()
 				if expression.parse(replaced_expr) != OK:
 					printerr("§Flag: failed to parse → ", replaced_expr)
 					return "Continue"
+
 				rhs_value = expression.execute()
+
 				if expression.has_execute_failed():
 					printerr("§Flag: runtime error → ", replaced_expr)
 					return "Continue"
@@ -9202,20 +9207,27 @@ func process_lines(current_conversation, current_block, line_index, source, main
 				if random_variants:
 					for entry in variants:
 						for sub_name in entry.keys():
+							if not sub_name.begins_with(base_name + "_%s" % "\u0023"):
+								continue
 							var suffix = sub_name.substr(base_name.length() + 2)
-							var number_part = suffix.split("_", false)[0]
-							if sub_name.begins_with(base_name + "_%s" % "\u0023") and number_part.is_valid_int():
-								#% Skip TTS-only variants:
-								if sub_name.ends_with("_TTS") or "_TTS_" in sub_name:
-									continue
-								var weight := 1
-								var raw_weight = entry[sub_name].get("Weight", "1")
-								if typeof(raw_weight) == TYPE_STRING and raw_weight.strip_edges().is_valid_int():
-									weight = max(1, int(raw_weight.strip_edges()))
-								for _i in range(weight):
-									pool.append(entry[sub_name].get("Text", ""))
-									pool_names.append(sub_name)
-									pool_directions.append(entry[sub_name].get("Direction", ""))
+							var suffix_parts = suffix.split("_", false)
+							if suffix_parts.is_empty():
+								continue
+							var number_part = suffix_parts[0]
+							if not number_part.is_valid_int():
+								continue
+
+							#% Skip TTS-only variants:
+							if sub_name.ends_with("_TTS") or "_TTS_" in sub_name:
+								continue
+							var weight := 1
+							var raw_weight = entry[sub_name].get("Weight", "1")
+							if typeof(raw_weight) == TYPE_STRING and raw_weight.strip_edges().is_valid_int():
+								weight = max(1, int(raw_weight.strip_edges()))
+							for _i in range(weight):
+								pool.append(entry[sub_name].get("Text", ""))
+								pool_names.append(sub_name)
+								pool_directions.append(entry[sub_name].get("Direction", ""))
 
 			#% Select from text pool:
 			if pool.size() > 0:
@@ -13606,6 +13618,19 @@ func _candy_split_top_level(s: String) -> Array:
 #& MISC FEATURES:
 #?###############
 #region
+
+#* Resolve quotes in Expression data:
+func _is_quoted_literal(s: String) -> bool:
+	if s.length() < 2:
+		return false
+	var q: String = s[0]
+	if q != "'" and q != "\"":
+		return false
+	if s[s.length() - 1] != q:
+		return false
+	#% If the delimiter doesn't appear, it's an expression:
+	return s.substr(1, s.length() - 2).find(q) == -1
+
 #* Apply BBCode lexicon tags with tooltips, clickable URLs, and custom styling:
 func apply_lexicon_tags(text: String, lexicon: Dictionary, chosen_variant: String) -> String:
 	var chosen_variant_lc := chosen_variant.to_lower()

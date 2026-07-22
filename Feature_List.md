@@ -154,6 +154,8 @@
 - Anything can be an Input UI that communicates with the dialogue: keypads, machines, vehicle controls, even mini-games or the main game itself.
 - Dialogue can 'disconnect' from Input UI, continue while UI remains open, then reconnect later.
 - *Input UIs must be designed by users. Custom code must be written. Candy DE only provides limited, basic templates.*
+- Change Mouse Mode at any time during dialogue.
+- Pause dialogue until player presses key or provides other input.
 
 ### Media Controls
 - Play and control image, video or audio media from dialogues.
