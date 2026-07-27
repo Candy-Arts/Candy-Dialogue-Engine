@@ -1,5 +1,5 @@
-# Candy Dialogue Engine General License v1.0.0
-
+# Candy Dialogue Engine General License v1.0.1
+*27 July 2026*<br>
 *Copyright © 2026 Candy Arts - All rights reserved.*
 
 The present *General License* governs the use of Candy Dialogue Engine by Candy Arts. By accessing, acquiring or using Candy Dialogue Engine, you agree to the terms of the present *General License*. If at any time you do not agree or cease to agree to these terms, you must immediately refrain from accessing Candy Dialogue Engine, and delete any copies in your possession or under your control.
