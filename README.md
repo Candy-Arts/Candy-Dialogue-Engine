@@ -29,7 +29,7 @@
 - Different dialogue modes with various settings and options: dialogue box with portrait, subtitles, speech bubbles, chat box…
 - Voiced dialogue support.
 - VN busts and background image display.
-- Full UI customization.
+- Full UI customization without coding.
 - Branching dialogues / Conditions.
 - Call functions and emit/detect signals.
 - Player choices and input prompts.
@@ -37,12 +37,12 @@
 - Media playback controls.
 - Variable modification and display.
 - Cutscene scripting.
-- Gendered word substitution (or other attributes).
+- Gender-based word substitution (or other attributes).
 - Gendered and random variants (or other attributes).
 - Lexicon (Glossary).
 ![](https://candy-arts.com/wp-content/uploads/2026/02/Lexicon-Example.png)
 - Localization/Translation features.
-- Compatibility features for Text-To-Speech and LLM-generated dialogue.
+- Support features for Text-To-Speech and LLM-generated dialogue.
 - Dialogue live edit at runtime, parallel dialogues, dialogues as a modding/programming layer.
 - Fully accessible and expandable code.
 - Standalone dialogue editing GUI with simple ‘click to add line, fill in data, don’t type syntax’ approach.
@@ -89,8 +89,8 @@ We offer three license models: free (non-commercial projects), royalties, or one
 - Studio License: 2.5% royalties on project's gross revenue.
 
 **In addition, we offer very good deals for small indie developers:**
-- Starter Indie License: €100 (€50 until August 2026), budget limit of €5'000 per project.
-- Pro Indie License: €500 (€400 until August 2026), budget limit of €25'000 per project.
+- Starter Indie License: €100 (€50 until September 2026), budget limit of €5'000 per project.
+- Pro Indie License: €500 (€400 until September 2026), budget limit of €25'000 per project.
 
 Indie licenses don't have a project limit: **Pay once - make as many games as you like, for life.** <br>
 Flat fee, no revenue caps: if your game is a huge success and earns millions, you don't pay more.<br>
