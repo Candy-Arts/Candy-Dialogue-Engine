@@ -60,6 +60,7 @@ func change_game_state(caller, method):		#/ 'method' indicates whether the funct
 		#% When dialogue starts:
 		if method == "start":
 			#% Store previous game state before dialogue starts:
+			@warning_ignore("unassigned_variable")
 			previous_state = game_state	#TODO: replace both variables with your own.
 
 			#% Change game_state value to indicate dialogue state:
@@ -105,9 +106,13 @@ func open_general_history():
 #TODO: Write your own code to define the desired behavior.
 #TODO: Possibly use the 'suspend dialogue' features to pause dialogue, media, animations, etc.
 #TODO: while the click behavior is ongoing. See the Lexicon guide for details on that feature.
+@warning_ignore("unused_parameter")
 func _on_lexicon_clicked(data, caller, ui):
+	@warning_ignore("unused_variable")
 	var keyword = data["keyword"]
+	@warning_ignore("unused_variable")
 	var keyword_data = data["keyword_click_data"]
+	@warning_ignore("unused_variable")
 	var keyword_variant = data["keyword_variant"]
 	pass
 
@@ -139,6 +144,7 @@ func clear_bg_layers_ood(caller):
 #* Use Text-To-Speech for a line:
 func tts(caller, mode, _speaker_ref, raw_dialogue, line_data, variant):
 	var tts_variant = ""
+	@warning_ignore("unused_variable")
 	var tts_text = ""
 	var output
 
@@ -155,11 +161,13 @@ func tts(caller, mode, _speaker_ref, raw_dialogue, line_data, variant):
 		caller.TtsModes.Simple:
 			tts_text = caller.bbcode_strip_tags(raw_dialogue)
 			#TODO: Hook to your TTS implementation.
+			@warning_ignore("unassigned_variable")
 			return output
 
 		caller.TtsModes.Advanced:
 			tts_text = line_data["Spoken Line"]["Variants"][tts_variant]
 			#TODO: Hook to your TTS implementation.
+			@warning_ignore("unassigned_variable")
 			return output
 
 
@@ -167,6 +175,7 @@ func tts(caller, mode, _speaker_ref, raw_dialogue, line_data, variant):
 #? This function is called when a speaker key contains the llm symbol (default "&"), unless var use_llm = false.
 #? This function is intended to send a query to an LLM, and to return the LLM's response so it can be displayed as speech on screen.
 #* Query LLM:
+@warning_ignore("unused_parameter")
 func llm_query(caller, actor_ref: String, actor_name: String, actor_disps: Array, line: String, chosen_variant_name: String) -> String:
 	#TODO Write the query behavior:
 	#% 1. Craft a prompt based on argument values.
@@ -198,6 +207,7 @@ func llm_query(caller, actor_ref: String, actor_name: String, actor_disps: Array
 	#+ "Alice generally Likes the player. "
 	#+ "Write what Alice might say in 2 or 3 sentences."
 
+	@warning_ignore("unused_variable")
 	var llm_prompt = ""
 	var llm_response = ""
 	return llm_response
@@ -211,26 +221,32 @@ func llm_query(caller, actor_ref: String, actor_name: String, actor_disps: Array
 #TODO: The function calls can be moved almost anywhere in the engine logic, or more functions/calls can be added.
 
 #* Called when a new line is processed:
+@warning_ignore("unused_parameter")
 func x_new_line(caller, line_data):
 	pass
 
 #* Called when a new command is processed:
+@warning_ignore("unused_parameter")
 func x_command_start(caller, line_data):
 	pass
 
 #* Called when a new spoken line is processed:
+@warning_ignore("unused_parameter")
 func x_new_speech_start(caller, line_data):
 	pass
 
 #* Called at the start of the line_display() function:
+@warning_ignore("unused_parameter")
 func x_new_speech_display(caller, line_data):
 	pass
 
 #* Called when dialogue ends:
+@warning_ignore("unused_parameter")
 func x_dialogue_end(caller):
 	pass
 
 #* Called by the §Flag command when a flag value is changed:
 #? Can be used if you need flag changes to automatically trigger further effects.
+@warning_ignore("unused_parameter")
 func x_flag_changed(caller, flag, value):
 	pass
