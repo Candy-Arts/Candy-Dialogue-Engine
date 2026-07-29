@@ -26,7 +26,6 @@ dialogue_node = NodePath("Text")
 [node name="Text" type="RichTextLabel" parent="." unique_id=1012184801]
 layout_mode = 2
 bbcode_enabled = true
-text = "Chat"
 scroll_following = true
 meta_underlined = false
 hint_underlined = false

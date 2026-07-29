@@ -40,7 +40,7 @@
 - Gender-based word substitution (or other attributes).
 - Gendered and random variants (or other attributes).
 - Lexicon (Glossary).
-![](https://candy-arts.com/wp-content/uploads/2026/02/Lexicon-Example.png)
+![](https://candy-arts.com/wp-content/uploads/2026/08/YourStyleExample2.webp)
 - Localization/Translation features.
 - Support features for Text-To-Speech and LLM-generated dialogue.
 - Dialogue live edit at runtime, parallel dialogues, dialogues as a modding/programming layer.
@@ -120,9 +120,11 @@ It's also built on a solid, modular core structure: this means there are almost 
 Importantly, Candy Dialogue Engine requires a lot of work to create and maintain: something of this scale can't be made by working on it a few hours on week-ends. This pricing model allows us to work on Candy Dialogue Engine full time, add features and improvements, and develop more assets that you might also find useful.
 
 ## Compatibility
-Candy Dialogue Engine should work with any version of Godot 4.
+Candy Dialogue Engine is compatible with Godot 4.4+
 
-It should also work with any operating system that Godot can compile for.
+Godot 4.0 to 4.3 are currently not supported. We are looking into a fix.
+
+It should work with any operating system that Godot can compile for.
 
 ## Bugs and issues
 Bugs should be reported here on GitHub.

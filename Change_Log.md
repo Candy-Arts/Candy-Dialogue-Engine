@@ -1,11 +1,59 @@
 # Candy Dialogue Engine - Change Log
 
-**Tags:**
-(FIX)       - Bug fix.
-(IMPROVE)   - Improvement that isn't a fix to an actual bug.
-(CHANGE)    - Neutral change in the code.
-(NEW)       - New feature was added
+**Tags:**<br>
+[U]         - Usability change: modifies how you use Candy DE.<br>
+[T]         - Technical change: only matters in the code or for advanced users.
+
+(FIX)       - Bug fix.<br>
+(IMPROVE)   - Improvement that isn't a fix to an actual bug.<br>
+(CHANGE)    - Neutral change in the code.<br>
+(NEW)       - New feature was added.<br>
 (MISSING)   - Missing feature was added.
+
+-----
+
+## 1.1.3
+### Scripts
+#### Candy_Engine.gd:
+commands():
+- [U] (FIX) §Await now supports super variable references for its "Variable" key (the variable to store the signal arguments to).
+- [U] (FIX) §Export/§Import now actually export/import data in .tres or .res format.
+- [U] (FIX) Forgot to also add the Expression fixes from version 1.1.2 to condition commands. They will now handle quotation marks inside string values correctly.
+- [U] (FIX) §Elif and §Else could previously run normally if there was no prior §If at their depth. This is now fixed. §Elif and §Else will only work when inside a chain started by an §If command.
+- [U] (FIX) Fixed an issue where the if_array was not being cleaned up when returning from a depth level. This could cause §If/§Elif/§Else to read or write the wrong index.
+- [T] (CHANGE) Commands now call the new \_resolve\_super() function to resolve super variable references. This reduces the amount of code in those commands.
+- [T] (CHANGE) The §Input command data variables now accept any Variant, instead of only accepting String. This was a logical need since the command data could serve any purpose inside your custom Input UI. The only exception is input_ui (the "File" key) as it's used by the command to know which Input UI scene to load.
+
+run_dialogue():
+- [U] (FIX) Line Marks weren't working properly.
+
+process_lines():
+- [U] (FIX) Dispositions: a missing "Disposition" key in the actors dictionary is treated as a value of "" (empty string / no disposition).
+- [U] (FIX) Called candy\_de.llm\_query with 'await'. This will now make the engine wait for the LLM output, as it should.
+- [U] (FIX) Spoken text now supports v\_res:// and v\_user:// in variable substitution - e.g. {)v_res://...}
+
+display_line():
+- [T] (IMPROVE) Modified the code to stop using bbcode\_strip\_tags() to count characters in a Spoken Line minus BBCode tags: RichTextLabel nodes can already do this internally, and can automatically skip over BBCode tags when using the typewriter effect. This change makes the code more efficient.
+
+bbcode\_strip\_tags():
+- [T] (CHANGE) The function is now unused by Candy Dialogue Engine. We're keeping it in the script in case it can be useful again in the future. Users can also use it for their own purposes, of course.
+
+Variable reference logic:
+- [T] (IMPROVE) Made significant modifications to the code that handles variable references across commands.
+- [U] (FIX) Super reference symbols made of multiple characters could fail to work properly.
+- [U] (FIX) Expressions (§Set, §Flag and condition/loop commands): symbols inside string values will no longer be treated as variable references. E.g. a string value "$10" was previously treated as a variable reference and converted to 'null', which caused the Expression to fail.
+- [U] (FIX) vardict_symbol (€) was failing to create new keys in the 'variables' dictionary when assigning variables. It assigned fine when keys already existed. Reading was not affected.
+
+#### Candy_Functions.gd
+- [T] (IMPROVE) We discovered the existence of @warning_ignore(), so we were able to disabled all the useless warnings about unused/unsassigned parameters and variables. Nice.
+
+### Scenes
+#### Chat_Boxes
+Default.tscn and Candy_Default.tscn:
+- (FIX) The RichTextLabel of both scenes had "Chat" written inside of it. This was not being overwritten at runtime due to how Chat mode works (it appends text, never overwrites). We've removed the text from the RichTextLabel. **The fix is not automatic for Default.tscn! You need to manually do it!**
+    1. Open Candy\_DE/Scripts/UI_Elements/Chat\_Boxes/Default.tscn
+    2. Select the RichTextLabel node.
+    3. In the Inspector, for 'Text', delete "Chat".
 
 -----
 
