@@ -1,0 +1,45 @@
+[gd_scene format=3 uid="uid://cqdyhvxl2rdtq"]
+
+[ext_resource type="Script" uid="uid://cnovpq1svk3gs" path="res://Candy_DE/Scripts/Testing_Scene.gd" id="1_aiimn"]
+
+[node name="Testing Scene" type="Control" unique_id=1503173242]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1_aiimn")
+metadata/_edit_lock_ = true
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=2018258002]
+layer = 5
+
+[node name="Button" type="Button" parent="CanvasLayer" unique_id=589857578]
+z_index = 2000
+offset_left = 64.0
+offset_top = 64.0
+offset_right = 192.0
+offset_bottom = 128.0
+text = "Suspend"
+
+[node name="Button2" type="Button" parent="CanvasLayer" unique_id=1091872813]
+z_index = 2000
+offset_left = 256.0
+offset_top = 64.0
+offset_right = 384.0
+offset_bottom = 128.0
+text = "Resume"
+
+[node name="Button3" type="Button" parent="CanvasLayer" unique_id=1470894957]
+z_index = 2000
+offset_left = 448.0
+offset_top = 64.0
+offset_right = 576.0
+offset_bottom = 128.0
+text = "Interrupt"
+
+[connection signal="pressed" from="CanvasLayer/Button" to="." method="_on_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/Button2" to="." method="_on_button_2_pressed"]
+[connection signal="pressed" from="CanvasLayer/Button3" to="." method="_on_button_3_pressed"]

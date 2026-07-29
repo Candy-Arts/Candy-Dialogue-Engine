@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://y4cv2axu1mug"]
 
-[ext_resource type="Script" uid="uid://dcltr8lstms8v" path="res://Candy_DE/Scripts/UI_Elements/Backgrounds.gd" id="1_0mbsa"]
+[ext_resource type="Script" uid="uid://vtk1ysv861ak" path="res://Candy_DE/Scripts/UI_Elements/BG_UI.gd" id="1_0mbsa"]
 
 [node name="Control" type="Control" unique_id=269811214 node_paths=PackedStringArray("bg_container")]
 layout_mode = 3

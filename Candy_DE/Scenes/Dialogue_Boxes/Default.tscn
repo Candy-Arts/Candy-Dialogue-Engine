@@ -1,0 +1,118 @@
+[gd_scene format=3 uid="uid://baqg5yp6bufo3"]
+
+[ext_resource type="Script" uid="uid://bgpwsw3ws7mtq" path="res://Candy_DE/Scripts/UI_Elements/Box_UI.gd" id="1_a1dbu"]
+[ext_resource type="Texture2D" uid="uid://c8nmlf78mneyk" path="res://Candy_DE/UI Resources/PortraitFG1.png" id="3_72bq2"]
+[ext_resource type="Script" uid="uid://buccc2yx8vuif" path="res://Candy_DE/Scripts/Media_Players/Portrait_Player.gd" id="4_r4gnm"]
+[ext_resource type="Script" uid="uid://brm6gtjnmmifp" path="res://Candy_DE/Scripts/Media_Players/Voice_Player.gd" id="5_vxk2p"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6da47"]
+content_margin_left = 4.0
+content_margin_top = 0.0
+content_margin_right = 4.0
+content_margin_bottom = 0.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_lsi01"]
+content_margin_left = 8.0
+content_margin_top = 0.0
+content_margin_right = 8.0
+content_margin_bottom = 0.0
+
+[node name="DialogueBox" type="PanelContainer" unique_id=489551552 node_paths=PackedStringArray("dialogue_node", "speaker_node", "portrait_node", "voice_node", "portrait_area", "portrait_bg", "portrait_fg", "portrait_effect_player")]
+z_index = 100
+offset_left = 320.0
+offset_top = 816.0
+offset_right = 1344.0
+offset_bottom = 1072.0
+script = ExtResource("1_a1dbu")
+dialogue_node = NodePath("HBoxContainer/VBox/Dialogue/Text")
+speaker_node = NodePath("HBoxContainer/VBox/Speaker/Text")
+portrait_node = NodePath("HBoxContainer/Portrait/Image")
+voice_node = NodePath("VoicePlayer")
+portrait_area = NodePath("HBoxContainer/Portrait")
+portrait_bg = NodePath("HBoxContainer/Portrait/BG")
+portrait_fg = NodePath("HBoxContainer/Portrait/FG")
+portrait_effect_player = NodePath("HBoxContainer/Portrait/PortraitEffectPlayer")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1744146522]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Portrait" type="PanelContainer" parent="HBoxContainer" unique_id=1607682418]
+custom_minimum_size = Vector2(256, 256)
+layout_mode = 2
+
+[node name="BG" type="TextureRect" parent="HBoxContainer/Portrait" unique_id=1279505593]
+layout_mode = 2
+
+[node name="Image" type="TextureRect" parent="HBoxContainer/Portrait" unique_id=1513368817]
+layout_mode = 2
+expand_mode = 4
+stretch_mode = 6
+
+[node name="Effect" type="TextureRect" parent="HBoxContainer/Portrait" unique_id=772861846]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="FG" type="TextureRect" parent="HBoxContainer/Portrait" unique_id=63821615]
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("3_72bq2")
+
+[node name="PortraitEffectPlayer" type="AnimationPlayer" parent="HBoxContainer/Portrait" unique_id=915650139]
+editor_description = "For playing portrait animations."
+script = ExtResource("4_r4gnm")
+
+[node name="VBox" type="VBoxContainer" parent="HBoxContainer" unique_id=224645451]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="Speaker" type="PanelContainer" parent="HBoxContainer/VBox" unique_id=1598990184]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+
+[node name="BG" type="ColorRect" parent="HBoxContainer/VBox/Speaker" unique_id=1248236857]
+layout_mode = 2
+color = Color(0.1584723, 0.15847233, 0.1584723, 0.78431374)
+
+[node name="Text" type="RichTextLabel" parent="HBoxContainer/VBox/Speaker" unique_id=1839830979]
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 28
+theme_override_font_sizes/bold_font_size = 28
+theme_override_font_sizes/bold_italics_font_size = 28
+theme_override_font_sizes/italics_font_size = 28
+theme_override_font_sizes/mono_font_size = 28
+theme_override_styles/normal = SubResource("StyleBoxEmpty_6da47")
+bbcode_enabled = true
+text = "Speaker name"
+scroll_active = false
+autowrap_mode = 0
+vertical_alignment = 1
+
+[node name="Dialogue" type="PanelContainer" parent="HBoxContainer/VBox" unique_id=1613014559]
+custom_minimum_size = Vector2(0, 208)
+layout_mode = 2
+
+[node name="BG" type="ColorRect" parent="HBoxContainer/VBox/Dialogue" unique_id=1275742422]
+layout_mode = 2
+color = Color(0, 0, 0, 0.784314)
+
+[node name="Text" type="RichTextLabel" parent="HBoxContainer/VBox/Dialogue" unique_id=2083456840]
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 24
+theme_override_font_sizes/bold_font_size = 24
+theme_override_font_sizes/bold_italics_font_size = 24
+theme_override_font_sizes/italics_font_size = 24
+theme_override_font_sizes/mono_font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxEmpty_lsi01")
+bbcode_enabled = true
+text = "Speech shows here.
+"
+scroll_active = false
+meta_underlined = false
+hint_underlined = false
+
+[node name="VoicePlayer" type="AudioStreamPlayer" parent="." unique_id=613077245]
+script = ExtResource("5_vxk2p")
+
+[connection signal="animation_finished" from="HBoxContainer/Portrait/PortraitEffectPlayer" to="HBoxContainer/Portrait/PortraitEffectPlayer" method="_on_animation_finished"]

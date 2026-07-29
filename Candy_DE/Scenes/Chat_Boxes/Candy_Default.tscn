@@ -1,8 +1,9 @@
 [gd_scene format=3 uid="uid://bge21iajaxt8j"]
 
-[ext_resource type="Script" uid="uid://bjkc16s4s71jj" path="res://Candy_DE/Scripts/UI_Elements/Chat_Box.gd" id="1_ran7n"]
+[ext_resource type="Script" path="res://Candy_DE/Scripts/UI_Elements/Chat_Box.gd" id="1_4nrdv"]
+[ext_resource type="PackedScene" path="res://Candy_DE/Scenes/Chat_Channels/Default.tscn" id="2_eviu3"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_03ioi"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8ao7b"]
 content_margin_left = 8.0
 content_margin_top = 8.0
 content_margin_right = 8.0
@@ -14,19 +15,14 @@ corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 corner_detail = 5
 
-[node name="ChatBox" type="PanelContainer" unique_id=319780911 node_paths=PackedStringArray("dialogue_node")]
+[node name="ChatBox" type="PanelContainer" unique_id=1369274839 node_paths=PackedStringArray("channels")]
 offset_left = 8.0
 offset_top = 816.0
 offset_right = 456.0
 offset_bottom = 1072.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_03ioi")
-script = ExtResource("1_ran7n")
-dialogue_node = NodePath("Text")
+theme_override_styles/panel = SubResource("StyleBoxFlat_8ao7b")
+script = ExtResource("1_4nrdv")
+channels = [NodePath("Channel")]
 
-[node name="Text" type="RichTextLabel" parent="." unique_id=315532954]
+[node name="Channel" parent="." unique_id=1704674413 instance=ExtResource("2_eviu3")]
 layout_mode = 2
-bbcode_enabled = true
-text = "Chat"
-scroll_following = true
-meta_underlined = false
-hint_underlined = false

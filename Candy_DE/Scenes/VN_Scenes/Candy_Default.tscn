@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cac6bst1ivxkm"]
 
-[ext_resource type="Script" uid="uid://djfctensjx1pr" path="res://Candy_DE/Scripts/UI_Elements/Bust_Scene.gd" id="1_jql7t"]
+[ext_resource type="Script" uid="uid://wmoywyohbil8" path="res://Candy_DE/Scripts/UI_Elements/VN_UI.gd" id="1_jql7t"]
 [ext_resource type="PackedScene" uid="uid://da7rpjjud3ps7" path="res://Candy_DE/Scenes/Speech_Bubbles_2D/Candy_Default.tscn" id="1_we2rs"]
 
 [node name="Busts" type="Control" unique_id=231794324 node_paths=PackedStringArray("busts_container", "highlight_player_1")]

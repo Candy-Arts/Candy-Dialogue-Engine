@@ -1,0 +1,8 @@
+[gd_scene format=3]
+
+[node name="ChatSeparator" type="MarginContainer" unique_id=231783882]
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_bottom = 6
+
+[node name="Rule" type="HSeparator" parent="." unique_id=2121760154]
+layout_mode = 2

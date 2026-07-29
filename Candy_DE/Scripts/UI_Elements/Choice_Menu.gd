@@ -1,16 +1,14 @@
 #!###########################################################################################
 #!																							#
-#!         THIS SCRIPT CONTAINS CODE THAT IS THE INTELLECTUAL PROPERTY OF CANDY ARTS        #
+#!       THIS SCRIPT MAY CONTAIN CODE THAT IS THE INTELLECTUAL PROPERTY OF CANDY ARTS       #
+#!                             Copyright © 2025-2026 Candy Arts                             #
 #!																							#
 #!    Such code may only be used in compliance with the appropriate Candy Arts licenses.    #
-#!                 Any unauthorized use constitutes copyright infringement.                 #
-#!																							#
-#!   This disclaimer must be featured at the top of any script featuring Candy Arts code,   #
-#!                            and may not be removed or modified.                           #
+#!                Any unauthorized use may constitute copyright infringement.               #
 #!																							#
 #!###########################################################################################
 
-extends Node
+extends Control
 
 ## REQUIRED: Parent for category scenes.
 @export var category_list: Node
@@ -29,12 +27,10 @@ var caller: Node
 var nesting_depth
 
 
-#^ Timer dictionary:
+#^ Menu data:
 var title = ""
 
 var prompt = ""
-
-var custom = ""
 
 var tags = ""
 
@@ -42,80 +38,102 @@ var tags = ""
 
 #* READY:
 func _ready() -> void:
+	pass
+
+
+#* Setup:
+@warning_ignore("unused_parameter")
+func setup(custom_data: Array = []) -> void:
 	_set_general_title()
 	_set_general_prompt()
 
 
-#* Display the list's general title:
+#* Display the menu title:
 func _set_general_title():
-	var language = candy_de.language
-	
 	if title_node != null:
-		if candy_de.choice_menu_titles.has(title) and candy_de.choice_menu_titles[title].has(language):
-			title_node.text = candy_de.choice_menu_titles[title][language]
-
-		#% If translation missing from the localizations dictionary, use default value instead:
-		else:
-			title_node.text = title
+		#Ł Translate:
+		title_node.text = CandyWriting.get_shared().translate(caller, self, str(title), "choice_menu_titles")
+		#Ł Hidden when empty, so it leaves no gap:
+		title_node.visible = title_node.text != ""
 
 
-#* Display the general prompt for the list:
+#* Display the menu prompt:
 func _set_general_prompt():
-	var language = candy_de.language
-	
 	if prompt_node != null:
-		if candy_de.choice_menu_prompts.has(prompt) and candy_de.choice_menu_prompts[prompt].has(language):
-			prompt_node.text = candy_de.choice_menu_prompts[prompt][language]
-
-		#% If translation missing from the localizations dictionary, use default value instead:	
-		else:
-			prompt_node.text = prompt
+		#Ł Translate:
+		prompt_node.text = CandyWriting.get_shared().translate(caller, self, str(prompt), "choice_menu_prompts")
+		#Ł Hidden when empty, so it leaves no gap:
+		prompt_node.visible = prompt_node.text != ""
 
 
-#* Called when any timer expires:
+#* Redisplay texts in the current language, here and in every category:
+func refresh_language():
+	_set_general_title()
+	_set_general_prompt()
+
+	if category_list != null:
+		for category in category_list.get_children():
+			if category.has_method("refresh_language"):
+				category.refresh_language()
+
+
+#* A timer expired:
 func _on_timer_timeout(timer_name):
 	caller.choice_list_event.emit(nesting_depth, "Timer", null, timer_name, null)
 
 
 #* Deactivate this menu when bridging:
-#% Used for hiding the menu when a choice or timer opens another choice menu.
-#% Called automatically by the §Choice_List command.
-#+ Can also be called in your code or dialogues, as needed.
-func deactivate():
-	if never_hide == false:
-		self.visible = false
+#+ Can use await.
+#! End with 'visible' false, or Choice_List deactivates it again.
+@warning_ignore("unused_parameter")
+func deactivate(custom_data: Array = []):
+	#? never_hide menus only get here through a Hide_Menu transition.
+	self.visible = false
 	#TODO: Edit function for desired behavior.
 
 
 #* Reactivate this menu when returning from a bridge:
-#% Used for showing the menu again when returning to the same nesting depth.
-#% Called automatically by §Bridge, after returning, if the nesting depth matches.
-#+ Can also be called manually, in order to re-display sooner.
-#+ e.g. menu is at depth 1, descendent is at depth 4 → call manually to reactivate at depth 3,
-#+ or wait for automatic call upon return to depth 1.
-func reactivate():
+#+ Can use await.
+#! Not called when the dialogue is stopped: the menu is freed.
+@warning_ignore("unused_parameter")
+func reactivate(custom_data: Array = []):
 	self.visible = true
 	#TODO: Edit function for desired behavior.
 
 
-#* Run custom logic once menu is set up:
-#% Called by §Choice_List once the menu, categories and buttons
-#% are finished spawning and have run their Setup transitions.
-#% Basically a hook to inject custom logic.
-func x_initialization_finished():
+#* Hook - menu set up:
+@warning_ignore("unused_parameter")
+func x_initialization_finished(candy_args: Dictionary, user_args: Array, custom_data: Array):
+	pass
+
+
+#* Hook - a choice is closing this menu:
+#+ Can use await (e.g. a closing animation).
+#! Not called when the menu is freed at once (dialogue stopped or ended, "Continue" or Timeout).
+@warning_ignore("unused_parameter")
+func x_menu_closing(candy_args: Dictionary, user_args: Array, custom_data: Array):
 	pass
 
 
 #* Hide older choice menus:
-#% Optional. Not called anywhere by default.
-#% E.g. call it in x_initialization_finished().
+#+ Not called by default: e.g. call it in x_initialization_finished().
 func hide_old_menus():
-	#% Iterate through all choice menus:
-	for child in get_node(caller.ui_elements_paths["choices_path"]):
-		#% Skip self:
-		if child == self:
+	if caller == null or not caller.ui_elements_paths.has("choices_path"):
+		return
+
+	var choices_root = caller.get_node_or_null(caller.ui_element_path("choices_path"))
+	if choices_root == null:
+		return
+
+	#Ł This engine's menus:
+	for child in choices_root.get_children():
+		#¦ 1. Skip self and other engines' menus:
+		if child == self or child.get("caller") != caller:
 			continue
-		#% Hide older menus, unless immune:
-		elif child.never_hide == false:
-			child.deactivate()
-			#child.visible = false		#/ Alternative to child_deactivate() - use either one of them.
+		#¦ 2. Hide unless never_hide:
+		elif child.get("never_hide") != true:
+			if child.has_method("deactivate"):
+				child.deactivate()
+				#child.visible = false		#/ Alternative to child_deactivate() - use either one of them.
+
+

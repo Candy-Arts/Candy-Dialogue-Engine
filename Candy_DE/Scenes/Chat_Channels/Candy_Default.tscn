@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Candy_DE/Scripts/UI_Elements/Chat_Channel.gd" id="1_1228j"]
+[ext_resource type="Script" path="res://Candy_DE/Scripts/Media_Players/Voice_Player.gd" id="2_vhveo"]
+
+[node name="ChatChannel" type="HBoxContainer" unique_id=1704674413 node_paths=PackedStringArray("lines_area", "scroll_bar", "voice_node")]
+visible = false
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_1228j")
+lines_area = NodePath("Lines")
+scroll_bar = NodePath("ScrollBar")
+voice_node = NodePath("VoicePlayer")
+
+[node name="Lines" type="Control" parent="." unique_id=1462379041]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 1
+
+[node name="ScrollBar" type="VScrollBar" parent="." unique_id=394067887]
+layout_mode = 2
+
+[node name="VoicePlayer" type="AudioStreamPlayer" parent="." unique_id=377534843]
+script = ExtResource("2_vhveo")

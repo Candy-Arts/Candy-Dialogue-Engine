@@ -1,16 +1,14 @@
 #!###########################################################################################
 #!																							#
-#!         THIS SCRIPT CONTAINS CODE THAT IS THE INTELLECTUAL PROPERTY OF CANDY ARTS        #
+#!       THIS SCRIPT MAY CONTAIN CODE THAT IS THE INTELLECTUAL PROPERTY OF CANDY ARTS       #
+#!                             Copyright © 2025-2026 Candy Arts                             #
 #!																							#
 #!    Such code may only be used in compliance with the appropriate Candy Arts licenses.    #
-#!                 Any unauthorized use constitutes copyright infringement.                 #
-#!																							#
-#!   This disclaimer must be featured at the top of any script featuring Candy Arts code,   #
-#!                            and may not be removed or modified.                           #
+#!                Any unauthorized use may constitute copyright infringement.               #
 #!																							#
 #!###########################################################################################
 
-extends Node
+extends Control
 
 ## REQUIRED: Parent for choice buttons.
 @export var button_list: Node
@@ -29,39 +27,46 @@ var category_title = ""
 var general_prompt = ""
 var category_prompt = ""
 
-var general_custom = ""
-var category_custom = ""
-
 var tags = ""
 
 
 
 #* READY:
 func _ready() -> void:
+	pass
+
+
+#* Setup:
+@warning_ignore("unused_parameter")
+func setup(custom_data: Array = []) -> void:
 	_set_category_title()
 	_set_category_prompt()
 
-#* Display the caregory's title:
+
+#* Redisplay texts in the current language, here and on every button:
+func refresh_language():
+	_set_category_title()
+	_set_category_prompt()
+
+	if button_list != null:
+		for button in button_list.get_children():
+			if button.has_method("refresh_language"):
+				button.refresh_language()
+
+
+#* Display the category title:
 func _set_category_title():
-	var language = candy_de.language
-	
 	if title_node != null:
-		if candy_de.choice_category_titles.has(category_title) and candy_de.choice_category_titles[category_title].has(language):
-			title_node.text = candy_de.choice_category_titles[category_title][language]
-
-		#% If translation missing from the localizations dictionary, use default value instead:
-		else:
-			title_node.text = category_title
+		#Ł Translate:
+		title_node.text = CandyWriting.get_shared().translate(caller, self, str(category_title), "choice_category_titles")
+		#Ł Hidden when empty, so it leaves no gap:
+		title_node.visible = title_node.text != ""
 
 
-#* Display a prompt for the category:
+#* Display the category prompt:
 func _set_category_prompt():
-	var language = candy_de.language
-	
 	if prompt_node != null:
-		if candy_de.choice_category_prompts.has(category_prompt) and candy_de.choice_category_prompts[category_prompt].has(language):
-			prompt_node.text = candy_de.choice_category_prompts[category_prompt][language]
-
-		#% If translation missing from the localizations dictionary, use default value instead:		
-		else:
-			prompt_node.text = category_prompt
+		#Ł Translate:
+		prompt_node.text = CandyWriting.get_shared().translate(caller, self, str(category_prompt), "choice_category_prompts")
+		#Ł Hidden when empty, so it leaves no gap:
+		prompt_node.visible = prompt_node.text != ""

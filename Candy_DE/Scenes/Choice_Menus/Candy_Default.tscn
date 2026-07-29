@@ -1,41 +1,57 @@
 [gd_scene format=3 uid="uid://dhspf2y2b7oxo"]
 
-[ext_resource type="Script" uid="uid://b6bpjfd2y6umu" path="res://Candy_DE/Scripts/UI_Elements/Choice_Menu.gd" id="1_tapb2"]
+[ext_resource type="Script" uid="uid://dsgpuxj6m2km7" path="res://Candy_DE/Scripts/UI_Elements/Choice_Menu.gd" id="1_tapb2"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8od5y"]
-content_margin_left = 0.0
-content_margin_top = 0.0
-content_margin_right = 0.0
-content_margin_bottom = 0.0
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
 bg_color = Color(0.1, 0.1, 0.1, 0.6)
-draw_center = false
 corner_radius_top_left = 3
 corner_radius_top_right = 3
 corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 corner_detail = 5
 
-[node name="Menu" type="PanelContainer" unique_id=285312166 node_paths=PackedStringArray("category_list", "timer_list", "shield")]
+[node name="Menu" type="PanelContainer" unique_id=285312166 node_paths=PackedStringArray("category_list", "timer_list", "shield", "title_node", "prompt_node")]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -192.0
-offset_top = -256.0
+offset_top = 0.0
 offset_right = 192.0
-offset_bottom = 256.0
+offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 2
+custom_maximum_size = Vector2(-1, 512)
+size_flags_vertical = 4
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_8od5y")
 script = ExtResource("1_tapb2")
-category_list = NodePath("Categories")
+category_list = NodePath("VBoxContainer/Categories")
 timer_list = NodePath("Timers")
-shield = NodePath("ColorRect")
+shield = NodePath("Shield")
+title_node = NodePath("VBoxContainer/Title")
+prompt_node = NodePath("VBoxContainer/Prompt")
 
-[node name="Categories" type="PanelContainer" parent="." unique_id=313935487]
-custom_minimum_size = Vector2(384, 512)
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=530353574]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="Title" type="RichTextLabel" parent="VBoxContainer" unique_id=1372916795]
+layout_mode = 2
+fit_content = true
+horizontal_alignment = 1
+
+[node name="Prompt" type="RichTextLabel" parent="VBoxContainer" unique_id=2060216118]
+layout_mode = 2
+fit_content = true
+
+[node name="Categories" type="PanelContainer" parent="VBoxContainer" unique_id=313935487]
+custom_minimum_size = Vector2(384, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -45,7 +61,7 @@ mouse_filter = 2
 layout_mode = 2
 mouse_filter = 2
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=636805534]
+[node name="Shield" type="ColorRect" parent="." unique_id=844103213]
 visible = false
 layout_mode = 2
 color = Color(0, 0, 0, 0.49019608)

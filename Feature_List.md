@@ -1,327 +1,380 @@
-![Candy Arts Logo](Logo.png)
+# Candy Dialogue Engine 1.2 — Feature List
 
-# Candy Dialogue Engine
-**[Candy Dialogue Engine](https://candy-arts.com/index.php/candy-dialogue-engine) by [Candy Arts](https://candy-arts.com) is an extensive and powerful Dialogue System for Godot 4. More than that, it's also a Visual Novel Engine, Media Synchronizer, Cutscene Orchestrator, Narrative Manager, and Mod Support Solution.**
+## 1. Architecture and extensibility
+- **A self-contained Godot 4 addon.** It needs no editor plugin, and every release file lives in the `Candy_DE` folder.
+- **Several engines at once.** Each `CandyEngine` node (main UI, NPC barks, a phone chat…) has its own settings, history, menus, language and media. Several can run dialogues side by side.
+- **Extend by adding a script.** Nothing needs registering: scripts are found by file name (any case), sub-folders are only for sorting, and each is checked against its base class.
+  - New commands (`Scripts/Commands`, `CandyCommand`). A script with a built-in command's name replaces it.
+  - New dialogue modes (`Dialogue_Modes`, `CandyDialogueMode`).
+  - Input-scene events (`Input_Events`) and choice-menu events (`Choice_Events`).
+  - Signal reactions for the Await command (`Await_Events`).
+  - Small custom commands through `Custom` (`Custom_Events`).
+  - Movement scripts for CS_Move (`Move_Events`).
+  - Variation tags decided by your own code (`Variation_Tags`).
+  - Data tables, localization tables and hook functions (`User_Data/...`).
+- **Script folders can be rescanned at runtime** (`_build_registries()`), which suits mods.
+- **Works in exported builds.** Scanning handles `.gdc` and `.gd.remap`, and media lookup handles `.import` and `.remap`.
+- **Startup checks report problems:**
+  - missing or misspelled required tables and hooks
+  - duplicate script names
+  - bad voice-path tags
+  - a media player owned twice, or owned while it is Public
+- **Errors don't stop the dialogue.** An unknown command is reported with its conversation, block and line, then skipped. So is any bad value; the rest of the line still runs.
+- **`debug_prints`** turns on logging in debug builds.
 
-## Feature List
+## 2. Dialogue files
+- **Format:** a GDScript dictionary literal, `Dialogue` → conversations → blocks → a `Text` array of lines.
+  - The loader tolerates `#` comments, trailing commas and `<null>`, and takes a bare file or one wrapped in `Meta`/`Dialogue`.
+- **Fits Candy Dialogue Creator:** every value is a string, `"null"` means "not set", and every key is always present.
+- **One line can hold several commands,** run in key order.
+- **Meta and Custom Data:**
+  - Every command and every entry inside it carries `Meta` (reference, notes, `Custom_1..n`).
+  - Custom Data reaches your code untouched, as nested arrays per level: `[[line],[variation]]`, `[[menu],[category],[choice]]`, and so on.
+  - It goes to every hook and to every UI element, player or bubble function a command calls.
+- **Room to grow:** entries always sit under their own key (`Players`, `Layers`, `Actors`, `Targets`, `Effects`…), so new keys can be added to a command later.
+- **Test dialogues from the inspector:** the Testing scene takes a dialogue, conversation, block and line (an index or a line marker), and has suspend, resume and interrupt buttons.
 
-### Dialogue Display:
-- Multiple modes:
-  - Dialogue box + Portrait
-  - Subtitles
-  - Chat box
-  - Speech bubbles
-  - NPC barks
-  - Voice only
-  - Create and add custom modes.
-- Mode switching:
-  - Automatic switch from speech bubbles to any other mode for off-screen characters.
-  - Switch at any time while dialogue is running.
-- Text Display Options:
-  - Auto-advance at the end of each Spoken Line, with configurable timer.
-  - Typewriter effect with configurable speed.
-  - Player input to skip/speed up/slow down typewriter, with configurable speed.
-  - Display variable values in text (see 'Variables & Functions' further below).
-  - Auto-format / clickable keywords (see 'Lexicon' further below).
-  - Change words based on actor gender or other attributes (see 'Word Substitution' further below).
-- Speaker Roles:
-  - Assign Roles as speaker to Spoken Lines.
-  - Dynamically assign actors to roles at runtime.
-- Dispositions:
-  - Display/skip Spoken Lines according to speaker disposition.
-  - Disposition is user-defined: relationship status, mood, attribute, etc.
-  - Advanced settings:
-    - Display/skip line based on multiple dispositions.
-    - Display/skip line if all/some/no dispositions match.
-- Speaker Portraits:
-  - Line-specific portrait assignment.
-  - Automatic use of a default portrait if none assigned to a Line.
-  - Supports animated portraits.
-  - Multiple portrait display modes:
-    - Display portraits for all characters.
-    - Display only for player-characters.
-    - Display only for NPCs.
-    - Disable portraits for all characters.
-  - Multiple supported nodes:
-    - TextureRect.
-    - NinePatchRect.
-    - TextureButton.
-    - Sprite2D/Sprite3D.
-    - AnimatedSprite2D/AnimatedSprite3D.
-    - VideoStreamPlayer.
-- Voice Options:
-  - Play pre-recorded voice files.
-  - Prevent advance until voice playback is finished.
-  - Synchronize typewriter speed to voice duration.
-  - Text-To-Speech (TTS) support:
-    - TTS query at runtime.
-    - Automatic BBCode stripping.
-    - Optional 'TTS' text for accurate pronunciation/tone/rhythm.
-    - Customizable hook function: personalize querying logic.
-    - Line-specific TTS settings.
-    - Compatible with any TTS tool/solution that can be implemented in your Godot project.
-    - *Users must implement TTS into their game. Candy DE only provides compatibility/support features.*
-- LLM/AI-Generated Speech:
-  - Automatically query a connected LLM at runtime to generate character speech at runtime.
-  - Customizable hook function to personalize the querying logic:
-    - Craft/edit prompts based on Line data and game variables before query.
-    - Review/correct/re-query LLM outputs before display.
-  - Compatible with any LLM that can be implemented in your Godot project, including local or cloud-hosted.
-  - *Users must design their game to connect to an LLM API. Candy DE only provides compatibility/support features.*
-- Actor Options:
-  - Modifiable display names.
-  - Custom colors for speaker name or spoken text for each dialogue mode.
-  - Custom actor settings for TTS, speech bubbles and portrait display.
+## 3. Spoken lines
+- **Speaker:** an actor key, or a `°role` that resolves to whichever actor holds the role.
+- **Variations:**
+  - Named `Language_tag=value_bareTag_#N`.
+  - Picking: the most specific variation that passes wins; `#N` alternatives are picked at random, weighted by `Weight`; empty variations are ignored; a line with nothing usable is skipped.
+  - Tags:
+    - `S=` / `P=` tags compare against the speaker's or current player's attributes (`speaker_tags`, `player_tags`).
+    - Script-decided tags (`Weather=Rain`) go through `current_value()` or `matches()`.
+    - Passed and disabled tag lists sit at engine, actor and line level; the most specific level wins.
+  - **`_TTS` variations** give the text TTS reads, separate from the displayed text (SSML is possible).
+- **Disposition conditions** on lines, checked against the actor's dispositions:
+  - any-of, `+` all, `-` subset, `=` exact, `!` none
+  - `(n)` counts, `+(n)` / `-(n)` thresholds, and the negated forms of each
+- **Text features:**
+  - BBCode.
+  - Text variables `¤Alice¤`, `¤Alice.Age¤`, `¤°role¤`, `¤¢expression¤`. They nest up to 16 passes.
+  - Word substitution `•word¦actor[¦rule]•`, driven by the substitution table:
+    - Tables are scoped by variation name (`*`, `Prefix*`, exact). The most specific table wins, so each language can follow its own grammar.
+    - Keyword groups (`he, she`): write whichever form reads best.
+    - Case rules: auto (follows how the keyword is written), lower, upper, cap, custom.
+    - Property rules on actor properties:
+      - nested properties (`Stats.Age`, `Titles.0`)
+      - several properties at once, with `_` to skip one (`Class, Gender` → Sorcerer / Sorceress)
+      - comparisons and ranges (`>=¦18`, `<¦18, >¦11`)
+      - type hints and type-only checks (`18¦int`, `array¦type`)
+      - rules checked in order, with a `_` rule as the fallback
+    - Several rule sets per keyword: the line picks one by number or by property name (`•id¦Alice¦Origins•`).
+    - The keyword, actor and rule can each be a reference (`€var`, `°role`, `¢expression`).
+    - Unmatched substitutions stay as written, with a warning that names the line.
+  - Any symbol written twice shows itself literally (`¤¤`, `••`).
+  - A text that starts with `¢` is an expression as a whole, its result displayed (`¢¢` for a literal `¢`).
+  - Right-to-left lines (`Direction: RtL`).
+- **Lexicon:** keywords scoped per variation. Each keyword can have:
+  - display text
+  - BBCode style
+  - a tooltip
+  - clickable data (`_on_lexicon_clicked`)
+  - a hover hook (`_on_lexicon_hovered`)
+  - a `Disabled` text, written instead of the keyword when the lexicon is off (and in the history)
 
-### Visual Novels:
-- Practical architecture:
-  - Create 'VN Scenes' with nodes for displaying character busts.
-  - Customize bust node amount, position, size, node type, etc.
-  - Load/swap VN Scenes at runtime for maximum flexibility.
-  - Use dialogue commands to control the scene:
-    - Assign character busts to bust nodes.
-    - Change and/or animate bust images.
-    - Move actors to other bust nodes
-      - Optional: Preserve ongoing animation state when moving.
-    - Remove actors from the scene.
-    - Mirror (flip) busts.
-    - Play visual effects on busts with AnimationPlayer nodes.
-  - Multiple supported bust nodes:
-    - TextureRect.
-    - NinePatchRect.
-    - TextureButton.
-    - Sprite2D/Sprite3D.
-    - AnimatedSprite2D/AnimatedSprite3D.
-    - VideoStreamPlayer.
-- Join/Move/Leave Animations:
-  - Automatically play custom animations when characters enter the scene, move from/to another bust node or leave the scene.
-  - Actor-specific animation settings available.
-- Speaker Highlights:
-  - Automatically trigger special effects to highlight the speaker's bust.
-  - Various ready-made effects: display label or icon, change bust scale, etc.
-  - Easily code custom effects.
-  - Automatic effect cancellation/reversal when character finishes speaking.
+  Text between the lexicon escape symbols (`¬Alice¬`) is never formatted, and the symbols aren't shown. Keywords are found as whole words, by word rules set per variation (`lexicon_word_rules`: word characters as Unicode categories and characters, joiners such as `-`); by default letters of every script, digits and `_` count.
 
-### Backgrounds
-- Practical architecture:
-  - Create 'Background Scenes' with nodes for displaying background layers.
-  - Customize layer node amount, position, size, node type, etc.
-  - Load/swap Background Scenes at runtime for maximum flexibility.
-  - Use dialogue commands to control background display:
-    - Assign background images to layer nodes.
-    - Change and/or animate layer images.
-    - Remove layers.
-    - Mirror (flip) layers.
-    - Play visual effects on layers with AnimationPlayer nodes.
-  - Multiple supported layer nodes:
-    - TextureRect.
-    - NinePatchRect.
-    - TextureButton.
-    - Sprite2D/Sprite3D.
-    - AnimatedSprite2D/AnimatedSprite3D.
-    - VideoStreamPlayer.
+  It's switched on per mode, and in Voice mode it replaces keywords before TTS reads the text.
+- **LLM lines:** the `llm_query` hook can generate or rewrite a line. It's given the actor, their dispositions, the text and the position. Toggle it per engine, UI element, actor or line.
+- **Settings chain for every line setting:**
+  - Order: `Candy_Properties` → engine → UI element (`enable_` switch) → actor → line. The most specific level wins.
+  - Values are checked and converted; bad values are reported and passed over.
+  - Settings are named per mode (`box_…`, `chat_…`, `bubbles_…`, `barks_…`, `voice_…`, `subtitles_…`).
 
-### Dialogue navigation
-- Multi-level, user-defined dialogue structure: Dialogue > Conversations > Blocks > Lines.
-- Two Line types: Spoken Lines for displaying speech, Command Lines for engine instructions.
-- Transition commands allow free and reliable dialogue navigation:
-  - 'Jump' command to permanently jump to Conversations/Blocks/Lines.
-  - 'Bridge' command to momentarily bridge.
-  - 'Return' command to return early from a bridge at any time.
-  - 'End' command to end dialogue at any time.
-  - Special 'Line Mark' command with unique reference name or code, to avoid relying on fragile line indexes.
+## 4. Writing, advancing and timing
+- **Typewriter** in characters per second (0 = instant). It is frame-rate independent.
+- **Hold-to-speed and hold-to-slow keys,** each with its own speed (0 = reveal the line). A hold-to-skip key reveals the whole line.
+- **Voice sync** fits the writing speed to the voice clip's length.
+- **Auto-advance** after N seconds, counted after the voice ends. **Await voice playback** blocks advancing until the voice finishes.
+- **End-of-line and advance indicators** (BBCode, e.g. a pulsing ▼).
+- **Speaker name inside the text,** with prefix, suffix and BBCode per mode.
+- **Automatic BBCode wraps:** you write only the opening tags and the closing tags are added for you. Extra BBCode tags can be registered.
+- **Self-clear:** the box and subtitles can clear when the line ends, and the box portrait can clear on its own.
+- **`Player_Advance`** waits for a press. **`Wait`** pauses for a time; it can be skipped and stops counting while the dialogue is suspended.
+- **Writing hooks on each UI element:** `x_write_begun`, `x_write_progress` (characters added, written, total), `x_write_finished`, `x_speech_advance`.
 
-### Branching / Conditions
-- Special command Lines emulate If/Elif/Else + For and While loops.
-- Write conditions like in GDScript: comparative operators, OR/ELSE/XOR, parentheses.
-- Trigger any dialogue command if condition is fulfilled, or transition anywhere in the dialogue.
-- Includes the ability to integrate conditions directly into spoken lines.
+## 5. Dialogue modes
+- **Box:** dialogue box with name label and portrait.
+- **Subtitles:** the name merged into the text.
+- **Chat:** scrolling message history (see §8).
+- **Bubbles:** 2D or 3D speech bubbles on actor nodes. Speakers without a bubble fall back to `bubbles_exempt_mode`.
+- **VN_Bubbles:** bubbles on VN busts; Bubbles lines switch to it automatically in VN mode.
+- **Barks:** short lines in bubbles over NPCs.
+- **Voice:** audio only, with nothing displayed.
+- **Custom modes:** a mode is just a script, with these functions:
+  - `is_available()`
+  - `prepare()` (can hand the line to another mode)
+  - `display_node()`
+  - `start_line()`, `clear_line()`
+  - `settings_prefix()`
 
-### Choices
-- Display custom choice lists, from basic to elaborate.
-- Sort choices into navigatable categories.
-- Setup timers to trigger events or auto-select choices.
-- Reconfigure choices at runtime based on game events.
-- Choice can modify choices and timers when selected.
-- Fully customizable choice UI, from choice menu to individual choice buttons.
-- Scaling complexity: basic choice lists are easy, elaborate menus are more work.
+  A custom mode takes its settings from its UI element and can still be overridden per actor and per line.
+- **Switching mode:** per line, per actor, or by the `Dialogue_Mode` command. The previous mode's display is cleared automatically.
 
-### Player Input:
-- Display standard input prompt UIs: "enter name", "type code", etc.
-- Input UIs communicate with dialogue via signals to trigger effects:
-  - Run Lines, continue dialogue and close Input UI, continue without closing...
-  - Custom effects can be added via match statement.
-- Anything can be an Input UI that communicates with the dialogue: keypads, machines, vehicle controls, even mini-games or the main game itself.
-- Dialogue can 'disconnect' from Input UI, continue while UI remains open, then reconnect later.
-- *Input UIs must be designed by users. Custom code must be written. Candy DE only provides limited, basic templates.*
-- Change Mouse Mode at any time during dialogue.
-- Pause dialogue until player presses key or provides other input.
+## 6. Voice and text-to-speech
+- **Voice file lookup:**
+  - "Folder" logic: `voice_path` built from `{actor}{dialogue}{conversation}{block}{line}` tags.
+  - Each language variation gets its own sub-folder.
+  - Absolute paths and `¢` expressions are accepted.
+  - A voice language separate from the text's (`voice_language`), per project or engine.
+  - Falls back to another language's file (`voice_fallback_language`). A missing file just plays the line without voice.
+- **Each UI element or bubble has its own voice player** (non-positional, 2D or 3D); there's also a standalone Voice player.
+- **TTS modes:**
+  - Off.
+  - Simple: reads the displayed text.
+  - Advanced: reads the `_TTS` variation, with a fallback.
+  - Your own modes.
 
-### Media Controls
-- Play and control image, video or audio media from dialogues.
-- Pause dialogue until a specific timestamp, frame, or number of replays.
-- Pause media until a specific number of dialogue lines have run.
-  - Can count all lines or only Spoken Lines (exclude commands).
-- Hide or show the dialogue UI below/above the playing media at any time.
-- Modify volume:
-  - Absolute modification (change volume to V)
-  - Relative modification (increase/decrease/divide/multiply by V)
-  - Optional, configurable progressive modification (modify volume over S seconds)
-- Enables perfect dialogue vs. media synchronization.
+  The `tts()` hook returns an AudioStream or a file path. If it returns nothing, the recorded file plays.
+- **Runtime loading** of `user://` ogg, mp3 and wav files.
 
-### Cutscene Scripting
-- Modify any nodes through dialogue commands in various ways:
-  - Move/rotate nodes
-  - Make nodes look at other nodes.
-  - Change active camera.
-  - Modify lights.
-  - Animate nodes (e.g. characters).
-  - Set characters in motion *(requires writing custom code - movement logic is project-specific)*
-  - Instantiate scenes.
-  - Change/toggle properties on nodes *(requires writing custom code - requirements are project-specific)*
-  - Display/animate sprites.
-  - Play visual effects on sprites with AnimationPlayer.
-  - Pause or stop sprite animations, in sync with dialogue.
-- Adapts to any project's node tree.
-- Customizable dialogue commands to fulfill all your requirements.
-- Works in both 2D and 3D.
-- Ideal for scripting live cutscenes in sync with dialogue.
+## 7. Choices
+- **Menu structure:** Menu → Categories → Choices. Each level can use its own scene, and several looks ship (Blue, Green, Pink).
+- **Titles, prompts, labels and tooltips** are all localized, and update live on a language change.
+- **Per-choice state:**
+  - `Enabled` (no button at all)
+  - `Active` (shown but can't be picked)
+  - `Invisible`
 
-### Lexicon (Glossary)
-- Display keywords in spoken text with unique BBCode styling.
-- Hover keywords to display tooltips.
-- Clickable keywords with programmable custom behavior.
-- Make keywords display different text entirely: shorten typing or differentiate between synonyms.
-- Optional language/variant-specific Lexicon keywords and settings.
+  These accept `¢` expressions.
+- **Categories:** choices can `Navigate` between categories. Each category sets its own mouse mode.
+- **Finish types:** Continue (back to the still-open menu), Bridge, Jump, Return (`Levels`), End, Close.
+- **Setup transitions** run before the menu, a category, a choice or a timer is built.
+- **Timers:**
+  - countdown, loops, auto-start or on hold
+  - a Timeout transition
+  - a choice picked automatically on timeout (`Timer_Choices`)
+- **Changing open menus:**
+  - `Choice_Status`: enable, disable, (de)activate, show, hide, relabel or retooltip, targeted by Last/Tags/All at menu, category and choice level.
+  - `Timer_Status`: set or change time and loops relatively, plus Start, Pause, Stop and Restart/Update behaviour.
+- **Nested menus:**
+  - Menus can open inside menus; older ones can be hidden (`hide_choice_lists`, `never_hide`).
+  - Opening, nesting, reopening and closing can each play an animation the dialogue waits for: `x_initialization_finished`, `deactivate()`, `reactivate()`, `x_menu_closing`.
+- **Safe input:** a shield blocks clicks and focus while a pick is being handled, so the advance key can't pick twice.
+- **`x_choice_selected` hook,** and new menu events can be added as scripts.
 
-### Word substitution:
-- Highly intuitive method: •he¦npc_1• → "she"
-- Syntax symbols can be customized for convenience.
-- Supports any values: 'Male', 'Female', 'M', 'F', '1', '2', '3', etc.
-- Works with any character property, not just gender.
-- Easy setup: substitution rules are just dictionaries. Templates provided.
-- Advanced abilities:
-  - Substitute based on multiple properties: e.g. class + gender → "Sorcerer"/"Sorceress"
-  - Substitute based on numeric comparisons: e.g. age > 18 → "adult"
-- Optional language/variant-specific substitution rules.
+## 8. Chat
+- **Structure:** a Chat_Box lays out one or more Chat_Channels, and is visible while any of its channels is.
+- **Virtualised history:** every line is kept, but only the visible ones get nodes, which are reused as the chat scrolls.
+- **Scrolling:** mouse wheel and scroll bar. The chat follows new lines, stops following when you scroll up, and resumes near the bottom.
+- **Layout per line:**
+  - Left, Right or Alternate alignment.
+  - Speaker name and portrait on each side, shown on every line or only on a speaker/portrait change.
+  - Empty name and portrait space can be kept so lines stay aligned.
+  - Each line can use its own Chat_Line scene.
+- **Between dialogues:**
+  - The chat can clear on start, clear on end and hide on end; kept dialogues are split by a separator scene.
+  - Chat can persist when the dialogue mode changes.
+- **Portraits** animate only while their line is being written. A `-2` portrait keeps playing.
 
-### Dialogue History
-- Automatic logging of dialogue history:
-  - Per-instance logging: logs the history of dialogue engine instances individually.
-  - General logging: second log, combining history from all engine instances.
-- Display previous dialogue history to the player.
-- Use history for debugging purposes.
-- Customize which data is logged and the logging format.
-- Customize the History UI, including how dialogue is formatted.
+## 9. Portraits
+- **Node types:** TextureRect, NinePatchRect, TextureButton (state textures), Sprite2D/3D (spritesheets), AnimatedSprite2D/3D (SpriteFrames files) and VideoStreamPlayer.
+- **Portrait modes:** Off, All, Player, NPC, or VN (only speakers without a bust).
+- **`Portrait_Play`:** N loops, still, loop until advance, loop until replaced, or loop until the voice ends. **`Portrait_Stop`** picks the frame it stops on, or removes the portrait.
+- **Box portrait extras:** a portrait area, background, foreground and effect player.
 
-### Languages & Variants
-- Write translations and alternative speech variants directly into Spoken Lines.
-- Skip Lines with missing languages:
-  - Allows splitting longer text over multiple Lines for specific languages.
-  - No crashes if translation was forgotten for a Line.
-- Parallel dialogues can use different languages. 
-- Modular variant resolution based on speaker or player gender.
-  - Cleanly handle non-existent or non-applicable variants.
-  - Supports any values: 'Male', 'Female', 'M', 'F', 'X', 'Y', 'Z', etc.
-  - Code can be expanded to add any arbitrary criteria: class, faction, moral alignment, etc.
-- Randomized variants with weights (selection probabilities).
-- Automatic voice file resolution for languages & variants:
-  - Place files in a folder matching the language/variant name.
-  - Name files the same as the defaults.
-- Translation features available for actor names, UI texts, Lexicon, Word Substitution feature.
+## 10. Media, effects and the shared playback system
+- **One set of `Media_` commands** for audio (non-positional, 2D, 3D), video and image players: Play, Wait, Pause, Resume, Stop, Volume, Skip. One line can drive many players, each with its own settings.
+- **Effect players** (AnimationPlayer): `Effect_` commands. Animation libraries are loaded from a folder, a path or a `¢` resource.
+- **Shared playback controls** for media, effects, backgrounds, busts and cutscenes:
+  - `Loops`: N times, hold on the first frame, or forever.
+  - `Duration`: stop part-way through a loop.
+  - `Stop_Frame`: current, last, frame N, or Clear.
+  - Scheduled stops (`Loops` / `Duration` on a `_Stop`).
+  - `Wait_Loops` + `Wait_Time` block the dialogue until playback reaches them.
+  - Time formats: seconds, `HH:MM:SS.xx`, `f=` frames, relative `+`/`-`, and `f+N` / `f-N`.
+  - Pause for N lines (only spoken lines, or all lines).
+  - Pause loops: a segment keeps playing while paused, with 4 resume styles and a volume dip and recovery.
+- **Volume:** absolute or relative dB, fades, and fades the dialogue waits for (`!`).
+- **Z-order:** the `Box` key and the `UI_Z` command move the whole dialogue overlay above or below a video or image, or move any node.
+- **Frame-folder animations:**
+  - The first frame loads at once; the rest stream on background threads.
+  - Each animation has a memory budget, with a look-ahead option. Late frames are skipped so the timing stays exact.
+  - Frames are shared between users, and TextureButton state folders play in step with the main animation.
+- **Spritesheets:** the grid comes from the file name (`Fire_4x3-2.png`). SpriteFrames play at their saved speed.
+- **Folder `config.txt`:** extension, fps, cache and stream, plus per-file overrides.
+- **Default extensions and frame rates:** set per kind of media at each level: properties → engine → element or player → folder → the line's `FPS`.
+- **File lookup:**
+  - `Default.<ext>` is used when a file is missing.
+  - An `Animated/` sub-folder is checked.
+  - `res://` and `user://` paths and `¢` expressions are accepted.
+  - `user://` images, audio and video load at runtime.
+- **Who controls a player:**
+  - **Private** players obey only the engine that owns them.
+  - **Public** players obey any engine. The engine that starts playback **holds** the player, and Exclusive / Semi-Exclusive / Free decide what other engines may do meanwhile.
+  - `Take_Hold` on a line overrides this; command lists are configurable per player.
+- **Playback hooks:**
+  - `x_playback_starting` and `x_playback_started`.
+  - `x_playback_finished`, which tells a natural end from a stop.
+- **Custom players:** any node with the right `x_media()` functions can be listed as a player and read keys of its own.
 
-### Full UI customization
-- Dialogue UI is split in standalone elements: dialogue box, backgrounds, videos, etc.
-- Very easy design process:
-  1. Create UI scenes any way you like (design, nodes, etc.)
-  2. Add 1-2 required nodes anywhere in the hierarchy.
-  3. Attach a script to the root (working base script is provided).
-  4. Store the required nodes in variables in the script.
-- Design multiple UI variations and swap at runtime.
-- Naturally supports custom node hierarchy for UI scenes.
-- Required nodes are just nodes the dialogue engine reasonably needs - e.g. RichTextLabel to display spoken text.
-- No scripting required:
-  - Provided base scripts are fully functional for standard use.
-  - Code only needs to be written for custom special/advanced purposes.
+## 11. Backgrounds
+- **Layered background scene:**
+  - Layer node types: TextureRect, NinePatchRect, TextureButton, Sprite2D/3D, AnimatedSprite2D/3D, VideoStreamPlayer.
+  - `BG_` commands: Play, Wait, Pause, Resume, Stop, Skip, Mirror, Remove.
+  - Several effects per layer (`BG_Effect_*`), on pooled AnimationPlayers.
+- **`BG_Scene`** swaps the whole background scene.
+- **Persistence:** backgrounds can stay up after the dialogue ends. `clear_bg_layers_ood()` clears them outside a dialogue.
+- **Shared scene:** the same Private/Public, holding and suspension rules as media players.
 
-### Variables & Functions
-- Read/modify any variable, call any function, or emit/await any signal in your entire project from the root, including Godot natives.
-- Display variable values in spoken text.
-- Save variables to external files for unlimited variable declaration at runtime.
-- Substitute any piece of dialogue data with variable references, to be resolved at runtime.
-- Substitute dialogue data with res:// or user:// file references.
-- Basic save/load system:
-  - Export multiple variables to external files (save).
-  - Import multiple variables from external files (load).
-    - Restore variables directly from the file.
-    - Optional: import variables to a dictionary for processing of values before actually restoring.
-- Export dialogues from your game as dialogue files that the dialogue engine can load and run.
-  - Mostly useful for games that create dialogues at runtime:
-    - Backup dialogue created in-game.
-    - Let users clone dialogues across multiple installations of the game.
-    - Share dialogues with other players.
-    - Debugging purposes.
+## 12. Visual-novel busts
+- **`VN_` commands:** Play, Wait, Pause, Resume, Stop, Skip, Mirror, Remove.
+  - **Move** and **Swap** keep what the bust is playing, its effects, pause loops and scheduled stops.
+  - Bust effects: `VN_Effect_*`.
+- **Join/Move/Leave effects:**
+  - Set per line → actor → scene → engine.
+  - Played as an animation, a tween or your own method.
+  - `JML_Order` groups actors that enter, move or leave together.
+- **Speaker highlight:** name tag, outline, scale, animation or billboard.
+- **The bust scene tracks which actor is on which bust,** for every engine that uses it.
+- **`VN_Scene`** swaps the bust scene.
+- **End of dialogue:** busts can stay up afterwards; Leave effects can play when they're cleared. `clear_busts_ood()` clears them outside a dialogue.
 
-### Parallel Dialogues
-- Create multiple 'dialogue engine instances'.
-- Each instance can use its own UI.
-- Each instance can run its own dialogue, at the same time, without conflict.
-- Highly useful for a variety of situations:
-  - Using different UI or settings for different contexts - exploration, combat, cutscenes, etc.
-  - Dialogues running in parallel - groups having separate conversations, multiplayer, TV/Radio channels, background NPC comments ('barks'), etc.
+## 13. Cutscene (game-world) commands
+- **Targets** are given through `cs_paths` containers (with `°role` names), node paths or `¢` expressions.
+- **Animations:** `CS_Anim_*` on AnimationPlayers, and AnimationTree state machines travelled to a state.
+- **Sprites:** `CS_Sprite_*` on Sprite2D/3D sheets and AnimatedSprites.
+- **Other commands:**
+  - `CS_Cam`: make a camera current.
+  - `CS_Light`: color and energy, with operators, at once or progressively (optionally waited for).
+  - `CS_Position`: move nodes onto markers, at once or progressively, within a time or at a speed (optionally waited for); the turn follows the move or has its own time or speed.
+  - `CS_Look`: face markers, with axis choice and an ignore-height option, at once or progressively, within a time or at a speed (optionally waited for).
+  - `CS_Move`: your movement scripts; all targets move at once.
+  - `CS_Scene`: add scene instances.
+  - `CS_Toggle`: calls the target's `candy_toggle()`.
+  - `CS_Visible`: show, hide or toggle.
+- **Cutscene playback belongs to the game world:** it isn't suspended or stopped when the dialogue ends.
 
-### Modding
-- Dialogues can be used as a modding layer:
-  - Design your game to load and run player-created dialogue files in different engine instances.
-  - Player-made dialogues can call functions, read and modify variables, use conditions, etc. to essentialy mod any part of your game.
-- Can be implemented with little effort, with only surface additions (no deep code changes).
-- Works with any game:
-  - Works with games not specifically designed for modding.
-  - Works even in games that don't use Candy Dialogue Engine for their normal dialogues.
+## 14. Flow control and logic
+- **Transitions:**
+  - Jump.
+  - Bridge (a call that returns).
+  - Return with levels (N, -N to end the dialogue, 0 for all the way back).
+  - End.
+  - Line markers (`LM`) as named targets.
+- **Conditions and loops:** If, Elif, Else, For (arrays, dictionaries or ranges, with a loop variable) and While, which has an infinite-loop guard. A broken condition is an error, never a quiet false.
+- **Variables:**
+  - `Set` and `Flag`, with about 100 operators: arithmetic, string, array, dictionary, type, math, random, node and Candy-literal.
+  - Writes reach nested members (`position.x`), object properties and file variables.
+- **Calls and signals:**
+  - `Call` any method (awaited or not), with arguments and its return value stored.
+  - `Await` a signal and store its arguments, with an Await_Events script reacting to each emission.
+  - `Emit` a signal.
+- **Actors:** `Name` (rename an actor, still localized), `Role` (assign or clear), `Disposition`.
+- **Other:** `Mouse` (mouse mode), `Comment`, and `Custom` (your own small commands).
+- **Engine commands:** `Engine_Language`, `Dialogue_Mode`, `Engine_Writing`.
+  - They change engine settings mid-dialogue.
+  - `"Reset"` restores the inspector value.
+  - Changes are undone automatically at dialogue end, configurable per line.
 
-### Dialogue Live Editing
-- Dialogues can be modified while they run.
-- Made possible by the engine reading only one line at a time. Nothing is cached.
-- Can be leveraged to implement procedural dialogue generation.
+## 15. CandyRef expression language (`¢`)
+- **Syntax:** GDScript-like.
+  - Literals in every base; strings with escapes, StringName and NodePath literals; arrays and dictionaries.
+  - Every operator, ternary, `in` / `not in`, `is` / `as`.
+- **Access:**
+  - Chained `.`, `[ ]` and calls; dot access works on dictionaries too.
+  - Built-in methods, GDScript global functions and engine constants.
+  - Engine classes and `class_name` scripts, including static members and `.new()`.
+  - Node paths `$UI/Box`, `%Unique`, quoted paths.
+- **Shortcut symbols:**
+  - `€` (variables), `°role` lookups (`¢°npc.Age`).
+  - Your own symbols in `CandyRef_Shortcuts.gd`.
+  - A `constants` dictionary of values and Callables visible to every expression.
+- **Write targets:** for Set, Variable keys and Input results; indirect targets are supported.
+- **`file_var(path)`** reads and writes values in a file, saving automatically on write.
+- **Performance:** parsed expressions are cached.
+- **Errors:** they point at the exact character, failures are told apart from a real null, and circular references are guarded.
 
-### Programming
-- Dialogues are Turing-complete:
-  - Can create variables and store data.
-  - Can use conditions and loops.
-  - Can call functions, emit/await signals.
-- Dialogues can therefore be used as logic scripts (functions), similar to code:
-- Less efficient than GDScript, but with several important advantages:
-  - Runtime programming: modify the logic while the game and even the dialogues run.
-  - Meta-programming: program dialogues that program other dialogues or modify themselves.
-  - Paired with the Candy Dialogue Creator, dialogues are also a visual/node-based programming language.
-- These are capabilities that emerge naturally from the core architecture: not scope-creep, bloat or patched-in features.
-- Invaluable for modders, or the rare projects that can leverage these abilities.
+## 16. Data, save and localization
+- **Data tables:**
+  - Actors: names, gender, dispositions, tags, and per-actor overrides of every line setting and VN effect.
+  - Flags, Variables, Roles, Player refs and the current player.
+  - Lexicon, Substitution table, Hook arguments.
+  - New tables are just new scripts, readable at once as `candy_de.<name>`.
+- **Localization:**
+  - Language-named variations.
+  - Localized display names, choice texts and input texts (instructions, placeholders, defaults, blacklists and whitelists, error messages).
+  - Per-engine `engine_language`, and `refresh_language()` for live switching.
+- **Export and Import commands:** json, txt, csv, cfg/ini, bin, base64, tres/res, and dialogue files.
+  - If the file exists: Overwrite, Skip, Duplicate or Timestamp.
+  - Nodes and Resources are kept as references.
+- **History:**
+  - Kept per engine and globally across engines.
+  - Records speech, portraits and dispositions, plus jump, bridge, return and end markers.
+  - Can be switched off per line, actor, element or engine.
+  - History menu UI with `open_instance_history()` and `open_general_history()`.
 
-### Full Code Access
-- The code is fully accessible, like all scripts or scenes in your project.
-- Intermediate users: customize the code easily with match statements and hook data in strategic places.
-- Advanced users: modify any part of the code.
-- Reasonably simple, straight-forward code architecture makes it easy to understand and follow the code logic.
+## 17. Input scenes
+- **Any scene can be an Input scene.** It reports back through the `finish`, `close`, `run_lines` and `suspend` events, and you can add your own.
+- **Sanitized input:** the template stores what the player types sanitized (`CandySanitizer`): Candy DE symbols, BBCode, lexicon keywords and a leading `¢` are neutralized, each step an option. Any code can sanitize a value with the same functions.
+- **The `Input_UI` template:**
+  - Character and word limits.
+  - Allow or forbid case, numbers, decimals, punctuation, special characters and spaces.
+  - Per-language blacklists and whitelists with wildcards.
+  - Localized error messages.
+  - Enter submits or adds a line break.
+  - The result is stored in any variable.
 
-### Candy Dialogue Creator
-- Standalone dialogue editing GUI:
-  - Reliable performance.
-  - Separate writers and translators from code.
-  - Not constrained within the Godot Editor.
-  - Convenient for multiple-monitor setups.
-- "Click to add lines, fill-in data, don’t type syntax" approach.
-- Read project files to create selectable lists of data.
-- Media file preview on hover.
-- Two-click testing: "Test" → Alt+Tab to Godot → "Run"
-- Convenient translation features.
-- Click to insert BBCode.
-- Custom inserts.
-- Custom presets: add lines with pre-set data in one click.
-- Drag-and-drop dialogue re-ordering.
-- User & project profiles.
-- Various dialogue export/import options: overwrite, merge, update, ignore specific Conversations/Blocks, etc.
-- Made in Godot.
-- Can be integrated into Godot projects to act as in-game dialogue editor (Godot 4.5+).
-- Compiled executables provided for Linux, Windows, MacOS.
-- Completely free, source code/raw project files available, MIT License.
+## 18. Hooks (all take `candy_args`, `user_args`, `custom_data`)
+- **Dialogue:** `x_dialogue_start`, `x_dialogue_end`, `x_dialogue_suspended`, `x_dialogue_resumed`, `change_game_state`.
+- **Lines and commands:** `x_new_line`, `x_command_start`, `x_new_speech_start`, `x_new_speech_display`, `x_speech_advance`.
+- **Flow:** `x_jump`, `x_bridge`, `x_return`, `x_end`, `x_choice_selected`, `x_flag_changed`.
+- **Services:** `tts`, `llm_query`, `_on_lexicon_clicked`, `_on_lexicon_hovered`.
+- **Per node:** writing hooks, playback hooks, and menu hooks (`x_initialization_finished`, `x_menu_closing`).
+- **How hooks run:**
+  - The `hook_arguments` table supplies your own arguments, literal or evaluated live through `¢`.
+  - When several files implement the same hook, they all run.
+  - Hooks are awaited, except where nothing can wait for them.
+
+## 19. Dialogue lifecycle
+- **Engine API:**
+  - `load_scripted_dialogue()`, `start_dialogue(conv, block, line|LM)`.
+  - `suspend_dialogue()` / `resume_dialogue()`.
+  - `interrupt_dialogue()` (can be awaited).
+  - `end_dialogue()`, `raise_killswitch()`.
+- **Suspension can freeze:**
+  - lines and the typewriter
+  - choice timers and menus, and Input scenes
+  - voice and portraits
+  - media players (each media kind separately, with immune players)
+  - background and bust animations and effects
+
+  Resuming lifts only what the suspension paused.
+- **The killswitch** stops a dialogue cleanly, even mid-Await, mid-Input or mid-menu.
+- **Signals:** `dialogue_fully_ended`, `dialogue_resumed`, `killswitch_raised`, `killswitch_off`, `choice_list_event`, `input_received`.
+- **Readable state:** running, starting, ending and suspended flags, the conversation/block/line position, and the nesting depth.
+- **Mouse modes** for dialogue start, dialogue end and choices.
+- **Input actions are configurable:** advance, speed, slow, skip, and player-advance.
+
+## 20. Scenes shipped
+- **UI element templates** (`Default.tscn` to edit, `Candy_Default.tscn` as a reference):
+  - dialogue box, subtitles
+  - chat box, channel, line and separator
+  - choice menu, category and button
+  - history, input
+  - background and VN scenes
+  - 2D/3D speech bubbles, 2D/3D barks
+  - image player
+- **Also shipped:** the `Candy_UI.tscn` dialogue UI and a testing scene.
+
+## 21. Installing and releases (Candy Wizard, a separate plugin)
+- **"Candy Dialogue" dock:** shows what's installed, and opens an install wizard.
+  - Release source: the latest GitHub release or a zip.
+  - Optional project backup, streamed and zipped outside the project.
+  - The release's setup questions, with live previews.
+  - Summary, then install.
+- **Release checks:** the manifest is validated; paths must stay inside `Candy_DE`; Godot and Wizard minimum versions; SHA-256 check of every file. A failed install rolls back.
+- **What it installs:** the files, the `candy_de` and `candy_ui` autoloads and the four input actions (actions you already have are left alone). It records everything in `Install_Record.json`.
+- **Update wizard:**
+  - It replaces engine files, and lists the ones you edited first.
+  - It never overwrites templates (`User_Data`, `Default.tscn` scenes, animation libraries); the new version is saved beside them.
+  - It backs up and reports every change, and applies cumulative update steps:
+    - add, set or rename a variable
+    - replace text
+    - move a file
+    - rename an input action
+    - manual steps
+- **Release builder** (not shipped): runs headless, signs the release, sorts files into categories, checks that shipped scenes only use shipped files, and checks the update steps. BBCode pre- and post-install notes come with a live preview scene.
 
