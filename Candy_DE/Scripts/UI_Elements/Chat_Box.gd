@@ -1,54 +1,47 @@
 #!###########################################################################################
 #!																							#
-#!         THIS SCRIPT CONTAINS CODE THAT IS THE INTELLECTUAL PROPERTY OF CANDY ARTS        #
+#!       THIS SCRIPT MAY CONTAIN CODE THAT IS THE INTELLECTUAL PROPERTY OF CANDY ARTS       #
+#!                             Copyright © 2025-2026 Candy Arts                             #
 #!																							#
 #!    Such code may only be used in compliance with the appropriate Candy Arts licenses.    #
-#!                 Any unauthorized use constitutes copyright infringement.                 #
-#!																							#
-#!   This disclaimer must be featured at the top of any script featuring Candy Arts code,   #
-#!                            and may not be removed or modified.                           #
+#!                Any unauthorized use may constitute copyright infringement.               #
 #!																							#
 #!###########################################################################################
 
 
-extends PanelContainer
+extends Control
 
 
-## Required
-@export var dialogue_node: Node
-
-## Default colors to use for spoken text and speaker names.
-@export_group("Default Colors")
-@export var enable_text_color: bool = true
-@export var text_color = Color(1, 1, 1)
-@export var enable_speaker_color: bool = true
-@export var speaker_color = Color(1, 1, 1)
-
-@export var default_z = 100
-
-var caller: Node
+## REQUIRED: The Chat_Channels this box lays out.[br][br]
+## The box is displayed while at least one of them is visible. A channel left out of this list
+## doesn't show or hide the box.
+@export var channels: Array[Control] = []
 
 
 func _ready():
-	self.z_index = default_z
-
-	#@ Connect signal for clickable Lexicon words:
-	#% Only used if the Lexicon is used in dialogues.
-	if dialogue_node is RichTextLabel:
-		var callable = func(meta):
-			var json_str = Marshalls.base64_to_variant(str(meta))
-			var data = JSON.parse_string(json_str)
-			if data is Dictionary:
-				candy_de._on_lexicon_clicked(data, caller, self)
-		if not dialogue_node.is_connected("meta_clicked", callable):
-			dialogue_node.connect("meta_clicked", callable)
+	if get_channels().is_empty():
+		printerr("Chat_Box: '", self.name, "' has no channels assigned.")
+	#Ł Follow the channels' visibility:
+	#? A hidden box hides its channels.
+	for channel in get_channels():
+		if not channel.visibility_changed.is_connected(_update_visibility):
+			channel.visibility_changed.connect(_update_visibility)
+	_update_visibility()
 
 
-#* Hook function, called when writing begins:
-func x_write_begun():
-	pass
+#* Show while any channel is visible:
+func _update_visibility() -> void:
+	var any_visible := false
+	for channel in get_channels():
+		if channel.visible:
+			any_visible = true
+	self.visible = any_visible
 
 
-#* Hook function, called when writing finishes:
-func x_write_finished():
-	pass
+#* The assigned Chat_Channels, without empty slots:
+func get_channels() -> Array:
+	var assigned: Array = []
+	for channel in channels:
+		if is_instance_valid(channel):
+			assigned.append(channel)
+	return assigned

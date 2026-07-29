@@ -1,0 +1,76 @@
+[gd_scene format=3 uid="uid://dawbshva1i1hm"]
+
+[ext_resource type="Script" uid="uid://c0w7800i7lmmf" path="res://Candy_DE/Scripts/UI_Elements/Chat_Line.gd" id="1_aqmr2"]
+
+[node name="ChatLine" type="MarginContainer" unique_id=80024904 node_paths=PackedStringArray("text_node", "portrait_left", "portrait_right", "speaker_left", "speaker_right")]
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 2
+script = ExtResource("1_aqmr2")
+text_node = NodePath("Row/Body/Text")
+portrait_left = NodePath("Row/PortraitLeft")
+portrait_right = NodePath("Row/PortraitRight")
+speaker_left = NodePath("Row/Body/Names/SpeakerLeft")
+speaker_right = NodePath("Row/Body/Names/SpeakerRight")
+
+[node name="Row" type="HBoxContainer" parent="." unique_id=2040819961]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="PortraitLeft" type="TextureRect" parent="Row" unique_id=1539515491]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_vertical = 0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Body" type="VBoxContainer" parent="Row" unique_id=2060630907]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="Names" type="HBoxContainer" parent="Row/Body" unique_id=484012093]
+layout_mode = 2
+
+[node name="SpeakerLeft" type="RichTextLabel" parent="Row/Body/Names" unique_id=1069480881]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 1
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
+meta_underlined = false
+hint_underlined = false
+
+[node name="SpeakerRight" type="RichTextLabel" parent="Row/Body/Names" unique_id=1658529430]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 1
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
+horizontal_alignment = 2
+meta_underlined = false
+hint_underlined = false
+
+[node name="Text" type="RichTextLabel" parent="Row/Body" unique_id=1703666250]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 1
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+meta_underlined = false
+hint_underlined = false
+
+[node name="PortraitRight" type="TextureRect" parent="Row" unique_id=1082759295]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_vertical = 0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5

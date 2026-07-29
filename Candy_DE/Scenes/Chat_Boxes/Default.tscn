@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://bvvtjxi3pp2n1"]
+
+[ext_resource type="Script" uid="uid://mbd3mbmyp5wu" path="res://Candy_DE/Scripts/UI_Elements/Chat_Box.gd" id="1_dkodd"]
+[ext_resource type="PackedScene" path="res://Candy_DE/Scenes/Chat_Channels/Default.tscn" id="2_olves"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cf6oj"]
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0.1, 0.1, 0.1, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[node name="ChatBox" type="PanelContainer" unique_id=1777920789 node_paths=PackedStringArray("channels")]
+offset_left = 8.0
+offset_top = 816.0
+offset_right = 456.0
+offset_bottom = 1328.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_cf6oj")
+script = ExtResource("1_dkodd")
+channels = [NodePath("Channel")]
+
+[node name="Channel" parent="." unique_id=1704674413 instance=ExtResource("2_olves")]
+layout_mode = 2

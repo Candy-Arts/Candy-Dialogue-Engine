@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bnsai0jsr15aa"]
 
-[ext_resource type="Script" uid="uid://becjm463ecgvn" path="res://Candy_DE/Scripts/UI_Elements/Choice_Button.gd" id="1_57ulw"]
+[ext_resource type="Script" uid="uid://cknxjych1yweu" path="res://Candy_DE/Scripts/UI_Elements/Choice_Button.gd" id="1_57ulw"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0w7e7"]
 content_margin_left = 0.0

@@ -1,10 +1,8 @@
 [gd_scene format=3 uid="uid://da7rpjjud3ps7"]
 
-[ext_resource type="Script" uid="uid://n0ffs72120e4" path="res://Candy_DE/Scripts/Actor_Nodes/Speech_Bubble_2D.gd" id="1_edayh"]
-[ext_resource type="Texture2D" uid="uid://bhkr0a80wckto" path="res://Candy_DE/UI Resources/SpeechBubble.png" id="2_2ai2r"]
-
-[sub_resource type="ViewportTexture" id="ViewportTexture_mf4pr"]
-viewport_path = NodePath("SubViewport")
+[ext_resource type="Script" uid="uid://dshc1jhla2hjb" path="res://Candy_DE/Scripts/Actor_Nodes/Speech_Bubble_2D.gd" id="1_edayh"]
+[ext_resource type="Texture2D" uid="uid://xnjci21taq06" path="res://Candy_DE/UI Resources/SpeechBubble.png" id="2_2ai2r"]
+[ext_resource type="Script" uid="uid://diacib42euqqq" path="res://Candy_DE/Scripts/Media_Players/Voice_Player_2D.gd" id="voice_player_2d"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_7qej5"]
 texture = ExtResource("2_2ai2r")
@@ -13,15 +11,16 @@ texture_margin_top = 5.0
 texture_margin_right = 5.0
 texture_margin_bottom = 5.0
 
-[node name="SpeechBubble" type="Node2D" unique_id=2018874273 node_paths=PackedStringArray("label", "sprite", "viewport")]
+[sub_resource type="ViewportTexture" id="ViewportTexture_mf4pr"]
+viewport_path = NodePath("SubViewport")
+
+[node name="SpeechBubble" type="Node2D" unique_id=2018874273 node_paths=PackedStringArray("voice_node", "label", "sprite", "viewport")]
 visible = false
 script = ExtResource("1_edayh")
 label = NodePath("SubViewport/Text")
 sprite = NodePath("Sprite2D")
 viewport = NodePath("SubViewport")
-
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=865701984]
-texture = SubResource("ViewportTexture_mf4pr")
+voice_node = NodePath("VoicePlayer")
 
 [node name="SubViewport" type="SubViewport" parent="." unique_id=781210603]
 disable_3d = true
@@ -40,3 +39,9 @@ fit_content = true
 scroll_active = false
 meta_underlined = false
 hint_underlined = false
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=865701984]
+texture = SubResource("ViewportTexture_mf4pr")
+
+[node name="VoicePlayer" type="AudioStreamPlayer2D" parent="."]
+script = ExtResource("voice_player_2d")

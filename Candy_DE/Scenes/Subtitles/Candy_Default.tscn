@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://dcvdt1vbsawug"]
 
-[ext_resource type="Script" uid="uid://b0l67r4wrhknl" path="res://Candy_DE/Scripts/UI_Elements/Subtitles.gd" id="1_hwr8m"]
+[ext_resource type="Script" uid="uid://cotsrwdstpvyk" path="res://Candy_DE/Scripts/UI_Elements/Subtitles_UI.gd" id="1_hwr8m"]
+[ext_resource type="Script" uid="uid://brm6gtjnmmifp" path="res://Candy_DE/Scripts/Media_Players/Voice_Player.gd" id="2_sbcd2"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wvo6s"]
 content_margin_left = 4.0
@@ -8,7 +9,7 @@ content_margin_top = 2.0
 content_margin_right = 4.0
 content_margin_bottom = 2.0
 
-[node name="Subtitles" type="PanelContainer" unique_id=2003436377 node_paths=PackedStringArray("dialogue_node")]
+[node name="Subtitles" type="PanelContainer" unique_id=2003436377 node_paths=PackedStringArray("dialogue_node", "voice_node")]
 visible = false
 z_index = 100
 offset_left = 576.0
@@ -17,6 +18,7 @@ offset_right = 1344.0
 offset_bottom = 1040.0
 script = ExtResource("1_hwr8m")
 dialogue_node = NodePath("Text")
+voice_node = NodePath("VoicePlayer")
 
 [node name="Text" type="RichTextLabel" parent="." unique_id=1469264407]
 layout_mode = 2
@@ -29,3 +31,6 @@ horizontal_alignment = 1
 vertical_alignment = 1
 meta_underlined = false
 hint_underlined = false
+
+[node name="VoicePlayer" type="AudioStreamPlayer" parent="." unique_id=771204832]
+script = ExtResource("2_sbcd2")

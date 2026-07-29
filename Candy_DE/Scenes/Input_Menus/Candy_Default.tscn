@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://chvve6hvjd0fn"]
 
-[ext_resource type="Script" uid="uid://4lmrr2nivgv5" path="res://Candy_DE/Scripts/UI_Elements/Input.gd" id="1_oho0r"]
+[ext_resource type="Script" uid="uid://dvwj545xv70co" path="res://Candy_DE/Scripts/UI_Elements/Input_UI/Input_Text.gd" id="1_oho0r"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ycgf0"]
 content_margin_left = 8.0
