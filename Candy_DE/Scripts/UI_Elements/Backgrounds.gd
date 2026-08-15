@@ -546,7 +546,7 @@ func clear_bg_nodes(layers: Array) -> void:
 			bg_node.stop()
 
 		#% Clean out tracking data:
-		var anim_id := "BG_%s" % layer_name
+		var anim_id = "BG_%s" % layer_name
 		if anim_id in caller.active_bg_animations:
 			caller.active_bg_animations.erase(anim_id)
 

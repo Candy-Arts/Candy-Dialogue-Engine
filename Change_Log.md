@@ -10,9 +10,29 @@
 (NEW)       - New feature was added.<br>
 (MISSING)   - Missing feature was added.
 
+
 -----
 
-## 1.1.3
+## 1.1.4 (Coming Soon)
+### Scripts
+#### Candy_Engine.gd:
+\_prepare\_expression():
+- [T] (CHANGE) Removed typing for var placeholder for compatibility with older Godot versions.
+
+decode\_variable\_name():
+- [U] (IMPROVE) The candy\_de.node\_symbol (default '$') should now be usable to refer to 'self' (before, only candy\_de.singleton\_symbol could do that)
+
+#### Backgrounds.gd:
+clear\_bg\_nodes():
+- [T] (CHANGE) Removed typing for var anim_id for compatibility with older Godot versions.
+
+#### Choice_Menu.gd:
+hide\_old\_menus():
+- [T] (FIX) Fixed 'For' loop not iterating through children.
+
+-----
+
+## 1.1.3 (Current)
 ### Scripts
 #### Candy_Engine.gd:
 commands():

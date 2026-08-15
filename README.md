@@ -1,5 +1,7 @@
 ![Candy Arts Logo](Logo.png)
 
+[Official Site](https://candy-arts.com) | [Discord](https://discord.gg/CZ9RZxzmNf) | [Youtube](https://www.youtube.com/@CandyArtsStudio/playlists) | [Documentation](https://github.com/Candy-Arts/Extras/tree/Main/Candy%20Dialogue%20Engine/Guides) | [Godot Asset Store](https://store.godotengine.org/publisher/candy-arts/) | [Gumroad](https://candyarts.gumroad.com/)
+
 # Candy Dialogue Engine
 **[Candy Dialogue Engine](https://candy-arts.com/index.php/candy-dialogue-engine) by [Candy Arts](https://candy-arts.com) is an extensive and powerful Dialogue System for Godot 4. More than that, it's also a Visual Novel Engine, Media Synchronizer, Cutscene Orchestrator, Narrative Manager, and Mod Support Solution.**
 
@@ -122,8 +124,6 @@ Importantly, Candy Dialogue Engine requires a lot of work to create and maintain
 ## Compatibility
 Candy Dialogue Engine is compatible with Godot 4.4+
 
-Godot 4.0 to 4.3 are currently not supported. We are looking into a fix.
-
 It should work with any operating system that Godot can compile for.
 
 ## Bugs and issues
@@ -135,4 +135,5 @@ We really don't expect security issues considering the nature of Candy Dialogue 
 We're looking forward to [user feedback](https://github.com/Candy-Arts/Candy-Arts/discussions/categories/candy-de-features) to help us improve Candy Dialogue Engine!
 
 We certainly don't know everything about Godot, or all the different ways game devs might want to use Candy Dialogue Engine, so please let us know if a particular feature, dialogue mode or command could help you.
+
 

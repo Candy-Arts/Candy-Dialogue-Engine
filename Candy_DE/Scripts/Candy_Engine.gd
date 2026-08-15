@@ -12645,7 +12645,7 @@ func _prepare_expression(expr: String) -> Dictionary:
 			prepped["resolved"] = false
 			value = null
 
-		var placeholder := "__cdr%d" % prepped["values"].size()
+		var placeholder = "__cdr%d" % prepped["values"].size()
 		token_map[token] = { "name": placeholder, "value": value }
 		prepped["names"].append(placeholder)
 		prepped["values"].append(value)
@@ -12791,7 +12791,7 @@ func decode_variable_name(ref: String) -> Dictionary:
 
 	#% Singleton and node - resolved from /root/, except £self:
 	else:
-		if symbol == candy_de.singleton_symbol and base_name == "self":
+		if base_name == "self":
 			result["base"] = self
 		else:
 			#% Strip '/root/' and standalone slashes:

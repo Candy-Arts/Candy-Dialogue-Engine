@@ -111,7 +111,7 @@ func x_initialization_finished():
 #% E.g. call it in x_initialization_finished().
 func hide_old_menus():
 	#% Iterate through all choice menus:
-	for child in get_node(caller.ui_elements_paths["choices_path"]):
+	for child in get_node(caller.ui_elements_paths["choices_path"]).get_children():
 		#% Skip self:
 		if child == self:
 			continue
