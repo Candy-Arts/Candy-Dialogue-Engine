@@ -338,9 +338,9 @@ func _word_matches(word: String, entry: Variant) -> bool:
 			else:
 				pattern += ch
 			i += 1
-		var regex := RegEx.new()
-		regex.compile(pattern + "$")
-		_entry_patterns[cache_key] = regex
+		var entry_regex := RegEx.new()
+		entry_regex.compile(pattern + "$")
+		_entry_patterns[cache_key] = entry_regex
 	return _entry_patterns[cache_key].search(word) != null
 
 

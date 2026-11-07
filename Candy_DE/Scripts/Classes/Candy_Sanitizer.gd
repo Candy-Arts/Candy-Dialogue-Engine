@@ -23,24 +23,24 @@ extends RefCounted
 
 
 #* Every sanitization, in order - each argument switches one:
-static func sanitize(text: String, text_variables: bool = true, text_events: bool = true, substitutions: bool = true,
-		bbcode: bool = true, references: bool = true, lexicon: bool = true, expressions: bool = true) -> String:
-	if text_variables:
+static func sanitize(text: String, escape_text_variables: bool = true, escape_text_events: bool = true, escape_substitutions: bool = true,
+		escape_bbcode: bool = true, escape_references: bool = true, escape_lexicon: bool = true, escape_expressions: bool = true) -> String:
+	if escape_text_variables:
 		text = CandySanitizer.text_variables(text)
-	if text_events:
+	if escape_text_events:
 		text = CandySanitizer.text_events(text)
-	if substitutions:
+	if escape_substitutions:
 		text = CandySanitizer.substitutions(text)
-	if bbcode:
+	if escape_bbcode:
 		text = CandySanitizer.bbcode(text)
 	#? Before lexicon(): its start symbol would hide a leading reference symbol.
-	if references:
+	if escape_references:
 		text = CandySanitizer.references(text)
 	#? Before expressions(): an escaped value doesn't start with the expression symbol, so it's never
 	#? evaluated, and a doubled symbol inside the escape would be displayed doubled.
-	if lexicon:
+	if escape_lexicon:
 		text = CandySanitizer.lexicon(text)
-	if expressions:
+	if escape_expressions:
 		text = CandySanitizer.expressions(text)
 	return text
 
@@ -137,12 +137,12 @@ static func literal_allows(rule: Variant, allowed_name: String) -> bool:
 
 #* Add a variable to literal_variables, unless an entry already names it the same way:
 #? allowed: the syntax its value may keep (LITERAL_ALLOWED). Empty: a plain entry, everything escaped.
-static func add_literal_variable(reference: String, allowed: Array = []) -> void:
+static func add_literal_variable(variable_reference: String, allowed: Array = []) -> void:
 	var listed = candy_de.get("literal_variables")
 	if not listed is Array:
-		printerr("Candy DE: literal_variables (Data_Tables/Literal_Variables.gd) isn't an Array → ", reference, " isn't listed.")
+		printerr("Candy DE: literal_variables (Data_Tables/Literal_Variables.gd) isn't an Array → ", variable_reference, " isn't listed.")
 		return
-	var name_text := reference.strip_edges()
+	var name_text := variable_reference.strip_edges()
 	for entry in listed:
 		var entry_name = entry
 		if entry is Array and not entry.is_empty():

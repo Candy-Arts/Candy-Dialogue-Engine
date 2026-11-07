@@ -230,21 +230,21 @@ func _locate_literal_slots(source: Node, caller: Node) -> void:
 	var saved_failed := last_failed
 	var saved_read = _last_read_rule
 	for rule in rules:
-		var reference := ""
+		var rule_reference := ""
 		var allowed: Array = []
 		if rule is String or rule is StringName:
-			reference = str(rule)
+			rule_reference = str(rule)
 		elif rule is Array and rule.size() == 2 and (rule[0] is String or rule[0] is StringName) and rule[1] is Array:
-			reference = str(rule[0])
+			rule_reference = str(rule[0])
 			allowed = rule[1]
 		else:
 			continue		#/ Reported by the add-on (Candy DE: CandySanitizer.check_literal_variables())
 
-		reference = reference.strip_edges()
+		rule_reference = rule_reference.strip_edges()
 		var symbol := _current_symbol()
-		if symbol != "" and reference.begins_with(symbol):
-			reference = reference.substr(symbol.length())
-		var parsed := parse_candy_ref(source, caller, reference)
+		if symbol != "" and rule_reference.begins_with(symbol):
+			rule_reference = rule_reference.substr(symbol.length())
+		var parsed := parse_candy_ref(source, caller, rule_reference)
 		if not parsed["ok"]:
 			_report_literal_rule(str(rule), parsed["error"])
 			continue
